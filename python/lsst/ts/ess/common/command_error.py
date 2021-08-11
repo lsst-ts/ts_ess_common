@@ -1,6 +1,6 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_sensors.
 #
-# Developed for the Vera Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,18 +19,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Sphinx configuration file for an LSST stack package.
+__all__ = ["CommandError"]
 
-This configuration only affects single-package Sphinx documentation builds.
-For more information, see:
-https://developer.lsst.io/stack/building-single-package-docs.html
-"""
+from .constants import ResponseCode
 
-from documenteer.conf.pipelinespkg import *  # noqa
 
-project = "ts_ess_common"
-html_theme_options["logotext"] = project  # type: ignore # noqa
-html_title = project
-html_short_title = project
+class CommandError(Exception):
+    """Exception raised if a command fails.
 
-intersphinx_mapping["ts_tcpip"] = ("https://ts-tcpip.lsst.io", None)  # type: ignore # noqa
+    Parameters
+    ----------
+    msg : `str`
+        Error message
+    response_code : `ResponseCode`
+        Response code.
+    """
+
+    def __init__(self, msg: str, response_code: ResponseCode) -> None:
+        super().__init__(msg)
+        self.response_code = response_code
