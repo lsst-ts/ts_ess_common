@@ -1,12 +1,28 @@
-###################################
-ts_ess_common documentation preview
-###################################
+.. py:currentmodule:: lsst.ts.ess.common
 
-.. This page is for local development only. It isn't published to pipelines.lsst.io.
+.. _lsst.ts.ess.common:
 
-.. Link the index pages of package and module documentation directions (listed in manifest.yaml).
+##################
+lsst.ts.ess.common
+##################
+
+This package contains common code shared by all Environmental Sensor Suite (ESS) python packages.
+
+Contributing
+============
+
+``lsst.ts.ess.common`` is developed at https://github.com/lsst-ts/ts_ess_common.
+You can find Jira issues for this module using `labels=ts_ess_common <https://jira.lsstcorp.org/issues/?jql=project%3DDM%20AND%20labels%3Dts_ess_common>`_.
+
+Python API reference
+====================
+
+.. automodapi:: lsst.ts.ess.common
+   :no-main-docstr:
+
+Version History
+===============
 
 .. toctree::
-   :maxdepth: 1
-
-   lsst.ts.ess.common/index
+    version_history
+    :maxdepth: 1
