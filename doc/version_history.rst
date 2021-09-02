@@ -6,6 +6,15 @@
 Version History
 ###############
 
+v0.1.1
+======
+
+* Made sure that the EssController and EssCsc jobs get triggered.
+
+Requires:
+
+* ts_tcpip 0.3.2
+
 v0.1.0
 ======
 
