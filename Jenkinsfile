@@ -71,6 +71,16 @@ pipeline {
                 }
             }
         }
+        stage("Trigger the EssController job"){
+            steps {
+                build job: 'LSST_Telescope-and-Site/ts_ess_controller', wait: false
+            }
+        }
+        stage("Trigger the EssCsc job"){
+            steps {
+                build job: 'LSST_Telescope-and-Site/ts_ess_csc', wait: false
+            }
+        }
     }
     post {
         always {
