@@ -27,7 +27,7 @@ import typing
 
 from . import Key, MockTemperatureConfig, ResponseCode
 from .abstract_command_handler import AbstractCommandHandler
-from lsst.ts import salobj
+from lsst.ts import utils
 
 
 class MockCommandHandler(AbstractCommandHandler):
@@ -84,7 +84,7 @@ class MockCommandHandler(AbstractCommandHandler):
             # Mock the time needed to output telemetry.
             await asyncio.sleep(1)
 
-            curr_tai: float = salobj.current_tai()
+            curr_tai: float = utils.current_tai()
             response: int = ResponseCode.OK
             channel_values = [
                 float(

@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.2.0
+======
+
+* Replaced the use of ts_salobj functions with ts_utils functions.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
 v0.1.1
 ======
 
@@ -13,7 +23,7 @@ v0.1.1
 
 Requires:
 
-* ts_tcpip 0.3.2
+* ts_tcpip 0.3
 
 v0.1.0
 ======
@@ -26,4 +36,4 @@ First release of the Environmental Sensors Suite common code package.
 
 Requires:
 
-* ts_tcpip 0.3.2
+* ts_tcpip 0.3
