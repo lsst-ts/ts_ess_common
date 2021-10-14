@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.3.0
+======
+
+* Moved all device reply validating code from ts.ess.controller to ts.ess.common.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
 v0.2.0
 ======
 
