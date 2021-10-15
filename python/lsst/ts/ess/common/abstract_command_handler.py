@@ -29,7 +29,8 @@ import jsonschema
 
 from .command_error import CommandError
 from .config_schema import CONFIG_SCHEMA
-from .constants import Command, Key, ResponseCode
+from .constants import Command, Key, ResponseCode, SensorType
+from .sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor, WindSensor
 
 
 class AbstractCommandHandler(ABC):
@@ -203,3 +204,50 @@ class AbstractCommandHandler(ABC):
     async def disconnect_devices(self) -> None:
         """Loop over the configuration and start all devices."""
         raise NotImplementedError
+
+    def get_sensor(
+        self, device_configuration: typing.Dict[str, typing.Any]
+    ) -> BaseSensor:
+        """Get the sensor to connect to by using the specified configuration.
+
+        Parameters
+        ----------
+        device_configuration: `dict`
+            A dict representing the device to connect to. The format of the
+            dict follows the configuration of the ts_ess_csc project.
+
+        Returns
+        -------
+        sensor: `BaseSensor`
+            The sensor to connect to.
+
+        Raises
+        ------
+        RuntimeError
+            In case an incorrect configuration has been loaded.
+        """
+        if device_configuration[Key.SENSOR_TYPE] == SensorType.HX85A:
+            sensor: BaseSensor = Hx85aSensor(
+                log=self.log,
+            )
+            return sensor
+        elif device_configuration[Key.SENSOR_TYPE] == SensorType.HX85BA:
+            sensor = Hx85baSensor(
+                log=self.log,
+            )
+            return sensor
+        elif device_configuration[Key.SENSOR_TYPE] == SensorType.TEMPERATURE:
+            sensor = TemperatureSensor(
+                log=self.log,
+                num_channels=device_configuration[Key.CHANNELS],
+            )
+            return sensor
+        elif device_configuration[Key.SENSOR_TYPE] == SensorType.WIND:
+            sensor = WindSensor(
+                log=self.log,
+            )
+            return sensor
+        raise RuntimeError(
+            f"Could not get a {device_configuration[Key.SENSOR_TYPE]!r} sensor. "
+            "Please check the configuration."
+        )
