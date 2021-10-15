@@ -21,13 +21,9 @@
 
 __all__ = ["MockCommandHandler"]
 
-import asyncio
-import random
 import typing
 
-from . import Key, MockTemperatureConfig, ResponseCode
 from .abstract_command_handler import AbstractCommandHandler
-from lsst.ts import utils
 
 
 class MockCommandHandler(AbstractCommandHandler):
@@ -61,45 +57,5 @@ class MockCommandHandler(AbstractCommandHandler):
 
     """
 
-    def __init__(
-        self, callback: typing.Callable, simulation_mode: int, name: str
-    ) -> None:
+    def __init__(self, callback: typing.Callable, simulation_mode: int) -> None:
         super().__init__(callback=callback, simulation_mode=simulation_mode)
-        self.name = name
-        self._telemetry_loop: typing.Optional[asyncio.Future] = None
-
-    async def connect_devices(self) -> None:
-        """Mock starting devices."""
-        self._telemetry_loop = asyncio.create_task(self._run())
-
-    async def disconnect_devices(self) -> None:
-        """Mock stopping devices."""
-        assert self._telemetry_loop is not None
-        self._telemetry_loop.cancel()
-        self._telemetry_loop = None
-
-    async def _run(self) -> None:
-        assert self._telemetry_loop is not None
-        while not self._telemetry_loop.done():
-            # Mock the time needed to output telemetry.
-            await asyncio.sleep(1)
-
-            curr_tai: float = utils.current_tai()
-            response: int = ResponseCode.OK
-            channel_values = [
-                float(
-                    f"{random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max):09.4f}"
-                )
-                for i in range(0, 4)
-            ]
-            output: typing.List[typing.Union[str, float, int]] = [
-                self.name,
-                curr_tai,
-                response,
-                *channel_values,
-            ]
-            reply = {
-                Key.TELEMETRY: output,
-            }
-            self.log.info(f"Returning {reply}")
-            await self._callback(reply)

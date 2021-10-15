@@ -30,6 +30,7 @@ import jsonschema
 from .command_error import CommandError
 from .config_schema import CONFIG_SCHEMA
 from .constants import Command, Key, ResponseCode, SensorType
+from .device import BaseDevice, MockDevice
 from .sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor, WindSensor
 
 
@@ -78,6 +79,8 @@ class AbstractCommandHandler(ABC):
         self._callback = callback
         self._configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
         self._started = False
+
+        self._devices: typing.List[BaseDevice] = []
 
         self.dispatch_dict: typing.Dict[str, typing.Callable] = {
             Command.CONFIGURE: self.configure,
@@ -174,13 +177,19 @@ class AbstractCommandHandler(ABC):
                 msg="No configuration has been received yet. Ignoring start command.",
                 response_code=ResponseCode.NOT_CONFIGURED,
             )
-        await self.connect_devices()
-        self._started = True
 
-    @abstractmethod
-    async def connect_devices(self) -> None:
-        """Loop over the configuration and start all devices."""
-        raise NotImplementedError
+        device_configurations = self._configuration[Key.DEVICES]
+        self._devices = []
+        for device_configuration in device_configurations:
+            device: BaseDevice = self.get_device(device_configuration)
+            self._devices.append(device)
+            self.log.debug(
+                f"Opening {device_configuration[Key.DEVICE_TYPE]} "
+                f"device with name {device_configuration[Key.NAME]}"
+            )
+            await device.open()
+
+        self._started = True
 
     async def stop_sending_telemetry(self) -> None:
         """Stop reading the sensor data.
@@ -200,10 +209,52 @@ class AbstractCommandHandler(ABC):
         await self.disconnect_devices()
         self._started = False
 
-    @abstractmethod
     async def disconnect_devices(self) -> None:
-        """Loop over the configuration and start all devices."""
-        raise NotImplementedError
+        """Mock stopping devices."""
+        while self._devices:
+            device: BaseDevice = self._devices.pop(-1)
+            self.log.debug(f"Closing {device} device with name {device.name}")
+            await device.close()
+
+    def get_device(
+        self, device_configuration: typing.Dict[str, typing.Any]
+    ) -> BaseDevice:
+        """Get the device to connect to by using the specified configuration.
+
+        Parameters
+        ----------
+        device_configuration: `dict`
+            A dict representing the device to connect to. The format of the
+            dict follows the configuration of the ts_ess_csc project.
+
+        Returns
+        -------
+        device: `common.device.BaseDevice`
+            The device to connect to.
+
+        Raises
+        ------
+        RuntimeError
+            In case an incorrect configuration has been loaded.
+
+        Notes
+        -----
+        In this case a MockDevice always is returned. Sub-classes should
+        override this method to add support for other devices.
+        """
+        sensor = self.get_sensor(device_configuration=device_configuration)
+        self.log.debug(
+            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}"
+        )
+        device: BaseDevice = MockDevice(
+            name=device_configuration[Key.NAME],
+            device_id=device_configuration[Key.FTDI_ID],
+            sensor=sensor,
+            callback_func=self._callback,
+            log=self.log,
+            disconnected_channel=None,
+        )
+        return device
 
     def get_sensor(
         self, device_configuration: typing.Dict[str, typing.Any]
