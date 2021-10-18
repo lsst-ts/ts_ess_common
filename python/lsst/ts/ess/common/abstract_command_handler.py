@@ -206,15 +206,13 @@ class AbstractCommandHandler(ABC):
                 msg="Not started yet. Ignoring stop command.",
                 response_code=ResponseCode.NOT_STARTED,
             )
-        await self.disconnect_devices()
-        self._started = False
 
-    async def disconnect_devices(self) -> None:
-        """Mock stopping devices."""
         while self._devices:
             device: BaseDevice = self._devices.pop(-1)
             self.log.debug(f"Closing {device} device with name {device.name}")
             await device.close()
+
+        self._started = False
 
     def get_device(
         self, device_configuration: typing.Dict[str, typing.Any]

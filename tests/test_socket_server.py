@@ -38,9 +38,7 @@ TIMEOUT = 5
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        self.ctrl = None
         self.writer = None
-        self.mock_ctrl = None
         self.srv = common.SocketServer(
             name="EssSensorsServer", host="0.0.0.0", port=0, simulation_mode=1
         )
