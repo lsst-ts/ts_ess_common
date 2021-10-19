@@ -32,8 +32,8 @@ logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
 )
 
+# Standard timeout in seconds.
 TIMEOUT = 5
-"""Standard timeout in seconds."""
 
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
@@ -138,15 +138,15 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         # Make sure that the mock sensor outputs data for a disconnected
         # channel.
-        self.srv.command_handler._devices[
+        self.srv.command_handler.devices[
             0
-        ]._disconnected_channel = md_props.disconnected_channel
+        ].disconnected_channel = md_props.disconnected_channel
 
         # Make sure that the mock sensor outputs truncated data.
-        self.srv.command_handler._devices[0]._missed_channels = md_props.missed_channels
+        self.srv.command_handler.devices[0].missed_channels = md_props.missed_channels
 
         # Make sure that the mock sensor is in error state.
-        self.srv.command_handler._devices[0]._in_error_state = md_props.in_error_state
+        self.srv.command_handler.devices[0].in_error_state = md_props.in_error_state
 
         self.reply = await self.read()
         reply_to_check = self.reply[common.Key.TELEMETRY]

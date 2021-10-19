@@ -108,7 +108,20 @@ class WindSensor(BaseSensor):
         )
 
     async def extract_telemetry(self, line: str) -> List[float]:
-        """Extract the wind telemetry from a line of Sensor data."""
+        """Extract the wind telemetry from a line of Sensor data.
+
+        Parameters
+        ----------
+        line: `str`
+            A line of comma separated telemetry as described in the doc string
+            of this class.
+
+        Returns
+        -------
+        `list`
+            A list of 2 floats containing the telemetry as measured by the
+            sensor: the wind speed and directio.
+        """
         m = re.search(self.telemetry_pattern, line)
         if m:
             direction_str = m.group("direction") if m.group("direction") else ""

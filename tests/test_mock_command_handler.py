@@ -80,44 +80,44 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         response = self.responses.pop()
         assert response[common.Key.RESPONSE] == response_code
 
-    async def test_get_sensor(self) -> None:
-        sensor: common.sensor.BaseSensor = self.command_handler.get_sensor(
+    async def test_create_sensor(self) -> None:
+        sensor: common.sensor.BaseSensor = self.command_handler.create_sensor(
             device_configuration=self.device_config_01.as_dict()
         )
         assert isinstance(sensor, common.sensor.TemperatureSensor)
 
-        sensor = self.command_handler.get_sensor(
+        sensor = self.command_handler.create_sensor(
             device_configuration=self.device_config_02.as_dict()
         )
         assert isinstance(sensor, common.sensor.Hx85aSensor)
 
-        sensor = self.command_handler.get_sensor(
+        sensor = self.command_handler.create_sensor(
             device_configuration=self.device_config_03.as_dict()
         )
         assert isinstance(sensor, common.sensor.Hx85baSensor)
 
-    async def test_get_device(self) -> None:
-        device: common.device.BaseDevice = self.command_handler.get_device(
+    async def test_create_device(self) -> None:
+        device: common.device.BaseDevice = self.command_handler.create_device(
             device_configuration=self.device_config_01.as_dict()
         )
         assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device._sensor, common.sensor.TemperatureSensor)
+        assert isinstance(device.sensor, common.sensor.TemperatureSensor)
 
-        device = self.command_handler.get_device(
+        device = self.command_handler.create_device(
             device_configuration=self.device_config_02.as_dict()
         )
         assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device._sensor, common.sensor.Hx85aSensor)
+        assert isinstance(device.sensor, common.sensor.Hx85aSensor)
 
-        device = self.command_handler.get_device(
+        device = self.command_handler.create_device(
             device_configuration=self.device_config_03.as_dict()
         )
         assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device._sensor, common.sensor.Hx85baSensor)
+        assert isinstance(device.sensor, common.sensor.Hx85baSensor)
 
     async def test_configure(self) -> None:
         await self.command_handler.configure(configuration=self.configuration)
-        self.assertDictEqual(self.configuration, self.command_handler._configuration)
+        self.assertDictEqual(self.configuration, self.command_handler.configuration)
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
         with self.assertRaises(common.CommandError) as cm:
@@ -142,7 +142,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             command=common.Command.CONFIGURE, configuration=self.configuration
         )
         self.assert_response(common.ResponseCode.OK)
-        self.assertDictEqual(self.configuration, self.command_handler._configuration)
+        self.assertDictEqual(self.configuration, self.command_handler.configuration)
         await self.command_handler.handle_command(command=common.Command.START)
         self.assert_response(common.ResponseCode.OK)
         assert self.command_handler._started

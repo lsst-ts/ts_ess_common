@@ -53,10 +53,15 @@ class MockDevice(BaseDevice):
     log: `logging.Logger`
         The logger to create a child logger for.
     disconnected_channel: `int`, optional
-        The channel number for which this class will mock a disconnection.
+        In the specific case of a temperature sensor, one or more channels
+        can be physically disconnected which will make the sensor output a
+        specific value for those channels. disconnected_channel makes the
+        MockDevice mock one disconnected channel.
     missed_channels: `int`, optional
-        The number of channels to not output to mock connecting to the sensor
-        in the middle of receiving data from it.
+        When a connection to the sensor is established mid output, the
+        telemetry for one or more channels is not received by the code.
+        missed_channels mocks the number of channels that are missed because
+        of that.
     in_error_state: `bool`, optional
         The sensor produces an error (True) or not (False) when being read.
     """
@@ -79,9 +84,25 @@ class MockDevice(BaseDevice):
             callback_func=callback_func,
             log=log,
         )
-        self._disconnected_channel = disconnected_channel
-        self._missed_channels = missed_channels
-        self._in_error_state = in_error_state
+
+        if (
+            disconnected_channel is None
+            or 0 <= disconnected_channel < self.sensor.num_channels
+        ):
+            self.disconnected_channel = disconnected_channel
+        else:
+            raise ValueError(
+                f"disconnected_channel={disconnected_channel!r} should have a "
+                f"value between 0 and {self.sensor.num_channels} or be None."
+            )
+        if 0 <= missed_channels <= self.sensor.num_channels:
+            self.missed_channels = missed_channels
+        else:
+            raise ValueError(
+                f"missed_channels={missed_channels!r} should have a value "
+                f"between 0 and {self.sensor.num_channels}."
+            )
+        self.in_error_state = in_error_state
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
@@ -100,17 +121,17 @@ class MockDevice(BaseDevice):
         s: `str`
             A string representing a temperature.
         """
-        if i < self._missed_channels:
+        if i < self.missed_channels:
             return ""
 
         prefix = f"C{i:02d}="
         value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
-        if i == self._disconnected_channel:
+        if i == self.disconnected_channel:
             value = float(DISCONNECTED_VALUE)
         return f"{prefix}{value:09.4f}"
 
     def _format_hbx85_humidity(self, index: int) -> str:
-        if index < self._missed_channels:
+        if index < self.missed_channels:
             return ""
         else:
             prefix = "%RH="
@@ -118,7 +139,7 @@ class MockDevice(BaseDevice):
             return f"{prefix}{value:5.2f}"
 
     def _format_hbx85_temperature(self, index: int) -> str:
-        if index < self._missed_channels:
+        if index < self.missed_channels:
             return ""
         else:
             prefix = "AT°C="
@@ -126,7 +147,7 @@ class MockDevice(BaseDevice):
             return f"{prefix}{value:6.2f}"
 
     def _format_hbx85_dew_point(self, index: int) -> str:
-        if index < self._missed_channels:
+        if index < self.missed_channels:
             return ""
         else:
             prefix = "DP°C="
@@ -134,7 +155,7 @@ class MockDevice(BaseDevice):
             return f"{prefix}{value:5.2f}"
 
     def _format_hbx85_air_pressure(self, index: int) -> str:
-        if index < self._missed_channels:
+        if index < self.missed_channels:
             return ""
         else:
             prefix = "Pmb="
@@ -155,21 +176,21 @@ class MockDevice(BaseDevice):
         await asyncio.sleep(1)
 
         # Mock a sensor that produces an error when being read.
-        if self._in_error_state:
-            return f"{self._sensor.terminator}"
+        if self.in_error_state:
+            return f"{self.sensor.terminator}"
 
         channel_strs = []
-        if isinstance(self._sensor, TemperatureSensor):
+        if isinstance(self.sensor, TemperatureSensor):
             channel_strs = [
-                self._format_temperature(i) for i in range(0, self._sensor.num_channels)
+                self._format_temperature(i) for i in range(0, self.sensor.num_channels)
             ]
-        elif isinstance(self._sensor, Hx85aSensor):
+        elif isinstance(self.sensor, Hx85aSensor):
             channel_strs = [
                 self._format_hbx85_humidity(index=0),
                 self._format_hbx85_temperature(index=1),
                 self._format_hbx85_dew_point(index=2),
             ]
-        elif isinstance(self._sensor, Hx85baSensor):
+        elif isinstance(self.sensor, Hx85baSensor):
             channel_strs = [
                 self._format_hbx85_humidity(index=0),
                 self._format_hbx85_temperature(index=1),
@@ -178,10 +199,10 @@ class MockDevice(BaseDevice):
 
         self.log.debug(f"channel_strs = {channel_strs}")
 
-        # Reset self._missed_channels because truncated data only happens when
+        # Reset self.missed_channels because truncated data only happens when
         # data is being output while connecting.
-        self._missed_channels = 0
-        return self._sensor.delimiter.join(channel_strs) + self._sensor.terminator
+        self.missed_channels = 0
+        return self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
 
     async def basic_close(self) -> None:
         """Close the Sensor Device."""

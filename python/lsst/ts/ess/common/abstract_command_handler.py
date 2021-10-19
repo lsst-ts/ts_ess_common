@@ -30,7 +30,7 @@ import jsonschema
 from .command_error import CommandError
 from .config_schema import CONFIG_SCHEMA
 from .constants import Command, Key, ResponseCode, SensorType
-from .device import BaseDevice, MockDevice
+from .device import BaseDevice
 from .sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor, WindSensor
 
 
@@ -65,7 +65,6 @@ class AbstractCommandHandler(ABC):
 
     valid_simulation_modes = (0, 1)
 
-    @abstractmethod
     def __init__(self, callback: typing.Callable, simulation_mode: int) -> None:
         self.log = logging.getLogger(type(self).__name__)
         if simulation_mode not in self.valid_simulation_modes:
@@ -77,10 +76,10 @@ class AbstractCommandHandler(ABC):
         self.simulation_mode = simulation_mode
 
         self._callback = callback
-        self._configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
+        self.configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
         self._started = False
 
-        self._devices: typing.List[BaseDevice] = []
+        self.devices: typing.List[BaseDevice] = []
 
         self.dispatch_dict: typing.Dict[str, typing.Callable] = {
             Command.CONFIGURE: self.configure,
@@ -160,7 +159,7 @@ class AbstractCommandHandler(ABC):
             )
         self._validate_configuration(configuration=configuration)
 
-        self._configuration = configuration
+        self.configuration = configuration
 
     async def start_sending_telemetry(self) -> None:
         """Connect the sensors and start reading the sensor data.
@@ -172,17 +171,17 @@ class AbstractCommandHandler(ABC):
             command handler was not configured yet.
         """
         self.log.info("start_sending_telemetry")
-        if not self._configuration:
+        if not self.configuration:
             raise CommandError(
                 msg="No configuration has been received yet. Ignoring start command.",
                 response_code=ResponseCode.NOT_CONFIGURED,
             )
 
-        device_configurations = self._configuration[Key.DEVICES]
-        self._devices = []
+        device_configurations = self.configuration[Key.DEVICES]
+        self.devices = []
         for device_configuration in device_configurations:
-            device: BaseDevice = self.get_device(device_configuration)
-            self._devices.append(device)
+            device: BaseDevice = self.create_device(device_configuration)
+            self.devices.append(device)
             self.log.debug(
                 f"Opening {device_configuration[Key.DEVICE_TYPE]} "
                 f"device with name {device_configuration[Key.NAME]}"
@@ -207,17 +206,19 @@ class AbstractCommandHandler(ABC):
                 response_code=ResponseCode.NOT_STARTED,
             )
 
-        while self._devices:
-            device: BaseDevice = self._devices.pop(-1)
+        while self.devices:
+            device: BaseDevice = self.devices.pop(-1)
             self.log.debug(f"Closing {device} device with name {device.name}")
             await device.close()
 
         self._started = False
 
-    def get_device(
+    @abstractmethod
+    def create_device(
         self, device_configuration: typing.Dict[str, typing.Any]
     ) -> BaseDevice:
-        """Get the device to connect to by using the specified configuration.
+        """Create the device to connect to by using the specified
+        configuration.
 
         Parameters
         ----------
@@ -240,24 +241,13 @@ class AbstractCommandHandler(ABC):
         In this case a MockDevice always is returned. Sub-classes should
         override this method to add support for other devices.
         """
-        sensor = self.get_sensor(device_configuration=device_configuration)
-        self.log.debug(
-            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}"
-        )
-        device: BaseDevice = MockDevice(
-            name=device_configuration[Key.NAME],
-            device_id=device_configuration[Key.FTDI_ID],
-            sensor=sensor,
-            callback_func=self._callback,
-            log=self.log,
-            disconnected_channel=None,
-        )
-        return device
+        raise NotImplementedError
 
-    def get_sensor(
+    def create_sensor(
         self, device_configuration: typing.Dict[str, typing.Any]
     ) -> BaseSensor:
-        """Get the sensor to connect to by using the specified configuration.
+        """Create the sensor to connect to by using the specified
+        configuration.
 
         Parameters
         ----------

@@ -26,6 +26,7 @@ import math
 from typing import List
 
 from .base_sensor import BaseSensor
+from .utils import add_missing_telemetry
 
 """The number of output values for this sensor is 3."""
 NUM_VALUES = 3
@@ -64,7 +65,7 @@ class Hx85aSensor(BaseSensor):
         self,
         log: logging.Logger,
     ) -> None:
-        super().__init__(log=log)
+        super().__init__(log=log, num_channels=NUM_VALUES)
 
         # Override default value.
         self.terminator = "\n\r"
@@ -82,7 +83,10 @@ class Hx85aSensor(BaseSensor):
         Returns
         -------
         output: `list`
-            A list containing the telemetry as measured by the sensor.
+            A list of 3 floats containing the telemetry as measured by the
+            sensor: the relative humidity, the temperature and the dew point.
+            If a value is missing because the connection to the sensor is
+            established mid output, then the value gets replaced by math.nan.
         """
         self.log.debug("extract_telemetry")
         stripped_line: str = line.strip(self.terminator)
@@ -103,6 +107,5 @@ class Hx85aSensor(BaseSensor):
         # in the middle of outputting data. In that case, only a partial string
         # with the final channels will be received and the missing leading
         # channels need to be filled with NaN.
-        while len(output) < NUM_VALUES:
-            output.insert(0, math.nan)
+        output = add_missing_telemetry(output, NUM_VALUES)
         return output

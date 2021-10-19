@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
@@ -24,7 +26,8 @@ __all__ = ["BaseDevice"]
 from abc import ABC, abstractmethod
 import asyncio
 import logging
-from typing import Callable, List, Union
+import types
+import typing
 
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
@@ -54,25 +57,36 @@ class BaseDevice(ABC):
         The logger to create a child logger for.
     """
 
-    @abstractmethod
     def __init__(
         self,
         name: str,
         device_id: str,
         sensor: BaseSensor,
-        callback_func: Callable,
+        callback_func: typing.Callable,
         log: logging.Logger,
     ) -> None:
         self.name: str = name
-        self._device_id: str = device_id
-        self._sensor: BaseSensor = sensor
-        self._callback_func: Callable = callback_func
+        self.device_id: str = device_id
+        self.sensor: BaseSensor = sensor
+        self._callback_func: typing.Callable = callback_func
         self._telemetry_loop: asyncio.Future = utils.make_done_future()
         self.is_open = False
         self.log = log.getChild(type(self).__name__)
 
         # Support MockDevice fault state. To be used in unit tests only.
-        self._in_error_state: bool = False
+        self.in_error_state: bool = False
+
+    async def __aenter__(self) -> BaseDevice:
+        await self.open()
+        return self
+
+    async def __aexit__(
+        self,
+        type: typing.Optional[typing.Type[BaseException]],
+        value: typing.Optional[BaseException],
+        traceback: typing.Optional[types.TracebackType],
+    ) -> None:
+        await self.close()
 
     async def open(self) -> None:
         """Generic open function.
@@ -96,7 +110,7 @@ class BaseDevice(ABC):
     @abstractmethod
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
-        pass
+        raise NotImplementedError()
 
     async def _run(self) -> None:
         """Run sensor read loop.
@@ -106,27 +120,20 @@ class BaseDevice(ABC):
         self.log.debug("Starting sensor.")
         while not self._telemetry_loop.done():
             self.log.debug("Reading data.")
-            curr_tai: float = utils.current_tai()
-            response: int = ResponseCode.OK
+            curr_tai = utils.current_tai()
+            response = ResponseCode.OK
             try:
-                line: str = await self.readline()
+                line = await self.readline()
             except Exception:
                 self.log.exception(f"Exception reading device {self.name}. Continuing.")
-                line = f"{self._sensor.terminator}"
+                line = f"{self.sensor.terminator}"
                 response = ResponseCode.DEVICE_READ_ERROR
 
-            if self._in_error_state:
+            if self.in_error_state:
                 response = ResponseCode.DEVICE_READ_ERROR
 
-            sensor_telemetry: List[float] = await self._sensor.extract_telemetry(
-                line=line
-            )
-            output: List[Union[str, float, int]] = [
-                self.name,
-                curr_tai,
-                response,
-                *sensor_telemetry,
-            ]
+            sensor_telemetry = await self.sensor.extract_telemetry(line=line)
+            output = [self.name, curr_tai, response, *sensor_telemetry]
             reply = {
                 Key.TELEMETRY: output,
             }
@@ -144,7 +151,7 @@ class BaseDevice(ABC):
             one. May be returned empty if nothing was received or partial if
             the readline was started during device reception.
         """
-        pass
+        raise NotImplementedError()
 
     async def close(self) -> None:
         """Generic close function.
@@ -164,4 +171,4 @@ class BaseDevice(ABC):
     @abstractmethod
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
-        pass
+        raise NotImplementedError()

@@ -29,9 +29,9 @@ from typing import List
 class BaseSensor(ABC):
     """Base class for the different types of Sensors.
 
-    This class holds all common code for the sensors. Sensor specific code
-    (for instance temperature or wind sensor) needs to be implemented in a
-    sub-class.
+    This class holds all common code for the sensors. Sensor specific code,
+    which extracts the telemetry from the sensor data, needs to be implemented
+    in a sub-class.
 
     Parameters
     ----------
@@ -42,7 +42,6 @@ class BaseSensor(ABC):
         default value is 0 meaning that the number of channels is not variable.
     """
 
-    @abstractmethod
     def __init__(self, log: logging.Logger, num_channels: int = 0) -> None:
         self.num_channels: int = num_channels
         self.log = log.getChild(type(self).__name__)

@@ -49,7 +49,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         sensor = common.sensor.TemperatureSensor(
             num_channels=md_props.num_channels, log=self.log
         )
-        mock_device = common.device.MockDevice(
+        async with common.device.MockDevice(
             name=md_props.name,
             device_id="MockDevice",
             sensor=sensor,
@@ -58,33 +58,30 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
             disconnected_channel=md_props.disconnected_channel,
             missed_channels=md_props.missed_channels,
             in_error_state=md_props.in_error_state,
-        )
+        ):
 
-        await mock_device.open()
+            # First read of the telemetry to verify that handling of truncated
+            # data is performed correctly if the MockDevice is instructed to
+            # produce such data.
+            self.reply = None
+            while not self.reply:
+                await asyncio.sleep(0.1)
+            reply_to_check = self.reply[common.Key.TELEMETRY]
+            mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
 
-        # First read of the telemetry to verify that handling of truncated data
-        # is performed correctly if the MockDevice is instructed to produce
-        # such data.
-        self.reply = None
-        while not self.reply:
-            await asyncio.sleep(0.1)
-        reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
+            # Reset self.missed_channels for the second read otherwise the
+            # check will fail.
+            if md_props.missed_channels > 0:
+                md_props.missed_channels = 0
 
-        # Reset self.missed_channels for the second read otherwise the check
-        # will fail.
-        if md_props.missed_channels > 0:
-            md_props.missed_channels = 0
-
-        # First read of the telemetry to verify that no more truncated data is
-        # produced is the MockDevice was instructed to produce such data.
-        self.reply = None
-        while not self.reply:
-            await asyncio.sleep(0.1)
-        reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
-
-        await mock_device.close()
+            # First read of the telemetry to verify that no more truncated data
+            # is produced is the MockDevice was instructed to produce such
+            # data.
+            self.reply = None
+            while not self.reply:
+                await asyncio.sleep(0.1)
+            reply_to_check = self.reply[common.Key.TELEMETRY]
+            mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
 
     async def test_mock_temperature_device(self) -> None:
         """Test the MockDevice with a nominal configuration, i.e. no
