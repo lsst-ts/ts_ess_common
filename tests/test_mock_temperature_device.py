@@ -43,23 +43,20 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         self,
         name: str,
         num_channels: int = 0,
-        disconnected_channel: int = None,
+        disconnected_channel: int = -1,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
         """Check the working of the MockDevice."""
-        self.data = None
-        self.log = logging.getLogger(type(self).__name__)
+        log = logging.getLogger(type(self).__name__)
         mtt = common.MockTestTools()
-        sensor = common.sensor.TemperatureSensor(
-            num_channels=num_channels, log=self.log
-        )
+        sensor = common.sensor.TemperatureSensor(num_channels=num_channels, log=log)
         async with common.device.MockDevice(
             name=name,
             device_id="MockDevice",
             sensor=sensor,
             callback_func=self._callback,
-            log=self.log,
+            log=log,
             disconnected_channel=disconnected_channel,
             missed_channels=missed_channels,
             in_error_state=in_error_state,
@@ -81,7 +78,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
                 in_error_state=in_error_state,
             )
 
-            # Reset self.missed_channels for the second read otherwise the
+            # Reset missed_channels for the second read otherwise the
             # check will fail.
             if missed_channels > 0:
                 missed_channels = 0

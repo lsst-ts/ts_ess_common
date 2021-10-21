@@ -19,8 +19,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import platform
+__all__ = ["MockHx85aFormatter"]
 
-from .base_device import *
-from .mock_device import *
-from .mock_formatter import *
+import typing
+
+from .mock_hx85_formatter import MockHx85Formatter
+
+
+class MockHx85aFormatter(MockHx85Formatter):
+    def format_output(
+        self,
+        num_channels: int = 0,
+        disconnected_channel: int = 0,
+        missed_channels: int = 0,
+    ) -> typing.List[str]:
+        return [
+            self._format_hbx85_humidity(index=0, missed_channels=missed_channels),
+            self._format_hbx85_temperature(index=1, missed_channels=missed_channels),
+            self._format_hbx85_dew_point(index=2, missed_channels=missed_channels),
+        ]

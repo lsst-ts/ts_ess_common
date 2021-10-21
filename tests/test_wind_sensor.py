@@ -66,7 +66,7 @@ class WindSensorTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_extract_telemetry(self) -> None:
         self.num_channels = 4
-        self.disconnected_channel = None
+        self.disconnected_channel = -1
         self.missed_channels = 0
         self.name = "WindSensor"
         self.log = logging.getLogger(type(self).__name__)

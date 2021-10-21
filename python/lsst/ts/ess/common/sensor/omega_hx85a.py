@@ -23,7 +23,7 @@ __all__ = ["Hx85aSensor"]
 
 import logging
 import math
-from typing import List
+import typing
 
 from .base_sensor import BaseSensor
 from .utils import add_missing_telemetry
@@ -72,7 +72,7 @@ class Hx85aSensor(BaseSensor):
         # Override default value.
         self.charset = "ISO-8859-1"
 
-    async def extract_telemetry(self, line: str) -> List[float]:
+    async def extract_telemetry(self, line: str) -> typing.List[float]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters

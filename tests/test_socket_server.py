@@ -107,7 +107,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self,
         name: str,
         num_channels: int = 0,
-        disconnected_channel: int = None,
+        disconnected_channel: int = -1,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:

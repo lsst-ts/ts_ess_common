@@ -46,16 +46,15 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         in_error_state: bool = False,
     ) -> None:
         """Check the working of the MockDevice."""
-        self.data = None
-        self.log = logging.getLogger(type(self).__name__)
+        log = logging.getLogger(type(self).__name__)
         mtt = common.MockTestTools()
-        sensor = common.sensor.Hx85aSensor(log=self.log)
+        sensor = common.sensor.Hx85aSensor(log=log)
         async with common.device.MockDevice(
             name=name,
             device_id="MockDevice",
             sensor=sensor,
             callback_func=self._callback,
-            log=self.log,
+            log=log,
             missed_channels=missed_channels,
             in_error_state=in_error_state,
         ):
@@ -74,7 +73,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
                 in_error_state=in_error_state,
             )
 
-            # Reset self.missed_channels for the second read otherwise the
+            # Reset missed_channels for the second read otherwise the
             # check will fail.
             if missed_channels > 0:
                 missed_channels = 0

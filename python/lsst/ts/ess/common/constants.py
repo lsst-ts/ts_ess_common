@@ -25,36 +25,17 @@ __all__ = [
     "DeviceType",
     "DISCONNECTED_VALUE",
     "Key",
-    "MockDewPointConfig",
-    "MockHumidityConfig",
-    "MockPressureConfig",
-    "MockTemperatureConfig",
     "ResponseCode",
     "SensorType",
 ]
 
 import enum
-from types import SimpleNamespace
 
 # The port that is used by the ESS controller.
 CONTROLLER_PORT = 5000
 
 # The value emitted by a disconnected channel
 DISCONNECTED_VALUE = "9999.9990"
-
-# The minimum and maximum temperatures [ºC] used by the mock device.
-MockTemperatureConfig = SimpleNamespace(min=18.0, max=30.0)
-
-# The minimum and maximum humidity values [%] used by the mock device.
-MockHumidityConfig = SimpleNamespace(min=5.0, max=95.0)
-
-# The minimum and maximum dew point values [ºC] used by the mock
-# device.
-MockDewPointConfig = SimpleNamespace(min=18.0, max=30.0)
-
-# The minimum and maximum air pressure values [mbar] used by the mock
-# device.
-MockPressureConfig = SimpleNamespace(min=10.0, max=1100.0)
 
 
 class Command(str, enum.Enum):

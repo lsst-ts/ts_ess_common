@@ -23,17 +23,13 @@ __all__ = ["MockDevice"]
 
 import asyncio
 import logging
-import random
-from typing import Callable
+import typing
 
 from .base_device import BaseDevice
-from ..constants import (
-    DISCONNECTED_VALUE,
-    MockDewPointConfig,
-    MockHumidityConfig,
-    MockPressureConfig,
-    MockTemperatureConfig,
-)
+from .mock_formatter import MockFormatter
+from .mock_hx85a_formatter import MockHx85aFormatter
+from .mock_hx85ba_formatter import MockHx85baFormatter
+from .mock_temperature_formatter import MockTemperatureFormatter
 from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
 
 
@@ -71,9 +67,9 @@ class MockDevice(BaseDevice):
         name: str,
         device_id: str,
         sensor: BaseSensor,
-        callback_func: Callable,
+        callback_func: typing.Callable,
         log: logging.Logger,
-        disconnected_channel: int = None,
+        disconnected_channel: int = -1,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
@@ -85,10 +81,7 @@ class MockDevice(BaseDevice):
             log=log,
         )
 
-        if (
-            disconnected_channel is None
-            or 0 <= disconnected_channel < self.sensor.num_channels
-        ):
+        if -1 <= disconnected_channel < self.sensor.num_channels:
             self.disconnected_channel = disconnected_channel
         else:
             raise ValueError(
@@ -104,63 +97,16 @@ class MockDevice(BaseDevice):
             )
         self.in_error_state = in_error_state
 
+        # Registry of formatters for the different types of sensors.
+        self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {
+            Hx85aSensor: MockHx85aFormatter(),
+            Hx85baSensor: MockHx85baFormatter(),
+            TemperatureSensor: MockTemperatureFormatter(),
+        }
+
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
         pass
-
-    def _format_temperature(self, i: int) -> str:
-        """Creates a formatted string representing a temperature for the given
-        channel.
-
-        Parameters
-        ----------
-        i: `int`
-            The 0-based temperature channel.
-        Returns
-        -------
-        s: `str`
-            A string representing a temperature.
-        """
-        if i < self.missed_channels:
-            return ""
-
-        prefix = f"C{i:02d}="
-        value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
-        if i == self.disconnected_channel:
-            value = float(DISCONNECTED_VALUE)
-        return f"{prefix}{value:09.4f}"
-
-    def _format_hbx85_humidity(self, index: int) -> str:
-        if index < self.missed_channels:
-            return ""
-        else:
-            prefix = "%RH="
-            value = random.uniform(MockHumidityConfig.min, MockHumidityConfig.max)
-            return f"{prefix}{value:5.2f}"
-
-    def _format_hbx85_temperature(self, index: int) -> str:
-        if index < self.missed_channels:
-            return ""
-        else:
-            prefix = "AT°C="
-            value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
-            return f"{prefix}{value:6.2f}"
-
-    def _format_hbx85_dew_point(self, index: int) -> str:
-        if index < self.missed_channels:
-            return ""
-        else:
-            prefix = "DP°C="
-            value = random.uniform(MockDewPointConfig.min, MockDewPointConfig.max)
-            return f"{prefix}{value:5.2f}"
-
-    def _format_hbx85_air_pressure(self, index: int) -> str:
-        if index < self.missed_channels:
-            return ""
-        else:
-            prefix = "Pmb="
-            value = random.uniform(MockPressureConfig.min, MockPressureConfig.max)
-            return f"{prefix}{value:7.2f}"
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
@@ -179,23 +125,12 @@ class MockDevice(BaseDevice):
         if self.in_error_state:
             return f"{self.sensor.terminator}"
 
-        channel_strs = []
-        if isinstance(self.sensor, TemperatureSensor):
-            channel_strs = [
-                self._format_temperature(i) for i in range(0, self.sensor.num_channels)
-            ]
-        elif isinstance(self.sensor, Hx85aSensor):
-            channel_strs = [
-                self._format_hbx85_humidity(index=0),
-                self._format_hbx85_temperature(index=1),
-                self._format_hbx85_dew_point(index=2),
-            ]
-        elif isinstance(self.sensor, Hx85baSensor):
-            channel_strs = [
-                self._format_hbx85_humidity(index=0),
-                self._format_hbx85_temperature(index=1),
-                self._format_hbx85_air_pressure(index=2),
-            ]
+        mock_formatter = self.formatter_registry[type(self.sensor)]
+        channel_strs = mock_formatter.format_output(
+            num_channels=self.sensor.num_channels,
+            disconnected_channel=self.disconnected_channel,
+            missed_channels=self.missed_channels,
+        )
 
         self.log.debug(f"channel_strs = {channel_strs}")
 

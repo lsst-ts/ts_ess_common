@@ -32,8 +32,8 @@ logging.basicConfig(
 
 class OmegaHx85aSensorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_extract_telemetry(self) -> None:
-        self.log = logging.getLogger(type(self).__name__)
-        sensor = common.sensor.Hx85aSensor(self.log)
+        log = logging.getLogger(type(self).__name__)
+        sensor = common.sensor.Hx85aSensor(log)
         line = f"%RH=38.86,AT°C=24.32,DP°C=9.57{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
         self.assertListEqual(reply, [38.86, 24.32, 9.57])

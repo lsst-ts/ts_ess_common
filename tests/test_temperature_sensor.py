@@ -32,12 +32,9 @@ logging.basicConfig(
 
 class TemperatureSensorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_extract_telemetry(self) -> None:
-        self.num_channels = 4
-        self.disconnected_channel = None
-        self.missed_channels = 0
-        self.name = "TemperatureSensor"
-        self.log = logging.getLogger(type(self).__name__)
-        sensor = common.sensor.TemperatureSensor(self.log, self.num_channels)
+        num_channels = 4
+        log = logging.getLogger(type(self).__name__)
+        sensor = common.sensor.TemperatureSensor(log, num_channels)
         line = f"C00=0021.1234,C01=0021.1220,C02=0021.1249,C03=0020.9990{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
         self.assertListEqual(reply, [21.1234, 21.122, 21.1249, 20.999])

@@ -55,14 +55,14 @@ class MockTestTools:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
-                    assert common.MockHumidityConfig.min <= resp[i]
-                    assert resp[i] <= common.MockHumidityConfig.max
+                    assert common.device.MockHumidityConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockHumidityConfig.max
                 elif i == 1:
-                    assert common.MockTemperatureConfig.min <= resp[i]
-                    assert resp[i] <= common.MockTemperatureConfig.max
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
                 else:
-                    assert common.MockDewPointConfig.min <= resp[i]
-                    assert resp[i] <= common.MockDewPointConfig.max
+                    assert common.device.MockDewPointConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockDewPointConfig.max
 
     def check_hx85ba_reply(
         self,
@@ -91,21 +91,21 @@ class MockTestTools:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
-                    assert common.MockHumidityConfig.min <= resp[i]
-                    assert resp[i] <= common.MockHumidityConfig.max
+                    assert common.device.MockHumidityConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockHumidityConfig.max
                 elif i == 1:
-                    assert common.MockTemperatureConfig.min <= resp[i]
-                    assert resp[i] <= common.MockTemperatureConfig.max
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
                 else:
-                    assert common.MockPressureConfig.min <= resp[i]
-                    assert resp[i] <= common.MockPressureConfig.max
+                    assert common.device.MockPressureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockPressureConfig.max
 
     def check_temperature_reply(
         self,
         reply: typing.List[typing.Union[str, float]],
         name: str,
         num_channels: int = 0,
-        disconnected_channel: int = None,
+        disconnected_channel: int = -1,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
@@ -130,5 +130,5 @@ class MockTestTools:
             elif i == disconnected_channel:
                 assert math.isnan(resp[i])
             else:
-                assert common.MockTemperatureConfig.min <= resp[i]
-                assert resp[i] <= common.MockTemperatureConfig.max
+                assert common.device.MockTemperatureConfig.min <= resp[i]
+                assert resp[i] <= common.device.MockTemperatureConfig.max

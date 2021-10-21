@@ -16,7 +16,6 @@ v0.3.0
 * Added a unit test for the config schema.
 * Moved most of the command handler code and the socket server unit test from ts.ess.controller to ts.ess.common.
 * Added tests for all supported devices in the test class for the mock control handler.
-* Removed MockDeviceProperties.
 
 Requires:
 
