@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["MockTestTools", "MockDeviceProperties"]
+__all__ = ["MockTestTools"]
 
 import math
 import typing
@@ -27,45 +27,13 @@ import typing
 from lsst.ts.ess import common
 
 
-class MockDeviceProperties:
-    """Container for the properties of a mock device.
-
-    Parameters
-    ----------
-    name: `str`
-        The name of the device.
-    num_channels: `int`
-        The number of channels.
-    missed_channels: `int`
-        The number of missed channels.
-    disconnected_channel: `int`
-        The number of the disconnected channel, or None if all
-        channels are connected.
-    in_error_state: `bool`
-        The mock device is in error state (True) or not (False, the
-        default).
-    """
-
-    def __init__(
-        self,
-        name: str,
-        num_channels: int = 0,
-        missed_channels: int = 0,
-        disconnected_channel: int = None,
-        in_error_state: bool = False,
-    ) -> None:
-        self.name: str = name
-        self.num_channels = num_channels
-        self.missed_channels = missed_channels
-        self.disconnected_channel = disconnected_channel
-        self.in_error_state = in_error_state
-
-
 class MockTestTools:
     def check_hx85a_reply(
         self,
-        md_props: MockDeviceProperties,
         reply: typing.List[typing.Union[str, float]],
+        name: str,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
     ) -> None:
         device_name = reply[0]
         time = float(reply[1])
@@ -75,15 +43,15 @@ class MockTestTools:
             assert isinstance(value, float)
             resp.append(value)
 
-        assert md_props.name == device_name
+        assert name == device_name
         assert time > 0
-        if md_props.in_error_state:
+        if in_error_state:
             assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
             assert common.ResponseCode.OK == response_code
         assert len(resp) == 3
         for i in range(0, 3):
-            if i < md_props.missed_channels or md_props.in_error_state:
+            if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
@@ -98,8 +66,10 @@ class MockTestTools:
 
     def check_hx85ba_reply(
         self,
-        md_props: MockDeviceProperties,
         reply: typing.List[typing.Union[str, float]],
+        name: str,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
     ) -> None:
         device_name = reply[0]
         time = float(reply[1])
@@ -109,15 +79,15 @@ class MockTestTools:
             assert isinstance(value, float)
             resp.append(value)
 
-        assert md_props.name == device_name
+        assert name == device_name
         assert time > 0
-        if md_props.in_error_state:
+        if in_error_state:
             assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
             assert common.ResponseCode.OK == response_code
         assert len(resp) == 3
         for i in range(0, 3):
-            if i < md_props.missed_channels or md_props.in_error_state:
+            if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
@@ -132,8 +102,12 @@ class MockTestTools:
 
     def check_temperature_reply(
         self,
-        md_props: MockDeviceProperties,
         reply: typing.List[typing.Union[str, float]],
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = None,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
     ) -> None:
         device_name = reply[0]
         time = float(reply[1])
@@ -143,17 +117,17 @@ class MockTestTools:
             assert isinstance(value, float)
             resp.append(value)
 
-        assert md_props.name == device_name
+        assert name == device_name
         assert time > 0
-        if md_props.in_error_state:
+        if in_error_state:
             assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
             assert common.ResponseCode.OK == response_code
-        assert len(resp) == md_props.num_channels
-        for i in range(0, md_props.num_channels):
-            if i < md_props.missed_channels or md_props.in_error_state:
+        assert len(resp) == num_channels
+        for i in range(0, num_channels):
+            if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i])
-            elif i == md_props.disconnected_channel:
+            elif i == disconnected_channel:
                 assert math.isnan(resp[i])
             else:
                 assert common.MockTemperatureConfig.min <= resp[i]

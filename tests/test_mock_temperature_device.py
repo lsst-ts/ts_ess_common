@@ -40,24 +40,29 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         ] = reply
 
     async def _check_mock_temperature_device(
-        self, md_props: common.MockDeviceProperties
+        self,
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = None,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
     ) -> None:
         """Check the working of the MockDevice."""
         self.data = None
         self.log = logging.getLogger(type(self).__name__)
         mtt = common.MockTestTools()
         sensor = common.sensor.TemperatureSensor(
-            num_channels=md_props.num_channels, log=self.log
+            num_channels=num_channels, log=self.log
         )
         async with common.device.MockDevice(
-            name=md_props.name,
+            name=name,
             device_id="MockDevice",
             sensor=sensor,
             callback_func=self._callback,
             log=self.log,
-            disconnected_channel=md_props.disconnected_channel,
-            missed_channels=md_props.missed_channels,
-            in_error_state=md_props.in_error_state,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
         ):
 
             # First read of the telemetry to verify that handling of truncated
@@ -67,12 +72,19 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
             while not self.reply:
                 await asyncio.sleep(0.1)
             reply_to_check = self.reply[common.Key.TELEMETRY]
-            mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
+            mtt.check_temperature_reply(
+                reply=reply_to_check,
+                name=name,
+                num_channels=num_channels,
+                disconnected_channel=disconnected_channel,
+                missed_channels=missed_channels,
+                in_error_state=in_error_state,
+            )
 
             # Reset self.missed_channels for the second read otherwise the
             # check will fail.
-            if md_props.missed_channels > 0:
-                md_props.missed_channels = 0
+            if missed_channels > 0:
+                missed_channels = 0
 
             # First read of the telemetry to verify that no more truncated data
             # is produced is the MockDevice was instructed to produce such
@@ -81,38 +93,41 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
             while not self.reply:
                 await asyncio.sleep(0.1)
             reply_to_check = self.reply[common.Key.TELEMETRY]
-            mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
+            mtt.check_temperature_reply(
+                reply=reply_to_check,
+                name=name,
+                num_channels=num_channels,
+                disconnected_channel=disconnected_channel,
+                missed_channels=missed_channels,
+                in_error_state=in_error_state,
+            )
 
     async def test_mock_temperature_device(self) -> None:
         """Test the MockDevice with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        md_props = common.MockDeviceProperties(name="MockSensor", num_channels=4)
-        await self._check_mock_temperature_device(md_props=md_props)
+        await self._check_mock_temperature_device(name="MockSensor", num_channels=4)
 
     async def test_mock_temperature_device_with_disconnected_channel(self) -> None:
         """Test the MockDevice with one disconnected channel and no truncated
         data.
         """
-        md_props = common.MockDeviceProperties(
+        await self._check_mock_temperature_device(
             name="MockSensor", num_channels=4, disconnected_channel=2
         )
-        await self._check_mock_temperature_device(md_props=md_props)
 
     async def test_mock_temperature_device_with_truncated_output(self) -> None:
         """Test the MockDevice with no disconnected channels and truncated data
         for two channels.
         """
-        md_props = common.MockDeviceProperties(
+        await self._check_mock_temperature_device(
             name="MockSensor", num_channels=4, missed_channels=2
         )
-        await self._check_mock_temperature_device(md_props=md_props)
 
     async def test_mock_temperature_device_in_error_state(self) -> None:
         """Test the MockDevice in error state meaning it will only return empty
         strings.
         """
-        md_props = common.MockDeviceProperties(
+        await self._check_mock_temperature_device(
             name="MockSensor", num_channels=4, in_error_state=True
         )
-        await self._check_mock_temperature_device(md_props=md_props)

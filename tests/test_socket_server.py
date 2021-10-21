@@ -103,7 +103,14 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(0.5)
         self.assertFalse(self.srv.connected)
 
-    async def check_server_test(self, md_props: common.MockDeviceProperties) -> None:
+    async def check_server_test(
+        self,
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = None,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
+    ) -> None:
         """Test a full command sequence of the SocketServer.
 
         The sequence is
@@ -118,8 +125,8 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         configuration = {
             common.Key.DEVICES: [
                 {
-                    common.Key.NAME: md_props.name,
-                    common.Key.CHANNELS: md_props.num_channels,
+                    common.Key.NAME: name,
+                    common.Key.CHANNELS: num_channels,
                     common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
                     common.Key.FTDI_ID: "ABC",
                     common.Key.SENSOR_TYPE: common.SensorType.TEMPERATURE,
@@ -138,27 +145,39 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         # Make sure that the mock sensor outputs data for a disconnected
         # channel.
-        self.srv.command_handler.devices[
-            0
-        ].disconnected_channel = md_props.disconnected_channel
+        self.srv.command_handler.devices[0].disconnected_channel = disconnected_channel
 
         # Make sure that the mock sensor outputs truncated data.
-        self.srv.command_handler.devices[0].missed_channels = md_props.missed_channels
+        self.srv.command_handler.devices[0].missed_channels = missed_channels
 
         # Make sure that the mock sensor is in error state.
-        self.srv.command_handler.devices[0].in_error_state = md_props.in_error_state
+        self.srv.command_handler.devices[0].in_error_state = in_error_state
 
         self.reply = await self.read()
         reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
+        mtt.check_temperature_reply(
+            reply=reply_to_check,
+            name=name,
+            num_channels=num_channels,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
+        )
 
         # Reset self.missed_channels and read again. The data should not be
         # truncated anymore.
-        md_props.missed_channels = 0
+        missed_channels = 0
 
         self.reply = await self.read()
         reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(md_props=md_props, reply=reply_to_check)
+        mtt.check_temperature_reply(
+            reply=reply_to_check,
+            name=name,
+            num_channels=num_channels,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
+        )
 
         await self.write(command=common.Command.STOP, parameters={})
         data = await self.read()
@@ -170,32 +189,24 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         """Test the SocketServer with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        md_props = common.MockDeviceProperties(name="Test1", num_channels=1)
-        await self.check_server_test(md_props=md_props)
+        await self.check_server_test(name="Test1", num_channels=1)
 
     async def test_full_command_sequence_with_disconnected_channel(self) -> None:
         """Test the SocketServer with one disconnected channel and no truncated
         data.
         """
-        md_props = common.MockDeviceProperties(
+        await self.check_server_test(
             name="Test1", num_channels=4, disconnected_channel=1
         )
-        await self.check_server_test(md_props=md_props)
 
     async def test_full_command_sequence_with_truncated_output(self) -> None:
         """Test the SocketServer with no disconnected channels and truncated
         data for two channels.
         """
-        md_props = common.MockDeviceProperties(
-            name="Test1", num_channels=4, missed_channels=2
-        )
-        await self.check_server_test(md_props=md_props)
+        await self.check_server_test(name="Test1", num_channels=4, missed_channels=2)
 
     async def test_full_command_sequence_in_error_state(self) -> None:
         """Test the SocketServer with a sensor in error state, meaning it will
         only output empty strings.
         """
-        md_props = common.MockDeviceProperties(
-            name="Test1", num_channels=4, in_error_state=True
-        )
-        await self.check_server_test(md_props=md_props)
+        await self.check_server_test(name="Test1", num_channels=4, in_error_state=True)
