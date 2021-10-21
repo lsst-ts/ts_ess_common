@@ -26,7 +26,8 @@ import math
 from typing import List
 
 from .base_sensor import BaseSensor
-from ..constants import DISCONNECTED_VALUE
+from ..constants import DISCONNECTED_VALUE, SensorType
+from .sensor_registry import register_sensor
 from .utils import add_missing_telemetry
 
 
@@ -107,3 +108,6 @@ class TemperatureSensor(BaseSensor):
         # channels need to be filled with NaN.
         output = add_missing_telemetry(output, self.num_channels)
         return output
+
+
+register_sensor(SensorType.TEMPERATURE, TemperatureSensor)

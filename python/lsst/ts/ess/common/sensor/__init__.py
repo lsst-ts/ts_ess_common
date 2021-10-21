@@ -22,5 +22,6 @@
 from .base_sensor import *
 from .omega_hx85a import *
 from .omega_hx85ba import *
+from .sensor_registry import *
 from .temperature_sensor import *
 from .wind_sensor import *

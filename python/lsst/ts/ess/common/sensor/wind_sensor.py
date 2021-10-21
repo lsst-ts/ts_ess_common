@@ -36,6 +36,8 @@ import re
 from typing import List
 
 from .base_sensor import BaseSensor
+from ..constants import SensorType
+from .sensor_registry import register_sensor
 
 """ASCII start character."""
 START_CHARACTER: str = "\x02"
@@ -160,3 +162,6 @@ class WindSensor(BaseSensor):
         else:
             raise ValueError(f"Received an unparsable line {line}")
         return [speed, direction]
+
+
+register_sensor(SensorType.WIND, WindSensor)

@@ -80,22 +80,6 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         response = self.responses.pop()
         assert response[common.Key.RESPONSE] == response_code
 
-    async def test_create_sensor(self) -> None:
-        sensor: common.sensor.BaseSensor = self.command_handler.create_sensor(
-            device_configuration=self.device_config_01.as_dict()
-        )
-        assert isinstance(sensor, common.sensor.TemperatureSensor)
-
-        sensor = self.command_handler.create_sensor(
-            device_configuration=self.device_config_02.as_dict()
-        )
-        assert isinstance(sensor, common.sensor.Hx85aSensor)
-
-        sensor = self.command_handler.create_sensor(
-            device_configuration=self.device_config_03.as_dict()
-        )
-        assert isinstance(sensor, common.sensor.Hx85baSensor)
-
     async def test_create_device(self) -> None:
         device: common.device.BaseDevice = self.command_handler.create_device(
             device_configuration=self.device_config_01.as_dict()

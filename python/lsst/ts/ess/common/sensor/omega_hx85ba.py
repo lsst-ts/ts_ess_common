@@ -26,6 +26,8 @@ import math
 from typing import List
 
 from .base_sensor import BaseSensor
+from ..constants import SensorType
+from .sensor_registry import register_sensor
 from .utils import add_missing_telemetry
 
 """The number of output values for this sensor is 3."""
@@ -110,3 +112,6 @@ class Hx85baSensor(BaseSensor):
         # channels need to be filled with NaN.
         output = add_missing_telemetry(output, NUM_VALUES)
         return output
+
+
+register_sensor(SensorType.HX85BA, Hx85baSensor)

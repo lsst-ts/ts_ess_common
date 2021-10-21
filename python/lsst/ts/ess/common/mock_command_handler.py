@@ -26,6 +26,7 @@ import typing
 from .abstract_command_handler import AbstractCommandHandler
 from .constants import Key
 from .device import BaseDevice, MockDevice
+from .sensor import create_sensor
 
 
 class MockCommandHandler(AbstractCommandHandler):
@@ -56,7 +57,7 @@ class MockCommandHandler(AbstractCommandHandler):
         In this case a MockDevice always is returned. Sub-classes should
         override this method to add support for other devices.
         """
-        sensor = self.create_sensor(device_configuration=device_configuration)
+        sensor = create_sensor(device_configuration=device_configuration, log=self.log)
         self.log.debug(
             f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}"
         )
