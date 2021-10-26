@@ -52,9 +52,9 @@ class TemperatureSensor(BaseSensor):
 
     Parameters
     ----------
-    log: `logger`
+    log : logger`
         The logger for which to create a child logger.
-    num_channels: `int`
+    num_channels : int`
         The number of temperature channels.
     """
 
@@ -70,13 +70,13 @@ class TemperatureSensor(BaseSensor):
 
         Parameters
         ----------
-        line: `str`
+        line : str`
             A line of comma separated telemetry, each of the format
             CXX=XXXX.XXX
 
         Returns
         -------
-        output: `list`
+        output : list`
             A list of floats containing the temperature telemetry as measured
             by the sensor. The length of the output list is the same as the
             number of channels.

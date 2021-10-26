@@ -58,13 +58,13 @@ class MockFormatter(ABC):
 
         Parameters
         ----------
-        num_channels: `int`
+        num_channels : `int`
             The number of channels of the sensor, or 0 if this doesn't
             apply to the specific sensor type.
-        disconnected_channel: `int`
+        disconnected_channel : `int`
             The disconnected channel, or -1 if the test case doesn't
             involve a disconnected channel.
-        missed_channels: `int`
+        missed_channels : `int`
             The missed channels, or 0 if the test case doesn't
             involve missed channels.
 

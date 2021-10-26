@@ -38,27 +38,27 @@ class MockDevice(BaseDevice):
 
     Parameters
     ----------
-    name: `str`
+    name : `str`
         The name of the device.
-    device_id: `str`
+    device_id : `str`
         The hardware device ID to connect to.
-    sensor: `BaseSensor`
+    sensor : `BaseSensor`
         The sensor that produces the telemetry.
     callback_func : `Callable`
         Callback function to receive the telemetry.
-    log: `logging.Logger`
+    log : `logging.Logger`
         The logger to create a child logger for.
-    disconnected_channel: `int`, optional
+    disconnected_channel : `int`, optional
         In the specific case of a temperature sensor, one or more channels
         can be physically disconnected which will make the sensor output a
         specific value for those channels. disconnected_channel makes the
         MockDevice mock one disconnected channel.
-    missed_channels: `int`, optional
+    missed_channels : `int`, optional
         When a connection to the sensor is established mid output, the
         telemetry for one or more channels is not received by the code.
         missed_channels mocks the number of channels that are missed because
         of that.
-    in_error_state: `bool`, optional
+    in_error_state : `bool`, optional
         The sensor produces an error (True) or not (False) when being read.
     """
 

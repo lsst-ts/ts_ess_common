@@ -50,11 +50,11 @@ class MockTemperatureFormatter(MockFormatter):
 
         Parameters
         ----------
-        i: `int`
+        i : int`
             The 0-based temperature channel.
         Returns
         -------
-        s: `str`
+        s : str`
             A string representing a temperature.
         """
         if i < missed_channels:

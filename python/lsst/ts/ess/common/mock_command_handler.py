@@ -38,13 +38,13 @@ class MockCommandHandler(AbstractCommandHandler):
 
         Parameters
         ----------
-        device_configuration: `dict`
+        device_configuration : dict`
             A dict representing the device to connect to. The format of the
             dict follows the configuration of the ts_ess_csc project.
 
         Returns
         -------
-        device: `common.device.BaseDevice`
+        device : common.device.BaseDevice`
             The device to connect to.
 
         Raises
