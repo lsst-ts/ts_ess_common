@@ -40,7 +40,8 @@ class MockCommandHandler(AbstractCommandHandler):
         ----------
         device_configuration : dict`
             A dict representing the device to connect to. The format of the
-            dict follows the configuration of the ts_ess_csc project.
+            dict is described in the devices part of
+            `lsst.ts.ess.common.CONFIG_SCHEMA`.
 
         Returns
         -------
@@ -51,11 +52,6 @@ class MockCommandHandler(AbstractCommandHandler):
         ------
         RuntimeError
             In case an incorrect configuration has been loaded.
-
-        Notes
-        -----
-        In this case a MockDevice always is returned. Sub-classes should
-        override this method to add support for other devices.
         """
         sensor = create_sensor(device_configuration=device_configuration, log=self.log)
         self.log.debug(

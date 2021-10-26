@@ -29,6 +29,29 @@ from ..constants import DISCONNECTED_VALUE
 from .mock_formatter import MockFormatter, MockTemperatureConfig
 
 
+def format_temperature(i: int, disconnected_channel: int, missed_channels: int) -> str:
+    """Creates a formatted string representing a temperature for the given
+    channel.
+
+    Parameters
+    ----------
+    i : int`
+        The 0-based temperature channel.
+    Returns
+    -------
+    s : str`
+        A string representing a temperature.
+    """
+    if i < missed_channels:
+        return ""
+
+    prefix = f"C{i:02d}="
+    value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
+    if i == disconnected_channel:
+        value = float(DISCONNECTED_VALUE)
+    return f"{prefix}{value:09.4f}"
+
+
 class MockTemperatureFormatter(MockFormatter):
     def format_output(
         self,
@@ -37,31 +60,7 @@ class MockTemperatureFormatter(MockFormatter):
         missed_channels: int = 0,
     ) -> typing.List[str]:
         output = [
-            self._format_temperature(i, disconnected_channel, missed_channels)
+            format_temperature(i, disconnected_channel, missed_channels)
             for i in range(0, num_channels)
         ]
         return output
-
-    def _format_temperature(
-        self, i: int, disconnected_channel: int, missed_channels: int
-    ) -> str:
-        """Creates a formatted string representing a temperature for the given
-        channel.
-
-        Parameters
-        ----------
-        i : int`
-            The 0-based temperature channel.
-        Returns
-        -------
-        s : str`
-            A string representing a temperature.
-        """
-        if i < missed_channels:
-            return ""
-
-        prefix = f"C{i:02d}="
-        value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
-        if i == disconnected_channel:
-            value = float(DISCONNECTED_VALUE)
-        return f"{prefix}{value:09.4f}"

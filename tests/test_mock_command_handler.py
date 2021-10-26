@@ -37,7 +37,7 @@ TIMEOUT = 5
 class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger(type(self).__name__)
-        self.responses: typing.List[typing.List[typing.Union[str, float]]] = []
+        self.responses: typing.List[typing.Dict[common.ResponseCode, typing.Any]] = []
         self.command_handler = common.MockCommandHandler(
             callback=self.callback, simulation_mode=1
         )
@@ -73,10 +73,12 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             self.device_config_03.name: self.device_config_03,
         }
 
-    async def callback(self, response: typing.List[typing.Union[str, float]]) -> None:
+    async def callback(
+        self, response: typing.Dict[common.ResponseCode, typing.Any]
+    ) -> None:
         self.responses.append(response)
 
-    def assert_response(self, response_code: str) -> None:
+    def assert_response(self, response_code: common.ResponseCode) -> None:
         response = self.responses.pop()
         assert response[common.Key.RESPONSE] == response_code
 

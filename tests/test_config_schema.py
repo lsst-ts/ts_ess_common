@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import logging
 import unittest
 
@@ -54,9 +53,5 @@ class ConfigSchemaTestCase(unittest.IsolatedAsyncioTestCase):
             ]
         }
 
-        # Make sure that any Enum instances get converted to strings.
-        config_dumped = json.dumps({**configuration})
-        config_loaded = json.loads(config_dumped)
-
         # Validate the configurations against the JSON schema.
-        jsonschema.validate(config_loaded, common.CONFIG_SCHEMA)
+        jsonschema.validate(configuration, common.CONFIG_SCHEMA)

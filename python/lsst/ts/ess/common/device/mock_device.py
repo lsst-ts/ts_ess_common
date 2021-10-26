@@ -27,8 +27,7 @@ import typing
 
 from .base_device import BaseDevice
 from .mock_formatter import MockFormatter
-from .mock_hx85a_formatter import MockHx85aFormatter
-from .mock_hx85ba_formatter import MockHx85baFormatter
+from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
 from .mock_temperature_formatter import MockTemperatureFormatter
 from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
 
@@ -135,7 +134,8 @@ class MockDevice(BaseDevice):
         self.log.debug(f"channel_strs = {channel_strs}")
 
         # Reset self.missed_channels because truncated data only happens when
-        # data is being output while connecting.
+        # data is output when first connected. Note that a disconnect followed
+        # by a connect will not reset the value of missed_channels.
         self.missed_channels = 0
         return self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
 

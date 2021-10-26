@@ -19,10 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["MockHx85Formatter"]
+__all__ = ["MockHx85baFormatter", "MockHx85aFormatter"]
 
 import random
-from abc import ABC
+import typing
 
 from .mock_formatter import (
     MockFormatter,
@@ -33,35 +33,65 @@ from .mock_formatter import (
 )
 
 
-class MockHx85Formatter(MockFormatter, ABC):
-    def _format_hbx85_humidity(self, index: int, missed_channels: int) -> str:
-        if index < missed_channels:
-            return ""
-        else:
-            prefix = "%RH="
-            value = random.uniform(MockHumidityConfig.min, MockHumidityConfig.max)
-            return f"{prefix}{value:5.2f}"
+def format_hbx85_humidity(index: int, missed_channels: int) -> str:
+    if index < missed_channels:
+        return ""
+    else:
+        prefix = "%RH="
+        value = random.uniform(MockHumidityConfig.min, MockHumidityConfig.max)
+        return f"{prefix}{value:5.2f}"
 
-    def _format_hbx85_temperature(self, index: int, missed_channels: int) -> str:
-        if index < missed_channels:
-            return ""
-        else:
-            prefix = "AT°C="
-            value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
-            return f"{prefix}{value:6.2f}"
 
-    def _format_hbx85_dew_point(self, index: int, missed_channels: int) -> str:
-        if index < missed_channels:
-            return ""
-        else:
-            prefix = "DP°C="
-            value = random.uniform(MockDewPointConfig.min, MockDewPointConfig.max)
-            return f"{prefix}{value:5.2f}"
+def format_hbx85_temperature(index: int, missed_channels: int) -> str:
+    if index < missed_channels:
+        return ""
+    else:
+        prefix = "AT°C="
+        value = random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max)
+        return f"{prefix}{value:6.2f}"
 
-    def _format_hbx85_air_pressure(self, index: int, missed_channels: int) -> str:
-        if index < missed_channels:
-            return ""
-        else:
-            prefix = "Pmb="
-            value = random.uniform(MockPressureConfig.min, MockPressureConfig.max)
-            return f"{prefix}{value:7.2f}"
+
+def format_hbx85_dew_point(index: int, missed_channels: int) -> str:
+    if index < missed_channels:
+        return ""
+    else:
+        prefix = "DP°C="
+        value = random.uniform(MockDewPointConfig.min, MockDewPointConfig.max)
+        return f"{prefix}{value:5.2f}"
+
+
+def format_hbx85_air_pressure(index: int, missed_channels: int) -> str:
+    if index < missed_channels:
+        return ""
+    else:
+        prefix = "Pmb="
+        value = random.uniform(MockPressureConfig.min, MockPressureConfig.max)
+        return f"{prefix}{value:7.2f}"
+
+
+class MockHx85aFormatter(MockFormatter):
+    def format_output(
+        self,
+        num_channels: int = 0,
+        disconnected_channel: int = 0,
+        missed_channels: int = 0,
+    ) -> typing.List[str]:
+        return [
+            format_hbx85_humidity(index=0, missed_channels=missed_channels),
+            format_hbx85_temperature(index=1, missed_channels=missed_channels),
+            format_hbx85_dew_point(index=2, missed_channels=missed_channels),
+        ]
+
+
+class MockHx85baFormatter(MockFormatter):
+    def format_output(
+        self,
+        num_channels: int = 0,
+        disconnected_channel: int = 0,
+        missed_channels: int = 0,
+    ) -> typing.List[str]:
+        return [
+            format_hbx85_humidity(index=0, missed_channels=missed_channels),
+            format_hbx85_temperature(index=1, missed_channels=missed_channels),
+            format_hbx85_air_pressure(index=2, missed_channels=missed_channels),
+        ]

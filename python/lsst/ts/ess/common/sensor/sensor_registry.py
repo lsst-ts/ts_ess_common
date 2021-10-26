@@ -45,8 +45,7 @@ def register_sensor(
     Raises
     ------
     `TypeError`
-        In case a class that is not a subclass of BaseSensor is
-        registered.
+        In case a class, that is not a subclass of BaseSensor, is registered.
     `ValueError`
         In case a SensorType already was registered.
 
@@ -69,8 +68,9 @@ def create_sensor(
     Parameters
     ----------
     device_configuration : dict`
-        A dict representing the device to connect to. The format of the
-        dict follows the configuration of the ts_ess_csc project.
+            A dict representing the device to connect to. The format of the
+            dict is described in the devices part of
+            `lsst.ts.ess.common.CONFIG_SCHEMA`.
     log : logging.Logger`
         The logger to pass on to the sensor.
 
@@ -78,6 +78,12 @@ def create_sensor(
     -------
     sensor : BaseSensor`
         The sensor to connect to.
+
+    Raises
+    ------
+    `KeyError`
+        In case the device configuration doesn't have the sensor type key or
+        the sensor type is not present in the sensor registry.
     """
 
     sensor_type = device_configuration[Key.SENSOR_TYPE]

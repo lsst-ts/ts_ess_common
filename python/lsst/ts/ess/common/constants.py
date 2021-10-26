@@ -34,7 +34,7 @@ import enum
 # The port that is used by the ESS controller.
 CONTROLLER_PORT = 5000
 
-# The value emitted by a disconnected channel
+# The value emitted by a disconnected channel of the temperature sensors.
 DISCONNECTED_VALUE = "9999.9990"
 
 
