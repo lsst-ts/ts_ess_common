@@ -38,18 +38,14 @@ TIMEOUT = 5
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        self.ctrl = None
         self.writer = None
-        self.mock_ctrl = None
-        self.name = "MockDevice"
-        self.srv = None
         self.srv = common.SocketServer(
-            name="EssCommonTest", host="0.0.0.0", port=0, simulation_mode=1
+            name="EssSensorsServer", host="0.0.0.0", port=0, simulation_mode=1
         )
-        mock_command_handler = common.MockCommandHandler(
-            callback=self.srv.write, simulation_mode=1, name=self.name
+        command_handler = common.MockCommandHandler(
+            callback=self.srv.write, simulation_mode=1
         )
-        self.srv.set_command_handler(mock_command_handler)
+        self.srv.set_command_handler(command_handler)
 
         self.log = logging.getLogger(type(self).__name__)
 
@@ -60,7 +56,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     async def asyncTearDown(self) -> None:
-        assert self.srv is not None
         await self.srv.disconnect()
         if self.writer:
             self.writer.close()
@@ -68,7 +63,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.srv.exit()
 
     async def read(self) -> typing.Dict[str, typing.Any]:
-        """Read a string from the reader and unmarshal it.
+        """Read a string from the reader and unmarshal it
 
         Returns
         -------
@@ -95,7 +90,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.writer.drain()
 
     async def test_disconnect(self) -> None:
-        assert self.srv is not None
         self.assertTrue(self.srv.connected)
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
@@ -103,59 +97,35 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.srv.connected)
 
     async def test_exit(self) -> None:
-        assert self.srv is not None
         self.assertTrue(self.srv.connected)
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await asyncio.sleep(0.5)
         self.assertFalse(self.srv.connected)
 
-    def check_temperature_reply(
-        self, reply: typing.List[typing.Union[str, float]], num_channels: int
+    async def check_server_test(
+        self,
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = -1,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
     ) -> None:
-        device_name = reply[0]
-        time = reply[1]
-        response_code = reply[2]
-        resp = reply[3:]
-
-        self.assertEqual(self.name, device_name)
-        self.assertGreater(time, 0)
-        self.assertEqual(common.ResponseCode.OK, response_code)
-        self.assertEqual(len(resp), num_channels)
-        for i in range(0, num_channels):
-            self.assertLessEqual(common.MockTemperatureConfig.min, resp[i])
-            self.assertLessEqual(resp[i], common.MockTemperatureConfig.max)
-
-    async def check_server_test(self, num_channels: int) -> None:
         """Test a full command sequence of the SocketServer.
 
-        Parameters
-        ----------
-        num_channels: `int`
-            The number of channels for which temperature data are
-            expected.
-
-        Notes
-        -----
-        The sequence of commands is
+        The sequence is
             - configure
             - start
             - read telemetry
             - stop
             - disconnect
             - exit
-
-        The MockCommandHandler is used which always outputs 4
-        temperature values. Also, simulation_mode is set to 1 meaning
-        that the DeviceType and SensorType are ignored when creating
-        the mock output. However, the configuration gets validated
-        which is why the configuration below is used.
         """
-        self.assertEqual(num_channels, 4)
+        mtt = common.MockTestTools()
         configuration = {
             common.Key.DEVICES: [
                 {
-                    common.Key.NAME: self.name,
+                    common.Key.NAME: name,
                     common.Key.CHANNELS: num_channels,
                     common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
                     common.Key.FTDI_ID: "ABC",
@@ -173,13 +143,41 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         data = await self.read()
         self.assertEqual(common.ResponseCode.OK, data[common.Key.RESPONSE])
 
-        reply = await self.read()
-        reply_to_check = reply[common.Key.TELEMETRY]
-        self.check_temperature_reply(reply=reply_to_check, num_channels=num_channels)
+        # Make sure that the mock sensor outputs data for a disconnected
+        # channel.
+        self.srv.command_handler.devices[0].disconnected_channel = disconnected_channel
 
-        reply = await self.read()
-        reply_to_check = reply[common.Key.TELEMETRY]
-        self.check_temperature_reply(reply=reply_to_check, num_channels=num_channels)
+        # Make sure that the mock sensor outputs truncated data.
+        self.srv.command_handler.devices[0].missed_channels = missed_channels
+
+        # Make sure that the mock sensor is in error state.
+        self.srv.command_handler.devices[0].in_error_state = in_error_state
+
+        self.reply = await self.read()
+        reply_to_check = self.reply[common.Key.TELEMETRY]
+        mtt.check_temperature_reply(
+            reply=reply_to_check,
+            name=name,
+            num_channels=num_channels,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
+        )
+
+        # Reset self.missed_channels and read again. The data should not be
+        # truncated anymore.
+        missed_channels = 0
+
+        self.reply = await self.read()
+        reply_to_check = self.reply[common.Key.TELEMETRY]
+        mtt.check_temperature_reply(
+            reply=reply_to_check,
+            name=name,
+            num_channels=num_channels,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
+        )
 
         await self.write(command=common.Command.STOP, parameters={})
         data = await self.read()
@@ -191,4 +189,24 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         """Test the SocketServer with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        await self.check_server_test(num_channels=4)
+        await self.check_server_test(name="Test1", num_channels=1)
+
+    async def test_full_command_sequence_with_disconnected_channel(self) -> None:
+        """Test the SocketServer with one disconnected channel and no truncated
+        data.
+        """
+        await self.check_server_test(
+            name="Test1", num_channels=4, disconnected_channel=1
+        )
+
+    async def test_full_command_sequence_with_truncated_output(self) -> None:
+        """Test the SocketServer with no disconnected channels and truncated
+        data for two channels.
+        """
+        await self.check_server_test(name="Test1", num_channels=4, missed_channels=2)
+
+    async def test_full_command_sequence_in_error_state(self) -> None:
+        """Test the SocketServer with a sensor in error state, meaning it will
+        only output empty strings.
+        """
+        await self.check_server_test(name="Test1", num_channels=4, in_error_state=True)

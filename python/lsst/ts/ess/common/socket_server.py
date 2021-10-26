@@ -42,7 +42,7 @@ class SocketServer(tcpip.OneClientServer):
 
     Parameters
     ----------
-    name: `str`
+    name : `str`
         The name of the socket server.
     host : `str` or `None`
         IP address for this server.
@@ -51,7 +51,7 @@ class SocketServer(tcpip.OneClientServer):
         IP port for this server. If 0 then use a random port.
     simulation_mode : `int`, optional
         Simulation mode. The default is 0: do not simulate.
-    family: `socket.AddressFamily`
+    family : `socket.AddressFamily`
         The address family that the socket will use. The default is
         AF_UNSPEC.
     """
@@ -94,7 +94,7 @@ class SocketServer(tcpip.OneClientServer):
 
         Parameters
         ----------
-        command_handler: `AbstractCommandHandler`
+        command_handler : `AbstractCommandHandler`
             The command handler instance to use.
         """
         self.command_handler = command_handler
@@ -116,7 +116,7 @@ class SocketServer(tcpip.OneClientServer):
 
         Parameters
         ----------
-        data: `dict`
+        data : `dict`
             The data to write.
         """
         self.log.debug(f"Writing data {data}")

@@ -21,85 +21,48 @@
 
 __all__ = ["MockCommandHandler"]
 
-import asyncio
-import random
 import typing
 
-from . import Key, MockTemperatureConfig, ResponseCode
 from .abstract_command_handler import AbstractCommandHandler
-from lsst.ts import utils
+from .constants import Key
+from .device import BaseDevice, MockDevice
+from .sensor import create_sensor
 
 
 class MockCommandHandler(AbstractCommandHandler):
-    """Handle incoming commands and send replies. Apply configuration and read
-    sensor data.
+    def create_device(
+        self, device_configuration: typing.Dict[str, typing.Any]
+    ) -> BaseDevice:
+        """Create the device to connect to by using the specified
+        configuration.
 
-    Parameters
-    ----------
-    callback: `Callable`
-        The callback coroutine handling the sensor telemetry. This can be a
-        coroutine that sends the data via a socket connection or a coroutine in
-        a test class to verify that the command has been handled correctly.
-    simulation_mode: `int`
-        Indicating if a simulation mode (> 0) or not (0) is active.
-    name: `str`
-        The name used for the mock telemetry.
+        Parameters
+        ----------
+        device_configuration : dict`
+            A dict representing the device to connect to. The format of the
+            dict is described in the devices part of
+            `lsst.ts.ess.common.CONFIG_SCHEMA`.
 
-    The commands that can be handled are:
+        Returns
+        -------
+        device : common.device.BaseDevice`
+            The device to connect to.
 
-        configure: Load the configuration that is passed on with the command
-        and connect to the devices specified in that configuration. This
-        command can be sent multiple times before a start is received and only
-        the last configuration is kept.
-        start: Start reading the sensor data of the connected devices and send
-        it as plain text via the socket. If no configuration was sent then the
-        start command is ignored. Once started no configuration changes can be
-        done anymore.
-        stop: Stop sending sensor data and disconnect from all devices. Once
-        stopped, configuration changes can be done again and/or reading of
-        sensor data can be started again.
-
-    """
-
-    def __init__(
-        self, callback: typing.Callable, simulation_mode: int, name: str
-    ) -> None:
-        super().__init__(callback=callback, simulation_mode=simulation_mode)
-        self.name = name
-        self._telemetry_loop: typing.Optional[asyncio.Future] = None
-
-    async def connect_devices(self) -> None:
-        """Mock starting devices."""
-        self._telemetry_loop = asyncio.create_task(self._run())
-
-    async def disconnect_devices(self) -> None:
-        """Mock stopping devices."""
-        assert self._telemetry_loop is not None
-        self._telemetry_loop.cancel()
-        self._telemetry_loop = None
-
-    async def _run(self) -> None:
-        assert self._telemetry_loop is not None
-        while not self._telemetry_loop.done():
-            # Mock the time needed to output telemetry.
-            await asyncio.sleep(1)
-
-            curr_tai: float = utils.current_tai()
-            response: int = ResponseCode.OK
-            channel_values = [
-                float(
-                    f"{random.uniform(MockTemperatureConfig.min, MockTemperatureConfig.max):09.4f}"
-                )
-                for i in range(0, 4)
-            ]
-            output: typing.List[typing.Union[str, float, int]] = [
-                self.name,
-                curr_tai,
-                response,
-                *channel_values,
-            ]
-            reply = {
-                Key.TELEMETRY: output,
-            }
-            self.log.info(f"Returning {reply}")
-            await self._callback(reply)
+        Raises
+        ------
+        RuntimeError
+            In case an incorrect configuration has been loaded.
+        """
+        sensor = create_sensor(device_configuration=device_configuration, log=self.log)
+        self.log.debug(
+            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}"
+        )
+        device: BaseDevice = MockDevice(
+            name=device_configuration[Key.NAME],
+            device_id=device_configuration[Key.FTDI_ID],
+            sensor=sensor,
+            callback_func=self._callback,
+            log=self.log,
+            disconnected_channel=-1,
+        )
+        return device

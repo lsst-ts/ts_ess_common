@@ -31,15 +31,15 @@ class DeviceConfig:
 
     Parameters
     ----------
-    name: `str`
+    name : `str`
         The name of the device.
-    dev_type: `DeviceType`
+    dev_type : `DeviceType`
         The type of device.
-    dev_id: `str`
+    dev_id : `str`
         The ID of the device.
-    sens_type: `SensorType`
+    sens_type : `SensorType`
         The type of sensor.
-    num_channels: `int`, optional
+    num_channels : `int`, optional
         The number of channels the output data, or 0 indicating that the number
         of channels is not configurable for this type of device.
 
@@ -65,7 +65,7 @@ class DeviceConfig:
 
         Returns
         -------
-        device_config_as_dict: `dict`
+        device_config_as_dict : `dict`
             A dictionary of key-value pairs representing the instance
             attributes and their values.
         """

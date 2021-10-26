@@ -30,6 +30,7 @@ import jsonschema
 from .command_error import CommandError
 from .config_schema import CONFIG_SCHEMA
 from .constants import Command, Key, ResponseCode
+from .device import BaseDevice
 
 
 class AbstractCommandHandler(ABC):
@@ -38,11 +39,11 @@ class AbstractCommandHandler(ABC):
 
     Parameters
     ----------
-    callback: `Callable`
+    callback : Callable`
         The callback coroutine handling the sensor telemetry. This can be a
         coroutine that sends the data via a socket connection or a coroutine in
         a test class to verify that the command has been handled correctly.
-    simulation_mode: `int`
+    simulation_mode : int`
         Indicating if a simulation mode (> 0) or not (0) is active.
 
     The commands that can be handled are:
@@ -63,7 +64,6 @@ class AbstractCommandHandler(ABC):
 
     valid_simulation_modes = (0, 1)
 
-    @abstractmethod
     def __init__(self, callback: typing.Callable, simulation_mode: int) -> None:
         self.log = logging.getLogger(type(self).__name__)
         if simulation_mode not in self.valid_simulation_modes:
@@ -75,8 +75,10 @@ class AbstractCommandHandler(ABC):
         self.simulation_mode = simulation_mode
 
         self._callback = callback
-        self._configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
+        self.configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
         self._started = False
+
+        self.devices: typing.List[BaseDevice] = []
 
         self.dispatch_dict: typing.Dict[str, typing.Callable] = {
             Command.CONFIGURE: self.configure,
@@ -89,7 +91,7 @@ class AbstractCommandHandler(ABC):
 
         Parameters
         ----------
-        command: `str`
+        command : str`
             The command to handle.
         kwargs:
             The parameters to the command.
@@ -114,7 +116,7 @@ class AbstractCommandHandler(ABC):
 
         Parameters
         ----------
-        configuration: `dict`
+        configuration : dict`
             A dict representing the configuration. The format of the dict
             follows the configuration of the ts_ess project.
 
@@ -138,7 +140,7 @@ class AbstractCommandHandler(ABC):
 
         Parameters
         ----------
-        configuration: `dict`
+        configuration : dict`
             The contents of the dict depend on the type of sensor. See the
             ts_ess configuration schema for more details.
 
@@ -156,7 +158,7 @@ class AbstractCommandHandler(ABC):
             )
         self._validate_configuration(configuration=configuration)
 
-        self._configuration = configuration
+        self.configuration = configuration
 
     async def start_sending_telemetry(self) -> None:
         """Connect the sensors and start reading the sensor data.
@@ -168,18 +170,24 @@ class AbstractCommandHandler(ABC):
             command handler was not configured yet.
         """
         self.log.info("start_sending_telemetry")
-        if not self._configuration:
+        if not self.configuration:
             raise CommandError(
                 msg="No configuration has been received yet. Ignoring start command.",
                 response_code=ResponseCode.NOT_CONFIGURED,
             )
-        await self.connect_devices()
-        self._started = True
 
-    @abstractmethod
-    async def connect_devices(self) -> None:
-        """Loop over the configuration and start all devices."""
-        raise NotImplementedError
+        device_configurations = self.configuration[Key.DEVICES]
+        self.devices = []
+        for device_configuration in device_configurations:
+            device: BaseDevice = self.create_device(device_configuration)
+            self.devices.append(device)
+            self.log.debug(
+                f"Opening {device_configuration[Key.DEVICE_TYPE]} "
+                f"device with name {device_configuration[Key.NAME]}"
+            )
+            await device.open()
+
+        self._started = True
 
     async def stop_sending_telemetry(self) -> None:
         """Stop reading the sensor data.
@@ -196,10 +204,40 @@ class AbstractCommandHandler(ABC):
                 msg="Not started yet. Ignoring stop command.",
                 response_code=ResponseCode.NOT_STARTED,
             )
-        await self.disconnect_devices()
+
+        while self.devices:
+            device: BaseDevice = self.devices.pop(-1)
+            self.log.debug(f"Closing {device} device with name {device.name}")
+            await device.close()
+
         self._started = False
 
     @abstractmethod
-    async def disconnect_devices(self) -> None:
-        """Loop over the configuration and start all devices."""
+    def create_device(
+        self, device_configuration: typing.Dict[str, typing.Any]
+    ) -> BaseDevice:
+        """Create the device to connect to by using the specified
+        configuration.
+
+        Parameters
+        ----------
+        device_configuration : dict`
+            A dict representing the device to connect to. The format of the
+            dict follows the configuration of the ts_ess_csc project.
+
+        Returns
+        -------
+        device : common.device.BaseDevice`
+            The device to connect to.
+
+        Raises
+        ------
+        RuntimeError
+            In case an incorrect configuration has been loaded.
+
+        Notes
+        -----
+        In this case a MockDevice always is returned. Sub-classes should
+        override this method to add support for other devices.
+        """
         raise NotImplementedError

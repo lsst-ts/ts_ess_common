@@ -1,6 +1,6 @@
 # This file is part of ts_ess_common.
 #
-# Developed for the Vera Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,27 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
-# For an explanation why these next lines are so complicated, see
-# https://confluence.lsstcorp.org/pages/viewpage.action?spaceKey=LTS&title=Enabling+Mypy+in+Pytest
-if typing.TYPE_CHECKING:
-    __version__ = "?"
-else:
-    try:
-        from .version import *
-    except ImportError:
-        __version__ = "?"
-
-from .abstract_command_handler import *
-from .command_error import *
-from .config_schema import *
-from .constants import *
-from .device_config import *
-from .mock_command_handler import *
-from .socket_server import SocketServer
-from .test_utils import *
-
-# Import sub modules
-from . import device
-from . import sensor
+from .base_sensor import *
+from .omega_hx85a import *
+from .omega_hx85ba import *
+from .sensor_registry import *
+from .temperature_sensor import *
+from .wind_sensor import *
