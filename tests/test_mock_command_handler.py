@@ -24,6 +24,8 @@ import logging
 import typing
 import unittest
 
+import pytest
+
 from lsst.ts.ess import common
 
 logging.basicConfig(
@@ -78,7 +80,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     ) -> None:
         self.responses.append(response)
 
-    def assert_response(self, response_code: common.ResponseCode) -> None:
+    def validate_response(self, response_code: common.ResponseCode) -> None:
         response = self.responses.pop()
         assert response[common.Key.RESPONSE] == response_code
 
@@ -103,17 +105,17 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_configure(self) -> None:
         await self.command_handler.configure(configuration=self.configuration)
-        self.assertDictEqual(self.configuration, self.command_handler.configuration)
+        assert self.configuration == self.command_handler.configuration
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
-        with self.assertRaises(common.CommandError) as cm:
+        with pytest.raises(common.CommandError) as cm:
             await self.command_handler.start_sending_telemetry()
-        command_error = cm.exception
+        command_error = cm.value
         assert command_error.response_code == common.ResponseCode.NOT_CONFIGURED
 
-        with self.assertRaises(common.CommandError) as cm:
+        with pytest.raises(common.CommandError) as cm:
             await self.command_handler.stop_sending_telemetry()
-        command_error = cm.exception
+        command_error = cm.value
         assert command_error.response_code == common.ResponseCode.NOT_STARTED
 
         # The next function calls should not raise an exception. The working of
@@ -127,10 +129,10 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.command_handler.handle_command(
             command=common.Command.CONFIGURE, configuration=self.configuration
         )
-        self.assert_response(common.ResponseCode.OK)
-        self.assertDictEqual(self.configuration, self.command_handler.configuration)
+        self.validate_response(common.ResponseCode.OK)
+        assert self.configuration == self.command_handler.configuration
         await self.command_handler.handle_command(command=common.Command.START)
-        self.assert_response(common.ResponseCode.OK)
+        self.validate_response(common.ResponseCode.OK)
         assert self.command_handler._started
 
         # Give some time to the mock sensor to produce data
@@ -159,7 +161,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
                 )
 
         await self.command_handler.handle_command(command=common.Command.STOP)
-        self.assert_response(common.ResponseCode.OK)
+        self.validate_response(common.ResponseCode.OK)
         # Give time to the telemetry_task to get cancelled.
         await asyncio.sleep(0.5)
         assert not self.command_handler._started

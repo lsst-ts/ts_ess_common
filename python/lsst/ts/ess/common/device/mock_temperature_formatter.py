@@ -35,11 +35,11 @@ def format_temperature(i: int, disconnected_channel: int, missed_channels: int) 
 
     Parameters
     ----------
-    i : int`
+    i : `int`
         The 0-based temperature channel.
     Returns
     -------
-    s : str`
+    s : `str`
         A string representing a temperature.
     """
     if i < missed_channels:

@@ -37,9 +37,9 @@ def register_sensor(
 
     Parameters
     ----------
-    sensor_type : SensorType`
+    sensor_type : `SensorType`
         The SensorType to register against.
-    sensor_class : typing.Type`
+    sensor_class : `typing.Type`
         The BaseSensor subclass to register.
 
     Raises
@@ -67,16 +67,16 @@ def create_sensor(
 
     Parameters
     ----------
-    device_configuration : dict`
+    device_configuration : `dict`
             A dict representing the device to connect to. The format of the
             dict is described in the devices part of
             `lsst.ts.ess.common.CONFIG_SCHEMA`.
-    log : logging.Logger`
+    log : `logging.Logger`
         The logger to pass on to the sensor.
 
     Returns
     -------
-    sensor : BaseSensor`
+    sensor : `BaseSensor`
         The sensor to connect to.
 
     Raises

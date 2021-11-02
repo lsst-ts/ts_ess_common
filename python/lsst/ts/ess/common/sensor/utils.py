@@ -33,9 +33,9 @@ def add_missing_telemetry(
 
     Parameters
     ----------
-    telemetry : list`
+    telemetry : `list`
         The list of telemetry values to prepend to.
-    expected_length : int`
+    expected_length : `int`
         The expected length of the telemetry list.
 
     Returns
