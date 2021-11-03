@@ -59,8 +59,21 @@ class Hx85baSensor(BaseSensor):
 
     Parameters
     ----------
-    log : logger`
+    log : `logger`
         The logger for which to create a child logger.
+
+    Notes
+    -----
+    Use the `Magnus formula
+    <https://github.com/lsst-ts/ts_ess_common/blob/develop/doc/Dewpoint_Calculation_Humidity_Sensor_E.pdf>`_:: # noqa
+        dp = λ·f / (β - f)
+        Where:
+        • dp is dew point in deg C
+        • β = 17.62
+        • λ = 243.12 C
+        • f = ln(rh/100) + (β·t)/(λ+t))
+        • t = air temperature in deg C
+        • rh = relative humidity in %
     """
 
     def __init__(
@@ -74,17 +87,39 @@ class Hx85baSensor(BaseSensor):
         # Override default value.
         self.charset = "ISO-8859-1"
 
+    @staticmethod
+    def compute_dew_point(relative_humidity: float, temperature: float) -> float:
+        """Compute dew point using the Magnus formula.
+
+        Parameters
+        ----------
+        relative_humidity : `float`
+            Relative humidity (%)
+        temperature : `float`
+            Air temperature (C)
+
+        Returns
+        -------
+        `float`
+            Dew point (C)
+        """
+        β = 17.62
+        λ = 243.12
+        f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
+        # Return the value truncated at two decimals.
+        return λ * f / (β - f)
+
     async def extract_telemetry(self, line: str) -> List[float]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters
         ----------
-        line : str`
+        line : `str`
             A line of comma separated telemetry.
 
         Returns
         -------
-        output : list`
+        output : `list`
             A list of 3 floats containing the telemetry as measured by the
             sensor: the relative humidity, the temperature and the barometric
             pressure.
@@ -111,6 +146,13 @@ class Hx85baSensor(BaseSensor):
         # with the final channels will be received and the missing leading
         # channels need to be filled with NaN.
         output = add_missing_telemetry(output, NUM_VALUES)
+
+        # Add the computed dew point to the output
+        dew_point = self.compute_dew_point(
+            relative_humidity=output[0], temperature=output[1]
+        )
+        output.append(dew_point)
+
         return output
 
 

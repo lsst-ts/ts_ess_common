@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.4.0
+======
+
+* Added computation of the dew point in all humidity sensors that don't provide it themselves.
+* Modernized test code.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.3.0
 ======
 

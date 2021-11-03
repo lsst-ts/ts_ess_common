@@ -23,6 +23,8 @@ import logging
 import math
 import unittest
 
+import pytest
+
 from lsst.ts.ess import common
 
 logging.basicConfig(
@@ -31,18 +33,40 @@ logging.basicConfig(
 
 
 class OmegaHx85baSensorTestCase(unittest.IsolatedAsyncioTestCase):
+    async def test_dew_point(self) -> None:
+        # Test data from
+        # doc/Dewpoint_Calculation_Humidity_Sensor_E.pdf
+        # RH=10%, T=25°C -> Dew point = -8.77°C
+        # RH=90%, T=50°C -> Dew point = 47.90°C
+        # List of (data dict for the hx85a topic, expected dew point)
+        data_list = [
+            (dict(relativeHumidity=10.0, temperature=25.0), -8.77),
+            (dict(relativeHumidity=90.0, temperature=50.0), 47.90),
+        ]
+        # Test the compute_dew_point static method
+        for data_dict, desired_dew_point in data_list:
+            dew_point = common.sensor.Hx85baSensor.compute_dew_point(
+                relative_humidity=data_dict["relativeHumidity"],
+                temperature=data_dict["temperature"],
+            )
+            assert dew_point == pytest.approx(desired_dew_point, abs=0.005)
+
     async def test_extract_telemetry(self) -> None:
         log = logging.getLogger(type(self).__name__)
         sensor = common.sensor.Hx85baSensor(log)
         line = f"%RH=38.86,AT°C=24.32,Pmb=911.40{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [38.86, 24.32, 911.40])
+        assert reply == pytest.approx([38.86, 24.32, 911.40, 9.42], abs=0.005)
         line = f"86,AT°C=24.32,Pmb=911.40{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [math.nan, 24.32, 911.40])
-        with self.assertRaises(ValueError):
+        assert reply == pytest.approx(
+            [math.nan, 24.32, 911.40, math.nan], abs=0.005, nan_ok=True
+        )
+        with pytest.raises(ValueError):
             line = f"%RH=38.86,AT°C==24.32,Pmb=911.40{sensor.terminator}"
             reply = await sensor.extract_telemetry(line=line)
         line = f"{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [math.nan, math.nan, math.nan])
+        assert reply == pytest.approx(
+            [math.nan, math.nan, math.nan, math.nan], nan_ok=True
+        )

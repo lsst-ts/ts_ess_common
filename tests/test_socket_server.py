@@ -50,7 +50,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.log = logging.getLogger(type(self).__name__)
 
         await self.srv.start_task
-        self.assertTrue(self.srv.server.is_serving())
+        assert self.srv.server.is_serving()
         self.reader, self.writer = await asyncio.open_connection(
             host=tcpip.LOCAL_HOST, port=self.srv.port
         )
@@ -90,18 +90,18 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.writer.drain()
 
     async def test_disconnect(self) -> None:
-        self.assertTrue(self.srv.connected)
+        assert self.srv.connected
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await asyncio.sleep(0.5)
-        self.assertFalse(self.srv.connected)
+        assert not self.srv.connected
 
     async def test_exit(self) -> None:
-        self.assertTrue(self.srv.connected)
+        assert self.srv.connected
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await asyncio.sleep(0.5)
-        self.assertFalse(self.srv.connected)
+        assert not self.srv.connected
 
     async def check_server_test(
         self,
@@ -138,10 +138,10 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             parameters={common.Key.CONFIGURATION: configuration},
         )
         data = await self.read()
-        self.assertEqual(common.ResponseCode.OK, data[common.Key.RESPONSE])
+        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
         await self.write(command=common.Command.START, parameters={})
         data = await self.read()
-        self.assertEqual(common.ResponseCode.OK, data[common.Key.RESPONSE])
+        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
 
         # Make sure that the mock sensor outputs data for a disconnected
         # channel.
@@ -181,7 +181,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         await self.write(command=common.Command.STOP, parameters={})
         data = await self.read()
-        self.assertEqual(common.ResponseCode.OK, data[common.Key.RESPONSE])
+        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
         await self.write(command=common.Command.DISCONNECT, parameters={})
         await self.write(command=common.Command.EXIT, parameters={})
 

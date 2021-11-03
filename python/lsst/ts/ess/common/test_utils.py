@@ -24,6 +24,8 @@ __all__ = ["MockTestTools"]
 import math
 import typing
 
+import pytest
+
 from lsst.ts.ess import common
 
 
@@ -85,7 +87,10 @@ class MockTestTools:
             assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
             assert common.ResponseCode.OK == response_code
-        assert len(resp) == 3
+        assert len(resp) == 4
+
+        # Skip the fourth value since it is derived from the first two and it
+        # gets validated below.
         for i in range(0, 3):
             if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i])
@@ -99,6 +104,11 @@ class MockTestTools:
                 else:
                     assert common.device.MockPressureConfig.min <= resp[i]
                     assert resp[i] <= common.device.MockPressureConfig.max
+
+        dew_point = common.sensor.Hx85baSensor.compute_dew_point(
+            relative_humidity=resp[0], temperature=resp[1]
+        )
+        assert resp[3] == pytest.approx(dew_point, nan_ok=True)
 
     def check_temperature_reply(
         self,
