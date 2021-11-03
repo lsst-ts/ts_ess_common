@@ -23,6 +23,8 @@ import logging
 import math
 import unittest
 
+import pytest
+
 from lsst.ts.ess import common
 
 logging.basicConfig(
@@ -75,24 +77,24 @@ class WindSensorTestCase(unittest.IsolatedAsyncioTestCase):
         wind_data = ("015.00", "010")
         line = self.create_wind_sensor_line(speed=wind_data[0], direction=wind_data[1])
         reply = await self.wind_sensor.extract_telemetry(line=line)
-        self.assertAlmostEqual(float(wind_data[0]), reply[0])
-        self.assertAlmostEqual(float(wind_data[1]), reply[1])
+        assert float(wind_data[0]) == pytest.approx(reply[0])
+        assert float(wind_data[1]) == pytest.approx(reply[1])
 
         wind_data = ("001.00", "")
         line = self.create_wind_sensor_line(speed=wind_data[0], direction=wind_data[1])
         reply = await self.wind_sensor.extract_telemetry(line=line)
-        self.assertAlmostEqual(float(wind_data[0]), reply[0])
-        self.assertTrue(math.isnan(reply[1]))
+        assert float(wind_data[0]) == pytest.approx(reply[0])
+        assert math.isnan(reply[1])
 
         wind_data = ("015.00", "010")
         line = self.create_wind_sensor_line(
             speed=wind_data[0], direction=wind_data[1], valid_checksum=False
         )
         reply = await self.wind_sensor.extract_telemetry(line=line)
-        self.assertTrue(math.isnan(reply[0]))
-        self.assertTrue(math.isnan(reply[1]))
+        assert math.isnan(reply[0])
+        assert math.isnan(reply[1])
 
         line = f"{self.wind_sensor.terminator}"
         reply = await self.wind_sensor.extract_telemetry(line=line)
-        self.assertTrue(math.isnan(reply[0]))
-        self.assertTrue(math.isnan(reply[1]))
+        assert math.isnan(reply[0])
+        assert math.isnan(reply[1])

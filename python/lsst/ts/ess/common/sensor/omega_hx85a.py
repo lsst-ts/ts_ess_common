@@ -59,7 +59,7 @@ class Hx85aSensor(BaseSensor):
 
     Parameters
     ----------
-    log : logger`
+    log : `logger`
         The logger for which to create a child logger.
     """
 
@@ -79,12 +79,12 @@ class Hx85aSensor(BaseSensor):
 
         Parameters
         ----------
-        line : str`
+        line : `str`
             A line of comma separated telemetry.
 
         Returns
         -------
-        output : list`
+        output : `list`
             A list of 3 floats containing the telemetry as measured by the
             sensor: the relative humidity, the temperature and the dew point.
             If a value is missing because the connection to the sensor is

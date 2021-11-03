@@ -91,7 +91,7 @@ class WindSensor(BaseSensor):
 
     Parameters
     ----------
-    log : logger`
+    log : `logger`
         The logger for which to create a child logger.
     """
 
@@ -114,7 +114,7 @@ class WindSensor(BaseSensor):
 
         Parameters
         ----------
-        line : str`
+        line : `str`
             A line of comma separated telemetry as described in the doc string
             of this class.
 

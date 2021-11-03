@@ -35,9 +35,9 @@ class BaseSensor(ABC):
 
     Parameters
     ----------
-    log : logging.Logger`
+    log : `logging.Logger`
         The logger to create a child logger for.
-    num_channels : int`, optional
+    num_channels : `int`, optional
         The number of channels that the sensor will produce telemetry for. The
         default value is 0 meaning that the number of channels is not variable.
     """
@@ -62,7 +62,7 @@ class BaseSensor(ABC):
 
         Returns
         -------
-        output : list`
+        output : `list`
             A list containing the telemetry as measured by the specific type of
             sensor. The length of the output list is the same as the number of
             channels.

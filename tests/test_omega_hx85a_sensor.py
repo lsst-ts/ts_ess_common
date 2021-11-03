@@ -23,6 +23,8 @@ import logging
 import math
 import unittest
 
+import pytest
+
 from lsst.ts.ess import common
 
 logging.basicConfig(
@@ -36,13 +38,13 @@ class OmegaHx85aSensorTestCase(unittest.IsolatedAsyncioTestCase):
         sensor = common.sensor.Hx85aSensor(log)
         line = f"%RH=38.86,AT°C=24.32,DP°C=9.57{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [38.86, 24.32, 9.57])
+        assert reply == [38.86, 24.32, 9.57]
         line = f"86,AT°C=24.32,DP°C=9.57{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [math.nan, 24.32, 9.57])
-        with self.assertRaises(ValueError):
+        assert reply == [math.nan, 24.32, 9.57]
+        with pytest.raises(ValueError):
             line = f"%RH=38.86,AT°C=24.32,DP°C==9.57{sensor.terminator}"
             reply = await sensor.extract_telemetry(line=line)
         line = f"{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        self.assertListEqual(reply, [math.nan, math.nan, math.nan])
+        assert reply == [math.nan, math.nan, math.nan]
