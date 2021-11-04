@@ -122,8 +122,10 @@ class SocketServer(tcpip.OneClientServer):
         self.log.debug(f"Writing data {data}")
         st = json.dumps({**data})
         self.log.debug(st)
-        self.writer.write(st.encode() + tcpip.TERMINATOR)
-        await self.writer.drain()
+        # Make sure we can write in case an unexpected disconnection happens.
+        if self.writer is not None:
+            self.writer.write(st.encode() + tcpip.TERMINATOR)
+            await self.writer.drain()
         self.log.debug("Done")
 
     async def read_loop(self) -> None:
@@ -132,8 +134,8 @@ class SocketServer(tcpip.OneClientServer):
             self.log.info(f"The read_loop begins connected? {self.connected}")
             while self.connected:
                 self.log.debug("Waiting for next incoming message.")
-                try:
-                    line = await self.reader.readuntil(tcpip.TERMINATOR)
+                line = await self.reader.readuntil(tcpip.TERMINATOR)
+                if line:
                     line = line.decode().strip()
                     self.log.debug(f"Read command line: {line!r}")
                     items = json.loads(line)
@@ -147,15 +149,19 @@ class SocketServer(tcpip.OneClientServer):
                         assert self.command_handler is not None
                         await self.command_handler.handle_command(cmd, **kwargs)
 
-                except asyncio.IncompleteReadError:
-                    self.log.exception("Read error encountered. Retrying.")
-
-        except asyncio.CancelledError:
-            self.log.debug("read_loop cancelled.")
         except Exception:
-            self.log.exception("read_loop failed.")
+            self.log.exception("read_loop failed. Disconnecting.")
+            self.log.debug("Stoppping sending telemetry.")
+            assert self.command_handler is not None
+            await self.command_handler.stop_sending_telemetry()
+            await self.disconnect()
 
     async def disconnect(self) -> None:
+        """Stop sending telemetry and close the client."""
+        self.log.debug("Cancelling read_loop_task.")
+        self.read_loop_task.cancel()
+        self.read_loop_task = asyncio.Future()
+        self.log.debug("Closing client.")
         await self.close_client()
 
     async def exit(self) -> None:

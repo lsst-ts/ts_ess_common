@@ -28,12 +28,11 @@ import unittest
 from lsst.ts import tcpip
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 # Standard timeout in seconds.
 TIMEOUT = 5
+
+# Sleep time to wait for the SocketServer to respond to changes.
+SOCKET_SERVER_RESPOND_TIME = 0.5
 
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
@@ -54,8 +53,13 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.reader, self.writer = await asyncio.open_connection(
             host=tcpip.LOCAL_HOST, port=self.srv.port
         )
+        # Give time to the socket server to respond.
+        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
+        assert self.srv.connected
+        self.log.info("===== End of asyncSetUp =====")
 
     async def asyncTearDown(self) -> None:
+        self.log.info("===== Start of asyncTearDown =====")
         await self.srv.disconnect()
         if self.writer:
             self.writer.close()
@@ -93,14 +97,14 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         assert self.srv.connected
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
         assert not self.srv.connected
 
     async def test_exit(self) -> None:
         assert self.srv.connected
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
         assert not self.srv.connected
 
     async def check_server_test(
