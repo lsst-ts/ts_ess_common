@@ -10,6 +10,7 @@ v0.5.0
 ======
 
 * Made sure that lost connections are detected and handled such that a new connection can be made.
+* Simplified the constructor of MockDevice.
 
 Requires:
 
