@@ -65,6 +65,7 @@ class SocketServer(tcpip.OneClientServer):
         port: int,
         simulation_mode: int = 0,
         family: socket.AddressFamily = socket.AF_UNSPEC,
+        connect_callback: typing.Optional[typing.Callable] = None,
     ) -> None:
         self.name = name
         if simulation_mode not in self.valid_simulation_modes:
@@ -78,12 +79,15 @@ class SocketServer(tcpip.OneClientServer):
         self.log: logging.Logger = logging.getLogger(type(self).__name__)
         self.command_handler: typing.Optional[AbstractCommandHandler] = None
 
+        if connect_callback is None:
+            connect_callback = self.connect_callback
+
         super().__init__(
             name=self.name,
             host=host,
             port=port,
             log=self.log,
-            connect_callback=self.connected_callback,
+            connect_callback=connect_callback,
             family=family,
         )
 
@@ -99,10 +103,9 @@ class SocketServer(tcpip.OneClientServer):
         """
         self.command_handler = command_handler
 
-    def connected_callback(self, server: SocketServer) -> None:
+    def connect_callback(self, server: SocketServer) -> None:
         """A client has connected or disconnected."""
-        self.read_loop_task.cancel()
-        if server.connected:
+        if self.connected:
             self.log.info("Client connected.")
             self.read_loop_task = asyncio.create_task(self.read_loop())
         else:
@@ -122,8 +125,7 @@ class SocketServer(tcpip.OneClientServer):
         self.log.debug(f"Writing data {data}")
         st = json.dumps({**data})
         self.log.debug(st)
-        # Make sure we can write in case an unexpected disconnection happens.
-        if self.writer is not None:
+        if self.connected:
             self.writer.write(st.encode() + tcpip.TERMINATOR)
             await self.writer.drain()
         self.log.debug("Done")
@@ -146,21 +148,19 @@ class SocketServer(tcpip.OneClientServer):
                     elif cmd == "disconnect":
                         await self.disconnect()
                     else:
-                        assert self.command_handler is not None
-                        await self.command_handler.handle_command(cmd, **kwargs)
+                        if self.command_handler is not None:
+                            await self.command_handler.handle_command(cmd, **kwargs)
 
         except Exception:
             self.log.exception("read_loop failed. Disconnecting.")
-            self.log.debug("Stoppping sending telemetry.")
-            assert self.command_handler is not None
-            await self.command_handler.stop_sending_telemetry()
+            if self.command_handler is not None:
+                await self.command_handler.stop_sending_telemetry()
             await self.disconnect()
 
     async def disconnect(self) -> None:
         """Stop sending telemetry and close the client."""
         self.log.debug("Cancelling read_loop_task.")
         self.read_loop_task.cancel()
-        self.read_loop_task = asyncio.Future()
         self.log.debug("Closing client.")
         await self.close_client()
 

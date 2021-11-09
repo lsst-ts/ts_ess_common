@@ -31,15 +31,16 @@ from lsst.ts.ess import common
 # Standard timeout in seconds.
 TIMEOUT = 5
 
-# Sleep time to wait for the SocketServer to respond to changes.
-SOCKET_SERVER_RESPOND_TIME = 0.5
-
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.writer = None
         self.srv = common.SocketServer(
-            name="EssSensorsServer", host="0.0.0.0", port=0, simulation_mode=1
+            name="EssSensorsServer",
+            host="0.0.0.0",
+            port=0,
+            simulation_mode=1,
+            connect_callback=self.connect_callback,
         )
         command_handler = common.MockCommandHandler(
             callback=self.srv.write, simulation_mode=1
@@ -48,13 +49,14 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.log = logging.getLogger(type(self).__name__)
 
+        self.connected_future: asyncio.Future = asyncio.Future()
         await self.srv.start_task
         assert self.srv.server.is_serving()
         self.reader, self.writer = await asyncio.open_connection(
             host=tcpip.LOCAL_HOST, port=self.srv.port
         )
         # Give time to the socket server to respond.
-        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
+        await self.connected_future
         assert self.srv.connected
         self.log.info("===== End of asyncSetUp =====")
 
@@ -93,18 +95,25 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.writer.write(st.encode() + tcpip.TERMINATOR)
         await self.writer.drain()
 
+    def connect_callback(self, server: common.SocketServer) -> None:
+        if not self.connected_future.done():
+            self.connected_future.set_result(server.connected)
+            self.srv.connect_callback(server)
+
     async def test_disconnect(self) -> None:
+        self.connected_future = asyncio.Future()
         assert self.srv.connected
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
-        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
+        await self.connected_future
         assert not self.srv.connected
 
     async def test_exit(self) -> None:
+        self.connected_future = asyncio.Future()
         assert self.srv.connected
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
-        await asyncio.sleep(SOCKET_SERVER_RESPOND_TIME)
+        await self.connected_future
         assert not self.srv.connected
 
     async def check_server_test(
