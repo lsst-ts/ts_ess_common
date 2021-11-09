@@ -47,18 +47,6 @@ class MockDevice(BaseDevice):
         Callback function to receive the telemetry.
     log : `logging.Logger`
         The logger to create a child logger for.
-    disconnected_channel : `int`, optional
-        In the specific case of a temperature sensor, one or more channels
-        can be physically disconnected which will make the sensor output a
-        specific value for those channels. disconnected_channel makes the
-        MockDevice mock one disconnected channel.
-    missed_channels : `int`, optional
-        When a connection to the sensor is established mid output, the
-        telemetry for one or more channels is not received by the code.
-        missed_channels mocks the number of channels that are missed because
-        of that.
-    in_error_state : `bool`, optional
-        The sensor produces an error (True) or not (False) when being read.
     """
 
     def __init__(
@@ -68,9 +56,6 @@ class MockDevice(BaseDevice):
         sensor: BaseSensor,
         callback_func: typing.Callable,
         log: logging.Logger,
-        disconnected_channel: int = -1,
-        missed_channels: int = 0,
-        in_error_state: bool = False,
     ) -> None:
         super().__init__(
             name=name,
@@ -80,21 +65,21 @@ class MockDevice(BaseDevice):
             log=log,
         )
 
-        if -1 <= disconnected_channel < self.sensor.num_channels:
-            self.disconnected_channel = disconnected_channel
-        else:
-            raise ValueError(
-                f"disconnected_channel={disconnected_channel!r} should have a "
-                f"value between 0 and {self.sensor.num_channels} or be None."
-            )
-        if 0 <= missed_channels <= self.sensor.num_channels:
-            self.missed_channels = missed_channels
-        else:
-            raise ValueError(
-                f"missed_channels={missed_channels!r} should have a value "
-                f"between 0 and {self.sensor.num_channels}."
-            )
-        self.in_error_state = in_error_state
+        # Default values that can be set by unit tests to modify the behavior
+        # of the device:
+        #    In the specific case of a temperature sensor, one or more channels
+        #    can be physically disconnected which will make the sensor output a
+        #    specific value for those channels. disconnected_channel makes the
+        #    MockDevice mock one disconnected channel.
+        self.disconnected_channel = -1
+        #     When a connection to the sensor is established mid output, the
+        #     telemetry for one or more channels is not received by the code.
+        #     missed_channels mocks the number of channels that are missed
+        #     because of that.
+        self.missed_channels = 0
+        #     The sensor produces an error (True) or not (False) when being
+        #     read.
+        self.in_error_state = False
 
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {

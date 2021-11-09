@@ -55,9 +55,9 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
             sensor=sensor,
             callback_func=self._callback,
             log=log,
-            missed_channels=missed_channels,
-            in_error_state=in_error_state,
-        ):
+        ) as device:
+            device.missed_channels = missed_channels
+            device.in_error_state = in_error_state
 
             # First read of the telemetry to verify that handling of truncated
             # data is performed correctly if the MockDevice is instructed to

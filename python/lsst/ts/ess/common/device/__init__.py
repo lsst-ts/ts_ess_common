@@ -24,3 +24,4 @@ import platform
 from .base_device import *
 from .mock_device import *
 from .mock_formatter import *
+from .mock_temperature_formatter import *
