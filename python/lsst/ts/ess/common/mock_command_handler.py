@@ -63,6 +63,5 @@ class MockCommandHandler(AbstractCommandHandler):
             sensor=sensor,
             callback_func=self._callback,
             log=self.log,
-            disconnected_channel=-1,
         )
         return device
