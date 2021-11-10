@@ -39,10 +39,11 @@ class DeviceConfig:
         The ID of the device.
     sens_type : `SensorType`
         The type of sensor.
+    location: `str`
+        The location of the device.
     num_channels : `int`, optional
         The number of channels the output data, or 0 indicating that the number
         of channels is not configurable for this type of device.
-
     """
 
     def __init__(
@@ -51,6 +52,7 @@ class DeviceConfig:
         dev_type: DeviceType,
         dev_id: str,
         sens_type: SensorType,
+        location: str,
         num_channels: int = 0,
     ) -> None:
         self.name = name
@@ -58,6 +60,7 @@ class DeviceConfig:
         self.dev_type = DeviceType(dev_type)
         self.dev_id = dev_id
         self.sens_type = SensorType(sens_type)
+        self.location = location
 
     def as_dict(self) -> Dict[str, Union[str, int]]:
         """Return a dict with the instance attributes and their values as
@@ -73,6 +76,7 @@ class DeviceConfig:
             Key.NAME: self.name,
             Key.DEVICE_TYPE: self.dev_type,
             Key.SENSOR_TYPE: self.sens_type,
+            Key.LOCATION: self.location,
         }
 
         # FTDI devices have an FTDI ID and Serial devices have a serial port.

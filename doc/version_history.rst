@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.6.0
+======
+
+* Added location to the configuration of the sensors.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.5.0
 ======
 

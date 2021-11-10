@@ -21,7 +21,7 @@ from __future__ import annotations
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["BaseDevice"]
+__all__ = ["BaseDevice", "BAUDRATE"]
 
 from abc import ABC, abstractmethod
 import asyncio
@@ -32,6 +32,9 @@ import typing
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
 from lsst.ts import utils
+
+
+BAUDRATE = 19200
 
 
 class BaseDevice(ABC):
