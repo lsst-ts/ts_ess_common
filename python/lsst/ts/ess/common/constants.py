@@ -64,6 +64,7 @@ class Key(str, enum.Enum):
     DEVICE_TYPE = "device_type"
     DEVICES = "devices"
     FTDI_ID = "ftdi_id"
+    LOCATION = "location"
     NAME = "name"
     RESPONSE = "response"
     SENSOR_TYPE = "sensor_type"
