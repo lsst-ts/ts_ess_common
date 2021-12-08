@@ -24,7 +24,14 @@ __all__ = ["MockTestTools"]
 import math
 import typing
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    raise ImportError(
+        "Failed to import pytest. test_utils is only available for testing purposes. To use it "
+        "install pytest manually with 'conda install pytest' or install the full build suite with "
+        "'conda install -c lsstts ts-conda-build'"
+    )
 
 from lsst.ts.ess import common
 

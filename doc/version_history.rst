@@ -9,7 +9,7 @@ Version History
 v0.6.1
 ======
 
-* Added a conda dependency for pytest.
+* Made sure that no runtime dependency on pytest is necessary anymore.
 
 Requires:
 

@@ -27,6 +27,7 @@ import unittest
 
 from lsst.ts import tcpip
 from lsst.ts.ess import common
+from lsst.ts.ess.common.test_utils import MockTestTools
 
 # Standard timeout in seconds.
 TIMEOUT = 5
@@ -134,7 +135,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             - disconnect
             - exit
         """
-        mtt = common.MockTestTools()
+        mtt = MockTestTools()
         configuration = {
             common.Key.DEVICES: [
                 {
