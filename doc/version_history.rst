@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.6.1
+======
+
+* Made sure that no runtime dependency on pytest is necessary anymore.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.6.0
 ======
 
