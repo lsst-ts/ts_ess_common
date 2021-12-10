@@ -25,6 +25,7 @@ import typing
 import unittest
 
 from lsst.ts.ess import common
+from lsst.ts.ess.common.test_utils import MockTestTools
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -47,7 +48,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
     ) -> None:
         """Check the working of the MockDevice."""
         log = logging.getLogger(type(self).__name__)
-        mtt = common.MockTestTools()
+        mtt = MockTestTools()
         sensor = common.sensor.Hx85aSensor(log=log)
         async with common.device.MockDevice(
             name=name,

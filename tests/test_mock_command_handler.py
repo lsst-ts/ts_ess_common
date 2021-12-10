@@ -27,6 +27,7 @@ import unittest
 import pytest
 
 from lsst.ts.ess import common
+from lsst.ts.ess.common.test_utils import MockTestTools
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -128,7 +129,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.command_handler.stop_sending_telemetry()
 
     async def test_handle_command(self) -> None:
-        mtt = common.MockTestTools()
+        mtt = MockTestTools()
         await self.command_handler.handle_command(
             command=common.Command.CONFIGURE, configuration=self.configuration
         )
