@@ -6,6 +6,21 @@
 Version History
 ###############
 
+v0.7.0
+======
+
+* Added support for data clients: classes that communicate with an environmental data server and publish the data as ESS telemetry:
+
+  * Added classes `BaseDataClient` and `MockDataClient`.
+  * Added function `get_data_client_class`.
+  * Jenkinsfile: update to build and upload documentation, and kill stale jobs.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.6.1
 ======
 
