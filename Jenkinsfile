@@ -1,3 +1,16 @@
+properties(
+    [
+    buildDiscarder
+        (logRotator (
+            artifactDaysToKeepStr: '',
+            artifactNumToKeepStr: '',
+            daysToKeepStr: '14',
+            numToKeepStr: '10'
+        ) ),
+    disableConcurrentBuilds()
+    ]
+)
+
 pipeline {
     agent any
     environment {
@@ -57,6 +70,25 @@ pipeline {
                 reportFiles: 'index.html',
                 reportName: "Coverage Report"
               ])
+
+            // Build and publish the documentation
+            sh "docker exec -u saluser \${container_name} sh -c \"" +
+                "source ~/.setup.sh && " +
+                "cd /home/saluser/repo/ && " +
+                "setup ts_ess_common -t saluser && " +
+                "package-docs build\""
+
+            script {
+                def RESULT = sh returnStatus: true, script: "docker exec -u saluser \${container_name} sh -c \"" +
+                    "source ~/.setup.sh && " +
+                    "cd /home/saluser/repo/ && " +
+                    "setup ts_ess_common -t saluser && " +
+                    "ltd upload --product ts-ess-common --git-ref \${GIT_BRANCH} --dir doc/_build/html\""
+
+                if ( RESULT != 0 ) {
+                    unstable("Failed to push documentation.")
+                }
+             }
         }
         cleanup {
             sh """
