@@ -138,7 +138,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         devices_names_checked: typing.Set[str] = set()
         while len(devices_names_checked) != len(self.device_configs):
             reply = self.responses.pop()
-            name = reply[common.Key.TELEMETRY][0]
+            name = reply[common.Key.TELEMETRY][common.Key.NAME]
             devices_names_checked.add(name)
             device_config = self.device_configs[name]
             reply_to_check = reply[common.Key.TELEMETRY]

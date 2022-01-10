@@ -65,10 +65,12 @@ class Key(str, enum.Enum):
     LOCATION = "location"
     NAME = "name"
     RESPONSE = "response"
+    RESPONSE_CODE = "response_code"
+    SENSOR_TELEMETRY = "sensor_telemetry"
     SENSOR_TYPE = "sensor_type"
     SERIAL_PORT = "serial_port"
     TELEMETRY = "telemetry"
-    TIME = "time"
+    TIMESTAMP = "timestamp"
 
 
 class ResponseCode(enum.IntEnum):
