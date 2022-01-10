@@ -44,8 +44,6 @@ class Command(str, enum.Enum):
     CONFIGURE = "configure"
     DISCONNECT = "disconnect"
     EXIT = "exit"
-    START = "start"
-    STOP = "stop"
 
 
 class DeviceType(str, enum.Enum):

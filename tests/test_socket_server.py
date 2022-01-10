@@ -63,7 +63,8 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         self.log.info("===== Start of asyncTearDown =====")
-        await self.srv.disconnect()
+        if self.srv.connected:
+            await self.srv.disconnect()
         if self.writer:
             self.writer.close()
             await self.writer.wait_closed()
@@ -104,6 +105,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_disconnect(self) -> None:
         self.connected_future = asyncio.Future()
         assert self.srv.connected
+        await self.assert_configure(name="TEST_DISCONNECT")
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
@@ -112,10 +114,37 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_exit(self) -> None:
         self.connected_future = asyncio.Future()
         assert self.srv.connected
+        await self.assert_configure(name="TEST_EXIT")
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
         assert not self.srv.connected
+
+    async def assert_configure(
+        self,
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = -1,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
+    ) -> None:
+        configuration = {
+            common.Key.DEVICES: [
+                {
+                    common.Key.NAME: name,
+                    common.Key.CHANNELS: num_channels,
+                    common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
+                    common.Key.FTDI_ID: "ABC",
+                    common.Key.SENSOR_TYPE: common.SensorType.TEMPERATURE,
+                }
+            ]
+        }
+        await self.write(
+            command=common.Command.CONFIGURE,
+            parameters={common.Key.CONFIGURATION: configuration},
+        )
+        data = await self.read()
+        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
 
     async def check_server_test(
         self,
@@ -136,26 +165,13 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             - exit
         """
         mtt = MockTestTools()
-        configuration = {
-            common.Key.DEVICES: [
-                {
-                    common.Key.NAME: name,
-                    common.Key.CHANNELS: num_channels,
-                    common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
-                    common.Key.FTDI_ID: "ABC",
-                    common.Key.SENSOR_TYPE: common.SensorType.TEMPERATURE,
-                }
-            ]
-        }
-        await self.write(
-            command=common.Command.CONFIGURE,
-            parameters={common.Key.CONFIGURATION: configuration},
+        await self.assert_configure(
+            name=name,
+            num_channels=num_channels,
+            disconnected_channel=disconnected_channel,
+            missed_channels=missed_channels,
+            in_error_state=in_error_state,
         )
-        data = await self.read()
-        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
-        await self.write(command=common.Command.START, parameters={})
-        data = await self.read()
-        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
 
         # Make sure that the mock sensor outputs data for a disconnected
         # channel.
@@ -193,9 +209,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             in_error_state=in_error_state,
         )
 
-        await self.write(command=common.Command.STOP, parameters={})
-        data = await self.read()
-        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
         await self.write(command=common.Command.DISCONNECT, parameters={})
         await self.write(command=common.Command.EXIT, parameters={})
 
