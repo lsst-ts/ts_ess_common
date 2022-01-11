@@ -153,12 +153,12 @@ class SocketServer(tcpip.OneClientServer):
 
         except Exception:
             self.log.exception("read_loop failed. Disconnecting.")
-            if self.command_handler is not None:
-                await self.command_handler.stop_sending_telemetry()
             await self.disconnect()
 
     async def disconnect(self) -> None:
         """Stop sending telemetry and close the client."""
+        if self.command_handler is not None:
+            await self.command_handler.stop_sending_telemetry()
         self.log.debug("Cancelling read_loop_task.")
         self.read_loop_task.cancel()
         self.log.debug("Closing client.")

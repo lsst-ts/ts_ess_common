@@ -136,9 +136,13 @@ class BaseDevice(ABC):
                 response = ResponseCode.DEVICE_READ_ERROR
 
             sensor_telemetry = await self.sensor.extract_telemetry(line=line)
-            output = [self.name, curr_tai, response, *sensor_telemetry]
             reply = {
-                Key.TELEMETRY: output,
+                Key.TELEMETRY: {
+                    Key.NAME: self.name,
+                    Key.TIMESTAMP: curr_tai,
+                    Key.RESPONSE_CODE: response,
+                    Key.SENSOR_TELEMETRY: sensor_telemetry,
+                }
             }
             self.log.info(f"Returning {reply}")
             await self._callback_func(reply)

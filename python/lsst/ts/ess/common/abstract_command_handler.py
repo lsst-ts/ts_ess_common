@@ -82,8 +82,6 @@ class AbstractCommandHandler(ABC):
 
         self.dispatch_dict: typing.Dict[str, typing.Callable] = {
             Command.CONFIGURE: self.configure,
-            Command.START: self.start_sending_telemetry,
-            Command.STOP: self.stop_sending_telemetry,
         }
 
     async def handle_command(self, command: str, **kwargs: typing.Any) -> None:
@@ -136,7 +134,7 @@ class AbstractCommandHandler(ABC):
             )
 
     async def configure(self, configuration: typing.Dict[str, typing.Any]) -> None:
-        """Apply the configuration.
+        """Apply the configuration and start sending telemetry.
 
         Parameters
         ----------
@@ -157,24 +155,7 @@ class AbstractCommandHandler(ABC):
                 response_code=ResponseCode.ALREADY_STARTED,
             )
         self._validate_configuration(configuration=configuration)
-
         self.configuration = configuration
-
-    async def start_sending_telemetry(self) -> None:
-        """Connect the sensors and start reading the sensor data.
-
-        Raises
-        ------
-        `CommandError`
-            A CommandError with ResponseCode NOT_CONFIGURED is raised if the
-            command handler was not configured yet.
-        """
-        self.log.info("start_sending_telemetry")
-        if not self.configuration:
-            raise CommandError(
-                msg="No configuration has been received yet. Ignoring start command.",
-                response_code=ResponseCode.NOT_CONFIGURED,
-            )
 
         device_configurations = self.configuration[Key.DEVICES]
         self.devices = []
