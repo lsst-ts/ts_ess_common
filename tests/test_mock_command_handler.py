@@ -113,11 +113,6 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
         with pytest.raises(common.CommandError) as cm:
-            await self.command_handler.start_sending_telemetry()
-        command_error = cm.value
-        assert command_error.response_code == common.ResponseCode.NOT_CONFIGURED
-
-        with pytest.raises(common.CommandError) as cm:
             await self.command_handler.stop_sending_telemetry()
         command_error = cm.value
         assert command_error.response_code == common.ResponseCode.NOT_STARTED
@@ -125,7 +120,6 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         # The next function calls should not raise an exception. The working of
         # the functions is tested in test_handle_command.
         await self.command_handler.configure(configuration=self.configuration)
-        await self.command_handler.start_sending_telemetry()
         await self.command_handler.stop_sending_telemetry()
 
     async def test_handle_command(self) -> None:
@@ -135,8 +129,6 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.validate_response(common.ResponseCode.OK)
         assert self.configuration == self.command_handler.configuration
-        await self.command_handler.handle_command(command=common.Command.START)
-        self.validate_response(common.ResponseCode.OK)
         assert self.command_handler._started
 
         # Give some time to the mock sensor to produce data
@@ -146,7 +138,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         devices_names_checked: typing.Set[str] = set()
         while len(devices_names_checked) != len(self.device_configs):
             reply = self.responses.pop()
-            name = reply[common.Key.TELEMETRY][0]
+            name = reply[common.Key.TELEMETRY][common.Key.NAME]
             devices_names_checked.add(name)
             device_config = self.device_configs[name]
             reply_to_check = reply[common.Key.TELEMETRY]
@@ -164,8 +156,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
                     f"Unsupported sensor type {device_config.sens_type} encountered."
                 )
 
-        await self.command_handler.handle_command(command=common.Command.STOP)
-        self.validate_response(common.ResponseCode.OK)
+        await self.command_handler.stop_sending_telemetry()
         # Give time to the telemetry_task to get cancelled.
         await asyncio.sleep(0.5)
         assert not self.command_handler._started

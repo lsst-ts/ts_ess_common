@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.7.2
+======
+
+* Remove START and STOP commands.
+* Encode sensor name, timestamp, response code and data as separate named entities.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.7.1
 ======
 

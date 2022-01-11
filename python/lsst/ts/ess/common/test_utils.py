@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["MockTestTools"]
+__all__ = ["MockTestTools", "SensorReply"]
 
 import math
 import typing
@@ -36,19 +36,28 @@ except ImportError:
 from lsst.ts.ess import common
 
 
+class SensorReply(typing.TypedDict):
+    """`typing.TypedDict` for MyPy checking of sensor replies."""
+
+    name: str
+    timestamp: float
+    response_code: str
+    sensor_telemetry: list
+
+
 class MockTestTools:
     def check_hx85a_reply(
         self,
-        reply: typing.List[typing.Union[str, float]],
+        reply: SensorReply,
         name: str,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
-        device_name = reply[0]
-        time = float(reply[1])
-        response_code = reply[2]
-        resp: typing.List[typing.SupportsFloat] = []
-        for value in reply[3:]:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: typing.List[float] = []
+        for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)
 
@@ -75,16 +84,16 @@ class MockTestTools:
 
     def check_hx85ba_reply(
         self,
-        reply: typing.List[typing.Union[str, float]],
+        reply: SensorReply,
         name: str,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
-        device_name = reply[0]
-        time = float(reply[1])
-        response_code = reply[2]
-        resp: typing.List[typing.SupportsFloat] = []
-        for value in reply[3:]:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: typing.List[float] = []
+        for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)
 
@@ -115,22 +124,22 @@ class MockTestTools:
         dew_point = common.sensor.Hx85baSensor.compute_dew_point(
             relative_humidity=resp[0], temperature=resp[1]
         )
-        assert resp[3] == pytest.approx(dew_point, nan_ok=True)
+        assert resp[3] == pytest.approx(dew_point, nan_ok=True, rel=1e-4)
 
     def check_temperature_reply(
         self,
-        reply: typing.List[typing.Union[str, float]],
+        reply: SensorReply,
         name: str,
         num_channels: int = 0,
         disconnected_channel: int = -1,
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
-        device_name = reply[0]
-        time = float(reply[1])
-        response_code = reply[2]
-        resp: typing.List[typing.SupportsFloat] = []
-        for value in reply[3:]:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: typing.List[float] = []
+        for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)
 
