@@ -134,7 +134,7 @@ class AbstractCommandHandler(ABC):
             )
 
     async def configure(self, configuration: typing.Dict[str, typing.Any]) -> None:
-        """Apply the configuration.
+        """Apply the configuration and start sending telemetry.
 
         Parameters
         ----------
