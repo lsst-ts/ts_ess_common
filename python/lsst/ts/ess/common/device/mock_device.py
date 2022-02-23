@@ -116,8 +116,6 @@ class MockDevice(BaseDevice):
             missed_channels=self.missed_channels,
         )
 
-        self.log.debug(f"channel_strs = {channel_strs}")
-
         # Reset self.missed_channels because truncated data only happens when
         # data is output when first connected. Note that a disconnect followed
         # by a connect will not reset the value of missed_channels.
