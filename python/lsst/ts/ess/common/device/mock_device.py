@@ -23,6 +23,7 @@ __all__ = ["MockDevice"]
 
 import asyncio
 import logging
+import time
 import typing
 
 from .base_device import BaseDevice
@@ -80,6 +81,14 @@ class MockDevice(BaseDevice):
         #     The sensor produces an error (True) or not (False) when being
         #     read.
         self.in_error_state = False
+        # Keep track of being open or not
+        self.is_open = False
+        # Buffer to "read" from
+        self.telemetry_buffer = ""
+        # Index of the last character returned from the buffer.
+        self.last_index = 0
+        # get event loop to run blocking tasks
+        self.loop = asyncio.get_event_loop()
 
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {
@@ -90,7 +99,10 @@ class MockDevice(BaseDevice):
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
-        pass
+        if not self.is_open:
+            self.is_open = True
+        else:
+            self.log.info("Port already open!")
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
@@ -102,26 +114,62 @@ class MockDevice(BaseDevice):
             one. May be returned empty if nothing was received or partial if
             the readline was started during device reception.
         """
+        line: str = ""
+        while not line.endswith(self.sensor.terminator):
+            line += await self.loop.run_in_executor(None, self._read, 1)
+        return line
+
+    def _read(self, num_chars: int) -> str:
+        """Mock an asynchronous read from a sensor.
+
+        Parameters
+        ----------
+        num_chars : `int`
+            The number of characters to return.
+
+        Returns
+        -------
+        line : `str`
+            A line of telemetry read from the sensor.
+        """
         # Mock the time needed to output telemetry.
-        await asyncio.sleep(1)
+        time.sleep(0.01)
 
         # Mock a sensor that produces an error when being read.
         if self.in_error_state:
             return f"{self.sensor.terminator}"
 
-        mock_formatter = self.formatter_registry[type(self.sensor)]
-        channel_strs = mock_formatter.format_output(
-            num_channels=self.sensor.num_channels,
-            disconnected_channel=self.disconnected_channel,
-            missed_channels=self.missed_channels,
-        )
+        if self.telemetry_buffer == "":
+            mock_formatter = self.formatter_registry[type(self.sensor)]
+            channel_strs = mock_formatter.format_output(
+                num_channels=self.sensor.num_channels,
+                disconnected_channel=self.disconnected_channel,
+                missed_channels=self.missed_channels,
+            )
 
-        # Reset self.missed_channels because truncated data only happens when
-        # data is output when first connected. Note that a disconnect followed
-        # by a connect will not reset the value of missed_channels.
-        self.missed_channels = 0
-        return self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
+            # Reset self.missed_channels because truncated data only happens
+            # when data is output when first connected. Note that a disconnect
+            # followed by a connect will not reset the value of
+            # missed_channels.
+            self.missed_channels = 0
+            self.telemetry_buffer = (
+                self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
+            )
+            self.last_index = 0
+
+        end_index = self.last_index + num_chars
+        if end_index > len(self.telemetry_buffer):
+            end_index = len(self.telemetry_buffer)
+        char = self.telemetry_buffer[self.last_index : end_index]
+        self.last_index = end_index
+        if self.last_index == len(self.telemetry_buffer):
+            self.telemetry_buffer = ""
+
+        return char
 
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
-        pass
+        if self.is_open:
+            self.is_open = False
+        else:
+            self.log.info("Port already closed.")
