@@ -27,6 +27,8 @@ from io import BytesIO
 import logging
 import os
 import pty
+import threading
+import time
 import typing
 
 import serial
@@ -36,7 +38,6 @@ from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
 from .mock_temperature_formatter import MockTemperatureFormatter
 from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
-from lsst.ts import utils
 
 
 class MockDevice(BaseDevice):
@@ -87,7 +88,7 @@ class MockDevice(BaseDevice):
         #     The sensor produces an error (True) or not (False) when being
         #     read.
         self.in_error_state = False
-        # get event loop to run blocking tasks
+        # Get event loop to run blocking tasks.
         self.loop = asyncio.get_event_loop()
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {
@@ -100,10 +101,10 @@ class MockDevice(BaseDevice):
         self.ser_port, self.client_port = pty.openpty()
         # Get the name of the client port to listen at.
         self.client_name = os.ttyname(self.client_port)
-        # open a pySerial connection to the client
+        # Open a pySerial connection to the client.
         self.ser = serial.Serial(port=self.client_name, baudrate=2400, timeout=10)
-        # task that writes to the ser_port
-        self.write_task: asyncio.Future = utils.make_done_future()
+        # Thread that writes to the ser_port.
+        self.write_thread = threading.Thread(target=self._write_loop)
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
@@ -116,7 +117,7 @@ class MockDevice(BaseDevice):
                 raise e
         else:
             self.log.info("Port already open!")
-        self.write_task = asyncio.create_task(self._write_loop())
+        self.write_thread.start()
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
@@ -135,11 +136,13 @@ class MockDevice(BaseDevice):
                 buffer.write(await self.loop.run_in_executor(pool, self.ser.read, 1))
         return buffer.getvalue().decode(self.sensor.charset)
 
-    async def _write_loop(self) -> None:
+    def _write_loop(self) -> None:
         """Mock a serial sensor."""
+        # Introduce a startup delay to mock connecting to a real sensor.
+        time.sleep(1.0)
         while self.ser.is_open:
-            # Mock the time needed to output telemetry.
-            await asyncio.sleep(1.5)
+            # Mock a delay between the data outputs.
+            time.sleep(0.1)
 
             # Mock a sensor that produces an error when being read.
             if self.in_error_state:
@@ -161,13 +164,13 @@ class MockDevice(BaseDevice):
                     self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
                 )
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                await self.loop.run_in_executor(
-                    pool,
-                    os.write,
-                    self.ser_port,
-                    telemetry_buffer.encode(self.sensor.charset),
-                )
+            self.log.info(
+                f"telemetry_buffer = {telemetry_buffer.encode(self.sensor.charset)!r}"
+            )
+            for c in telemetry_buffer:
+                # Mock the time needed to output telemetry.
+                time.sleep(0.05)
+                os.write(self.ser_port, c.encode(self.sensor.charset))
 
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
@@ -176,4 +179,3 @@ class MockDevice(BaseDevice):
             self.log.exception("Serial port closed.")
         else:
             self.log.info("Serial port already closed.")
-        self.write_task.cancel()
