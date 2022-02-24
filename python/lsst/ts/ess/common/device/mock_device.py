@@ -31,8 +31,6 @@ import threading
 import time
 import typing
 
-import serial
-
 from .base_device import BaseDevice
 from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
@@ -99,25 +97,17 @@ class MockDevice(BaseDevice):
 
         # Create a dummy serial port to mock a serial device.
         self.ser_port, self.client_port = pty.openpty()
-        # Get the name of the client port to listen at.
-        self.client_name = os.ttyname(self.client_port)
-        # Open a pySerial connection to the client.
-        self.ser = serial.Serial(port=self.client_name, baudrate=2400, timeout=10)
         # Thread that writes to the ser_port.
         self.write_thread = threading.Thread(target=self._write_loop)
+        # Keep track of being open of closed.
+        self.is_open = False
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
-        if not self.ser.is_open:
-            try:
-                self.ser.open()
-                self.log.info("Serial port opened.")
-            except serial.SerialException as e:
-                self.log.exception("Serial port open failed.")
-                raise e
-        else:
-            self.log.info("Port already open!")
+        self.log.info("Start basic_open.")
+        self.is_open = True
         self.write_thread.start()
+        self.log.info("End basic_open.")
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
@@ -133,14 +123,17 @@ class MockDevice(BaseDevice):
         terminator = self.sensor.terminator.encode(self.sensor.charset)
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             while not buffer.getvalue().endswith(terminator):
-                buffer.write(await self.loop.run_in_executor(pool, self.ser.read, 1))
+                buffer.write(
+                    await self.loop.run_in_executor(pool, os.read, self.ser_port, 1)
+                )
         return buffer.getvalue().decode(self.sensor.charset)
 
     def _write_loop(self) -> None:
         """Mock a serial sensor."""
+        self.log.info(f"Start _write_loop with self.is_open = {self.is_open}")
         # Introduce a startup delay to mock connecting to a real sensor.
         time.sleep(1.0)
-        while self.ser.is_open:
+        while self.is_open:
             # Mock a delay between the data outputs.
             time.sleep(0.1)
 
@@ -169,13 +162,11 @@ class MockDevice(BaseDevice):
             )
             for c in telemetry_buffer:
                 # Mock the time needed to output telemetry.
-                time.sleep(0.05)
-                os.write(self.ser_port, c.encode(self.sensor.charset))
+                # time.sleep(0.1)
+                os.write(self.client_port, c.encode(self.sensor.charset))
 
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
-        if self.ser.is_open:
-            self.ser.close()
-            self.log.exception("Serial port closed.")
-        else:
-            self.log.info("Serial port already closed.")
+        self.log.info("Start basic_close.")
+        self.is_open = False
+        self.log.info("End basic_close.")

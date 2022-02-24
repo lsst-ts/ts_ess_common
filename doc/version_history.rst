@@ -10,7 +10,7 @@ v0.7.3
 ======
 
 * Remove unneccessary debug log statements.
-* Modify MockDevice to use a dummy serial connection and threading to better mock a real sensor.
+* Modify MockDevice to use a pseudoterminal and threading to better mock a real sensor.
 
 Requires:
 
