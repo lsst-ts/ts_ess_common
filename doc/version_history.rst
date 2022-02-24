@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.7.3
+======
+
+* Remove unneccessary debug log statements.
+* Modify MockDevice to use a dummy serial connection and threading to better mock a real sensor.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.7.2
 ======
 
