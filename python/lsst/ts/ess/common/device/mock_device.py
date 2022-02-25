@@ -22,13 +22,7 @@
 __all__ = ["MockDevice"]
 
 import asyncio
-import concurrent
-from io import BytesIO
 import logging
-import os
-import pty
-import threading
-import time
 import typing
 
 from .base_device import BaseDevice
@@ -40,7 +34,6 @@ from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
 
 class MockDevice(BaseDevice):
     """Mock Sensor Device.
-
     Parameters
     ----------
     name : `str`
@@ -86,8 +79,7 @@ class MockDevice(BaseDevice):
         #     The sensor produces an error (True) or not (False) when being
         #     read.
         self.in_error_state = False
-        # Get event loop to run blocking tasks.
-        self.loop = asyncio.get_event_loop()
+
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {
             Hx85aSensor: MockHx85aFormatter(),
@@ -95,23 +87,12 @@ class MockDevice(BaseDevice):
             TemperatureSensor: MockTemperatureFormatter(),
         }
 
-        # Create a dummy serial port to mock a serial device.
-        self.ser_port, self.client_port = pty.openpty()
-        # Thread that writes to the ser_port.
-        self.write_thread = threading.Thread(target=self._write_loop)
-        # Keep track of being open of closed.
-        self.is_open = False
-
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
-        self.log.info("Start basic_open.")
-        self.is_open = True
-        self.write_thread.start()
-        self.log.info("End basic_open.")
+        pass
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
-
         Returns
         -------
         line : `str`
@@ -119,54 +100,28 @@ class MockDevice(BaseDevice):
             one. May be returned empty if nothing was received or partial if
             the readline was started during device reception.
         """
-        buffer = BytesIO()
-        terminator = self.sensor.terminator.encode(self.sensor.charset)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            while not buffer.getvalue().endswith(terminator):
-                buffer.write(
-                    await self.loop.run_in_executor(pool, os.read, self.ser_port, 1)
-                )
-        return buffer.getvalue().decode(self.sensor.charset)
+        # Mock the time needed to output telemetry.
+        await asyncio.sleep(1)
 
-    def _write_loop(self) -> None:
-        """Mock a serial sensor."""
-        self.log.info(f"Start _write_loop with self.is_open = {self.is_open}")
-        # Introduce a startup delay to mock connecting to a real sensor.
-        time.sleep(1.0)
-        while self.is_open:
-            # Mock a delay between the data outputs.
-            time.sleep(0.1)
+        # Mock a sensor that produces an error when being read.
+        if self.in_error_state:
+            return f"{self.sensor.terminator}"
 
-            # Mock a sensor that produces an error when being read.
-            if self.in_error_state:
-                telemetry_buffer = self.sensor.terminator
-            else:
-                mock_formatter = self.formatter_registry[type(self.sensor)]
-                channel_strs = mock_formatter.format_output(
-                    num_channels=self.sensor.num_channels,
-                    disconnected_channel=self.disconnected_channel,
-                    missed_channels=self.missed_channels,
-                )
+        mock_formatter = self.formatter_registry[type(self.sensor)]
+        channel_strs = mock_formatter.format_output(
+            num_channels=self.sensor.num_channels,
+            disconnected_channel=self.disconnected_channel,
+            missed_channels=self.missed_channels,
+        )
 
-                # Reset self.missed_channels because truncated data only
-                # happens when data is output when first connected. Note that a
-                # disconnect followed by a connect will not reset the value of
-                # missed_channels.
-                self.missed_channels = 0
-                telemetry_buffer = (
-                    self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
-                )
+        self.log.debug(f"channel_strs = {channel_strs}")
 
-            self.log.info(
-                f"telemetry_buffer = {telemetry_buffer.encode(self.sensor.charset)!r}"
-            )
-            for c in telemetry_buffer:
-                # Mock the time needed to output telemetry.
-                # time.sleep(0.1)
-                os.write(self.client_port, c.encode(self.sensor.charset))
+        # Reset self.missed_channels because truncated data only happens when
+        # data is output when first connected. Note that a disconnect followed
+        # by a connect will not reset the value of missed_channels.
+        self.missed_channels = 0
+        return self.sensor.delimiter.join(channel_strs) + self.sensor.terminator
 
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
-        self.log.info("Start basic_close.")
-        self.is_open = False
-        self.log.info("End basic_close.")
+        pass
