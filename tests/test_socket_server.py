@@ -106,9 +106,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.connected_future = asyncio.Future()
         assert self.srv.connected
         await self.assert_configure(name="TEST_DISCONNECT")
-        # Read at least one line to make sure that the MockDevice background
-        # thread can be stopped.
-        await self.read()
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
@@ -118,11 +115,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.connected_future = asyncio.Future()
         assert self.srv.connected
         await self.assert_configure(name="TEST_EXIT")
-        # Read at least one line to make sure that the MockDevice background
-        # thread can be stopped.
-        await self.read()
-        # Make sure that all background threads of mock devices are stopped.
-        await self.write(command=common.Command.DISCONNECT, parameters={})
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
