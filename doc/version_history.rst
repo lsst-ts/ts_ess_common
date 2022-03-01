@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.7.3
+======
+
+* Remove unneccessary debug log statements.
+
+Requires:
+
+* ts_tcpip 0.3
+* ts_utils 1.0
+
+
 v0.7.2
 ======
 

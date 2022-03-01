@@ -122,13 +122,11 @@ class SocketServer(tcpip.OneClientServer):
         data : `dict`
             The data to write.
         """
-        self.log.debug(f"Writing data {data}")
         st = json.dumps({**data})
         self.log.debug(st)
         if self.connected:
             self.writer.write(st.encode() + tcpip.TERMINATOR)
             await self.writer.drain()
-        self.log.debug("Done")
 
     async def read_loop(self) -> None:
         """Read commands and output replies."""

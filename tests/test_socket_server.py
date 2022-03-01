@@ -30,7 +30,7 @@ from lsst.ts.ess import common
 from lsst.ts.ess.common.test_utils import MockTestTools
 
 # Standard timeout in seconds.
-TIMEOUT = 5
+TIMEOUT = 60
 
 
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
