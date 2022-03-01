@@ -122,7 +122,6 @@ class BaseDevice(ABC):
         """
         self.log.debug("Starting sensor.")
         while not self._telemetry_loop.done():
-            self.log.debug("Reading data.")
             curr_tai = utils.current_tai()
             response = ResponseCode.OK
             try:
@@ -144,7 +143,6 @@ class BaseDevice(ABC):
                     Key.SENSOR_TELEMETRY: sensor_telemetry,
                 }
             }
-            self.log.info(f"Returning {reply}")
             await self._callback_func(reply)
 
     @abstractmethod

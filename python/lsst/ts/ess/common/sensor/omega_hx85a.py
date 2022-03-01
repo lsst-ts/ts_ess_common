@@ -90,7 +90,6 @@ class Hx85aSensor(BaseSensor):
             If a value is missing because the connection to the sensor is
             established mid output, then the value gets replaced by math.nan.
         """
-        self.log.debug("extract_telemetry")
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
         output = []

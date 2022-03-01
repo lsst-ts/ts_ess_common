@@ -110,6 +110,8 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_configure(self) -> None:
         await self.command_handler.configure(configuration=self.configuration)
         assert self.configuration == self.command_handler.configuration
+        # Make sure that all background threads of mock devices are stopped.
+        await self.command_handler.stop_sending_telemetry()
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
         with pytest.raises(common.CommandError) as cm:

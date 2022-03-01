@@ -34,7 +34,6 @@ from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
 
 class MockDevice(BaseDevice):
     """Mock Sensor Device.
-
     Parameters
     ----------
     name : `str`
@@ -94,7 +93,6 @@ class MockDevice(BaseDevice):
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
-
         Returns
         -------
         line : `str`
