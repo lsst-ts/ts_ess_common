@@ -33,6 +33,10 @@ from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
 
 
 class MockDevice(BaseDevice):
+    # The wait time between sending telemetry (second). This can be adjusted by
+    # unit tests to mock connection timeouts.
+    wait_time = 1
+
     """Mock Sensor Device.
     Parameters
     ----------
@@ -101,7 +105,7 @@ class MockDevice(BaseDevice):
             the readline was started during device reception.
         """
         # Mock the time needed to output telemetry.
-        await asyncio.sleep(1)
+        await asyncio.sleep(MockDevice.wait_time)
 
         # Mock a sensor that produces an error when being read.
         if self.in_error_state:
