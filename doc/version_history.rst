@@ -12,6 +12,8 @@ v0.7.4
 * Add wait_time class variable for mocking of timeouts.
 * Add pre-commit config file.
 * ``setup.cfg``: specify asyncio_mode=auto.
+* Switch to pyproject.toml.
+* Convert to pure python noarch conda package.
 
 Requires:
 
