@@ -22,7 +22,7 @@
 import asyncio
 import json
 import logging
-import typing
+from typing import Any
 import unittest
 
 from lsst.ts import tcpip
@@ -70,7 +70,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             await self.writer.wait_closed()
         await self.srv.exit()
 
-    async def read(self) -> typing.Dict[str, typing.Any]:
+    async def read(self) -> dict[str, Any]:
         """Read a string from the reader and unmarshal it
 
         Returns
@@ -84,7 +84,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         data = json.loads(read_bytes.decode())
         return data
 
-    async def write(self, **data: typing.Dict[str, typing.Any]) -> None:
+    async def write(self, **data: dict[str, Any]) -> None:
         """Write the data appended with a tcpip.TERMINATOR string.
 
         Parameters

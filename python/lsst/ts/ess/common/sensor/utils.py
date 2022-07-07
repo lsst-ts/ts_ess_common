@@ -22,12 +22,9 @@
 __all__ = ["add_missing_telemetry"]
 
 import math
-import typing
 
 
-def add_missing_telemetry(
-    telemetry: typing.List[float], expected_length: int
-) -> typing.List[float]:
+def add_missing_telemetry(telemetry: list[float], expected_length: int) -> list[float]:
     """Prepend a telemetry list with NaN values to make sure that it has the
     expected length.
 

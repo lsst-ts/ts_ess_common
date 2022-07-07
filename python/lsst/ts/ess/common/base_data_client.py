@@ -32,22 +32,22 @@ import importlib
 import inspect
 import logging
 import types
-from typing import Any, Dict, Type, Union, TYPE_CHECKING
+from typing import Any, Type
 
-if TYPE_CHECKING:
-    from lsst.ts import salobj
+from lsst.ts import salobj
 from lsst.ts import utils
 
 # Dict of data client class name: data client class.
 # Access via the `get_data_client_class functions`.
 # BaseDataClient automatically registers concrete subclasses.
-_DataClientClassRegistry: Dict[str, Type[BaseDataClient]] = dict()
+_DataClientClassRegistry: dict[str, Type[BaseDataClient]] = dict()
 
 # Dict of data client class name: name of module in which it is defined.
 # You may omit data clients found in ts_ess_common and ts_ess_csc,
 # because the ESS CSC already imports those two modules.
 ExternalDataClientModules = dict(
     LabJackDataClient="lsst.ts.ess.labjack",
+    LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
 )
 
 
@@ -86,13 +86,13 @@ class BaseDataClient(abc.ABC):
 
     Parameters
     ----------
-    name : str
-    config : types.SimpleNamespace
+    name : `str`
+    config : `types.SimpleNamespace`
         The configuration, after validation by the schema returned
         by `get_config_schema` and conversion to a types.SimpleNamespace.
     topics : `salobj.Controller`
-        The telemetry topics this data client can write,
-        as a struct with attributes such as ``tel_temperature``.
+        The telemetry topics this model can write, as a struct with attributes
+        such as ``tel_temperature``.
     log : `logging.Logger`
         Logger.
     simulation_mode : `int`, optional
@@ -102,7 +102,7 @@ class BaseDataClient(abc.ABC):
     def __init__(
         self,
         config: types.SimpleNamespace,
-        topics: Union[salobj.Controller, types.SimpleNamespace],
+        topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
     ) -> None:
@@ -116,7 +116,7 @@ class BaseDataClient(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def get_config_schema(cls) -> Dict[str, Any]:
+    def get_config_schema(cls) -> dict[str, Any]:
         """Get the config schema as jsonschema dict."""
         raise NotImplementedError()
 

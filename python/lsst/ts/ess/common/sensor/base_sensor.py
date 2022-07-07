@@ -23,7 +23,6 @@ __all__ = ["BaseSensor"]
 
 from abc import ABC, abstractmethod
 import logging
-from typing import List
 
 
 class BaseSensor(ABC):
@@ -57,7 +56,7 @@ class BaseSensor(ABC):
         self.charset = "ASCII"
 
     @abstractmethod
-    async def extract_telemetry(self, line: str) -> List[float]:
+    async def extract_telemetry(self, line: str) -> list[float]:
         """Extract the telemetry from a line of Sensor data.
 
         Returns

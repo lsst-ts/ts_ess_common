@@ -24,10 +24,10 @@ from __future__ import annotations
 __all__ = ["SocketServer"]
 
 import asyncio
+from collections.abc import Callable
 import json
 import logging
 import socket
-import typing
 
 from .abstract_command_handler import AbstractCommandHandler
 from lsst.ts import tcpip
@@ -61,11 +61,11 @@ class SocketServer(tcpip.OneClientServer):
     def __init__(
         self,
         name: str,
-        host: typing.Optional[str],
+        host: None | str,
         port: int,
         simulation_mode: int = 0,
         family: socket.AddressFamily = socket.AF_UNSPEC,
-        connect_callback: typing.Optional[typing.Callable] = None,
+        connect_callback: None | Callable = None,
     ) -> None:
         self.name = name
         if simulation_mode not in self.valid_simulation_modes:
@@ -77,7 +77,7 @@ class SocketServer(tcpip.OneClientServer):
         self.simulation_mode = simulation_mode
         self.read_loop_task: asyncio.Future = asyncio.Future()
         self.log: logging.Logger = logging.getLogger(type(self).__name__)
-        self.command_handler: typing.Optional[AbstractCommandHandler] = None
+        self.command_handler: None | AbstractCommandHandler = None
 
         if connect_callback is None:
             connect_callback = self.connect_callback

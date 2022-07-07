@@ -23,8 +23,6 @@ __all__ = ["MockTemperatureFormatter"]
 
 import random
 
-import typing
-
 from ..constants import DISCONNECTED_VALUE
 from .mock_formatter import MockFormatter, MockTemperatureConfig
 
@@ -58,7 +56,7 @@ class MockTemperatureFormatter(MockFormatter):
         num_channels: int = 0,
         disconnected_channel: int = -1,
         missed_channels: int = 0,
-    ) -> typing.List[str]:
+    ) -> list[str]:
         output = [
             format_temperature(i, disconnected_channel, missed_channels)
             for i in range(0, num_channels)

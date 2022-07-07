@@ -23,7 +23,6 @@ __all__ = ["Hx85baSensor"]
 
 import logging
 import math
-from typing import List
 
 from .base_sensor import BaseSensor
 from ..constants import SensorType
@@ -109,7 +108,7 @@ class Hx85baSensor(BaseSensor):
         # Return the value truncated at two decimals.
         return λ * f / (β - f)
 
-    async def extract_telemetry(self, line: str) -> List[float]:
+    async def extract_telemetry(self, line: str) -> list[float]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters

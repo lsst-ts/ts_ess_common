@@ -21,7 +21,7 @@
 
 import asyncio
 import logging
-import typing
+from typing import Any
 import unittest
 
 import pytest
@@ -40,7 +40,7 @@ TIMEOUT = 5
 class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger(type(self).__name__)
-        self.responses: typing.List[typing.Dict[common.ResponseCode, typing.Any]] = []
+        self.responses: list[dict[common.ResponseCode, Any]] = []
         self.command_handler = common.MockCommandHandler(
             callback=self.callback, simulation_mode=1
         )
@@ -79,9 +79,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             self.device_config_03.name: self.device_config_03,
         }
 
-    async def callback(
-        self, response: typing.Dict[common.ResponseCode, typing.Any]
-    ) -> None:
+    async def callback(self, response: dict[common.ResponseCode, Any]) -> None:
         self.responses.append(response)
 
     def validate_response(self, response_code: common.ResponseCode) -> None:
@@ -137,7 +135,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         while len(self.responses) < len(self.device_configs):
             await asyncio.sleep(0.5)
 
-        devices_names_checked: typing.Set[str] = set()
+        devices_names_checked: set[str] = set()
         while len(devices_names_checked) != len(self.device_configs):
             reply = self.responses.pop()
             name = reply[common.Key.TELEMETRY][common.Key.NAME]
