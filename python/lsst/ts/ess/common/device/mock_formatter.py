@@ -29,7 +29,6 @@ __all__ = [
 
 from abc import ABC, abstractmethod
 import types
-import typing
 
 # The minimum and maximum temperatures [ºC] used by the mock device.
 MockTemperatureConfig = types.SimpleNamespace(min=18.0, max=30.0)
@@ -53,7 +52,7 @@ class MockFormatter(ABC):
         num_channels: int = 0,
         disconnected_channel: int = 0,
         missed_channels: int = 0,
-    ) -> typing.List[str]:
+    ) -> list[str]:
         """Create a formatted output of a sensor.
 
         Parameters

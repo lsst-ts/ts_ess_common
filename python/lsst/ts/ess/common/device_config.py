@@ -21,8 +21,6 @@
 
 __all__ = ["DeviceConfig"]
 
-from typing import Dict, Union
-
 from .constants import DeviceType, Key, SensorType
 
 
@@ -62,7 +60,7 @@ class DeviceConfig:
         self.sens_type = SensorType(sens_type)
         self.location = location
 
-    def as_dict(self) -> Dict[str, Union[str, int]]:
+    def as_dict(self) -> dict[str, str | int]:
         """Return a dict with the instance attributes and their values as
         key-value pairs.
 
@@ -72,7 +70,7 @@ class DeviceConfig:
             A dictionary of key-value pairs representing the instance
             attributes and their values.
         """
-        device_config_as_dict: Dict[str, Union[str, int]] = {
+        device_config_as_dict: dict[str, str | int] = {
             Key.NAME: self.name,
             Key.DEVICE_TYPE: self.dev_type,
             Key.SENSOR_TYPE: self.sens_type,

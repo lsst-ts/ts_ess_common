@@ -6,6 +6,12 @@
 Version History
 ###############
 
+v0.7.5
+======
+
+* `ExternalDataClientModules`: add ``LabJackAccelerometerDataClient`` so lsst.ts.labjack is imported if needed.
+* Modernize type annotations for Python 3.10.
+
 v0.7.4
 ======
 

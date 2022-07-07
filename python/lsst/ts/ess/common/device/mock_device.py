@@ -22,8 +22,9 @@
 __all__ = ["MockDevice"]
 
 import asyncio
+from collections.abc import Callable
 import logging
-import typing
+from typing import Type
 
 from .base_device import BaseDevice
 from .mock_formatter import MockFormatter
@@ -57,7 +58,7 @@ class MockDevice(BaseDevice):
         name: str,
         device_id: str,
         sensor: BaseSensor,
-        callback_func: typing.Callable,
+        callback_func: Callable,
         log: logging.Logger,
     ) -> None:
         super().__init__(
@@ -85,7 +86,7 @@ class MockDevice(BaseDevice):
         self.in_error_state = False
 
         # Registry of formatters for the different types of sensors.
-        self.formatter_registry: typing.Dict[typing.Type[BaseSensor], MockFormatter] = {
+        self.formatter_registry: dict[Type[BaseSensor], MockFormatter] = {
             Hx85aSensor: MockHx85aFormatter(),
             Hx85baSensor: MockHx85baFormatter(),
             TemperatureSensor: MockTemperatureFormatter(),
