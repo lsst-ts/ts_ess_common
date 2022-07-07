@@ -32,10 +32,12 @@ import importlib
 import inspect
 import logging
 import types
-from typing import Any, Type
+from typing import Any, Type, TYPE_CHECKING
 
-from lsst.ts import salobj
+if TYPE_CHECKING:
+    from lsst.ts import salobj
 from lsst.ts import utils
+
 
 # Dict of data client class name: data client class.
 # Access via the `get_data_client_class functions`.
