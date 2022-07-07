@@ -86,8 +86,8 @@ class BaseDataClient(abc.ABC):
 
     Parameters
     ----------
-    name : str
-    config : types.SimpleNamespace
+    name : `str`
+    config : `types.SimpleNamespace`
         The configuration, after validation by the schema returned
         by `get_config_schema` and conversion to a types.SimpleNamespace.
     topics : `salobj.Controller`
