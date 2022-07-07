@@ -6,11 +6,27 @@
 Version History
 ###############
 
+v0.7.6
+======
+
+* Restore conditional import of lsst.ts.salobj only if type checking.
+* ``ups/ts_ess_common.table``: add setupOptional(ts_salobj); it is optional because it is only used for type checking.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.7.5
 ======
 
 * `ExternalDataClientModules`: add ``LabJackAccelerometerDataClient`` so lsst.ts.labjack is imported if needed.
 * Modernize type annotations for Python 3.10.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
 
 v0.7.4
 ======
