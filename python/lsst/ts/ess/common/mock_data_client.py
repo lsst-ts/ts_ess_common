@@ -26,11 +26,12 @@ __all__ = ["MockDataClient"]
 import asyncio
 import logging
 import types
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import yaml
 
-from lsst.ts import salobj
+if TYPE_CHECKING:
+    from lsst.ts import salobj
 from .base_data_client import BaseDataClient
 
 

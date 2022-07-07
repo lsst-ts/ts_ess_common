@@ -1,6 +1,7 @@
 setupRequired(sconsUtils)
 setupRequired(ts_tcpip)
 setupRequired(ts_utils)
+setupOptional(ts_salobj)  # for type checking
 
 envPrepend(PATH, ${PRODUCT_DIR}/bin)
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
