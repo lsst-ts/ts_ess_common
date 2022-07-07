@@ -21,9 +21,10 @@
 
 __all__ = ["AbstractCommandHandler"]
 
+from collections.abc import Callable
 from abc import ABC, abstractmethod
 import logging
-import typing
+from typing import Any
 
 import jsonschema
 
@@ -64,7 +65,7 @@ class AbstractCommandHandler(ABC):
 
     valid_simulation_modes = (0, 1)
 
-    def __init__(self, callback: typing.Callable, simulation_mode: int) -> None:
+    def __init__(self, callback: Callable, simulation_mode: int) -> None:
         self.log = logging.getLogger(type(self).__name__)
         if simulation_mode not in self.valid_simulation_modes:
             raise ValueError(
@@ -75,16 +76,16 @@ class AbstractCommandHandler(ABC):
         self.simulation_mode = simulation_mode
 
         self._callback = callback
-        self.configuration: typing.Optional[typing.Dict[str, typing.Any]] = None
+        self.configuration: None | dict[str, Any] = None
         self._started = False
 
-        self.devices: typing.List[BaseDevice] = []
+        self.devices: list[BaseDevice] = []
 
-        self.dispatch_dict: typing.Dict[str, typing.Callable] = {
+        self.dispatch_dict: dict[str, Callable] = {
             Command.CONFIGURE: self.configure,
         }
 
-    async def handle_command(self, command: str, **kwargs: typing.Any) -> None:
+    async def handle_command(self, command: str, **kwargs: Any) -> None:
         """Handle incomming commands and parameters.
 
         Parameters
@@ -107,9 +108,7 @@ class AbstractCommandHandler(ABC):
             raise
         await self._callback(response)
 
-    def _validate_configuration(
-        self, configuration: typing.Dict[str, typing.Any]
-    ) -> None:
+    def _validate_configuration(self, configuration: dict[str, Any]) -> None:
         """Validate the configuration.
 
         Parameters
@@ -133,7 +132,7 @@ class AbstractCommandHandler(ABC):
                 response_code=ResponseCode.INVALID_CONFIGURATION,
             )
 
-    async def configure(self, configuration: typing.Dict[str, typing.Any]) -> None:
+    async def configure(self, configuration: dict[str, Any]) -> None:
         """Apply the configuration and start sending telemetry.
 
         Parameters
@@ -194,9 +193,7 @@ class AbstractCommandHandler(ABC):
         self._started = False
 
     @abstractmethod
-    def create_device(
-        self, device_configuration: typing.Dict[str, typing.Any]
-    ) -> BaseDevice:
+    def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
         """Create the device to connect to by using the specified
         configuration.
 

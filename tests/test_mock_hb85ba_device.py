@@ -21,7 +21,6 @@
 
 import asyncio
 import logging
-import typing
 import unittest
 
 from lsst.ts.ess import common
@@ -33,12 +32,8 @@ logging.basicConfig(
 
 
 class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
-    async def _callback(
-        self, reply: typing.Dict[str, typing.List[typing.Union[str, float]]]
-    ) -> None:
-        self.reply: typing.Optional[
-            typing.Dict[str, typing.List[typing.Union[str, float]]]
-        ] = reply
+    async def _callback(self, reply: dict[str, list[str | float]]) -> None:
+        self.reply: None | dict[str, list[str | float]] = reply
 
     async def _check_mock_hx85ba_device(
         self,

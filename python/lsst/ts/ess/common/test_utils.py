@@ -22,7 +22,7 @@
 __all__ = ["MockTestTools", "SensorReply"]
 
 import math
-import typing
+from typing import TypedDict
 
 try:
     import pytest
@@ -36,8 +36,8 @@ except ImportError:
 from lsst.ts.ess import common
 
 
-class SensorReply(typing.TypedDict):
-    """`typing.TypedDict` for MyPy checking of sensor replies."""
+class SensorReply(TypedDict):
+    """`TypedDict` for MyPy checking of sensor replies."""
 
     name: str
     timestamp: float
@@ -56,7 +56,7 @@ class MockTestTools:
         device_name = reply["name"]
         time = float(reply["timestamp"])
         response_code = reply["response_code"]
-        resp: typing.List[float] = []
+        resp: list[float] = []
         for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)
@@ -92,7 +92,7 @@ class MockTestTools:
         device_name = reply["name"]
         time = float(reply["timestamp"])
         response_code = reply["response_code"]
-        resp: typing.List[float] = []
+        resp: list[float] = []
         for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)
@@ -138,7 +138,7 @@ class MockTestTools:
         device_name = reply["name"]
         time = float(reply["timestamp"])
         response_code = reply["response_code"]
-        resp: typing.List[float] = []
+        resp: list[float] = []
         for value in reply["sensor_telemetry"]:
             assert isinstance(value, float)
             resp.append(value)

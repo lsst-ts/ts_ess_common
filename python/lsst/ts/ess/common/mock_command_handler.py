@@ -21,7 +21,7 @@
 
 __all__ = ["MockCommandHandler"]
 
-import typing
+from typing import Any
 
 from .abstract_command_handler import AbstractCommandHandler
 from .constants import Key
@@ -30,9 +30,7 @@ from .sensor import create_sensor
 
 
 class MockCommandHandler(AbstractCommandHandler):
-    def create_device(
-        self, device_configuration: typing.Dict[str, typing.Any]
-    ) -> BaseDevice:
+    def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
         """Create the device to connect to by using the specified
         configuration.
 

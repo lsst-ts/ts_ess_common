@@ -25,9 +25,10 @@ __all__ = ["BaseDevice", "BAUDRATE"]
 
 from abc import ABC, abstractmethod
 import asyncio
+from collections.abc import Callable
 import logging
 import types
-import typing
+from typing import Type
 
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
@@ -65,13 +66,13 @@ class BaseDevice(ABC):
         name: str,
         device_id: str,
         sensor: BaseSensor,
-        callback_func: typing.Callable,
+        callback_func: Callable,
         log: logging.Logger,
     ) -> None:
         self.name: str = name
         self.device_id: str = device_id
         self.sensor: BaseSensor = sensor
-        self._callback_func: typing.Callable = callback_func
+        self._callback_func: Callable = callback_func
         self._telemetry_loop: asyncio.Future = utils.make_done_future()
         self.is_open = False
         self.log = log.getChild(type(self).__name__)
@@ -85,9 +86,9 @@ class BaseDevice(ABC):
 
     async def __aexit__(
         self,
-        type: typing.Optional[typing.Type[BaseException]],
-        value: typing.Optional[BaseException],
-        traceback: typing.Optional[types.TracebackType],
+        type: None | Type[BaseException],
+        value: None | BaseException,
+        traceback: None | types.TracebackType,
     ) -> None:
         await self.close()
 

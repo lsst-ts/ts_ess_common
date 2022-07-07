@@ -26,12 +26,11 @@ __all__ = ["MockDataClient"]
 import asyncio
 import logging
 import types
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING
+from typing import Any
 
 import yaml
 
-if TYPE_CHECKING:
-    from lsst.ts import salobj
+from lsst.ts import salobj
 from .base_data_client import BaseDataClient
 
 
@@ -41,23 +40,23 @@ class MockDataClient(BaseDataClient):
     def __init__(
         self,
         config: types.SimpleNamespace,
-        topics: Union[salobj.Controller, types.SimpleNamespace],
+        topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
     ) -> None:
         self.connected = False
         # Exceptions to raise in the specified methods, or None to not raise.
         # Set to an *instance* of an exception, not a class.
-        self.connect_exception: Optional[Exception] = None
-        self.disconnect_exception: Optional[Exception] = None
-        self.run_exception: Optional[Exception] = None
+        self.connect_exception: None | Exception = None
+        self.disconnect_exception: None | Exception = None
+        self.run_exception: None | Exception = None
         self.num_run = 0
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
         )
 
     @classmethod
-    def get_config_schema(cls) -> Dict[str, Any]:
+    def get_config_schema(cls) -> dict[str, Any]:
         """Return a schema.
 
         The schema is ignored in this unit test, as it is applied

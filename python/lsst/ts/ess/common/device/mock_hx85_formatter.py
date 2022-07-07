@@ -22,7 +22,6 @@
 __all__ = ["MockHx85baFormatter", "MockHx85aFormatter"]
 
 import random
-import typing
 
 from .mock_formatter import (
     MockFormatter,
@@ -75,7 +74,7 @@ class MockHx85aFormatter(MockFormatter):
         num_channels: int = 0,
         disconnected_channel: int = 0,
         missed_channels: int = 0,
-    ) -> typing.List[str]:
+    ) -> list[str]:
         return [
             format_hbx85_humidity(index=0, missed_channels=missed_channels),
             format_hbx85_temperature(index=1, missed_channels=missed_channels),
@@ -89,7 +88,7 @@ class MockHx85baFormatter(MockFormatter):
         num_channels: int = 0,
         disconnected_channel: int = 0,
         missed_channels: int = 0,
-    ) -> typing.List[str]:
+    ) -> list[str]:
         return [
             format_hbx85_humidity(index=0, missed_channels=missed_channels),
             format_hbx85_temperature(index=1, missed_channels=missed_channels),

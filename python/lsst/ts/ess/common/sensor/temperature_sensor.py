@@ -23,7 +23,6 @@ __all__ = ["TemperatureSensor"]
 
 import logging
 import math
-from typing import List
 
 from .base_sensor import BaseSensor
 from ..constants import DISCONNECTED_VALUE, SensorType
@@ -65,7 +64,7 @@ class TemperatureSensor(BaseSensor):
     ) -> None:
         super().__init__(log=log, num_channels=num_channels)
 
-    async def extract_telemetry(self, line: str) -> List[float]:
+    async def extract_telemetry(self, line: str) -> list[float]:
         """Extract the temperature telemetry from a line of Sensor data.
 
         Parameters

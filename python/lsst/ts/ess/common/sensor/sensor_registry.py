@@ -22,24 +22,22 @@
 __all__ = ["sensor_registry", "register_sensor", "create_sensor"]
 
 import logging
-import typing
+from typing import Any, Type
 
 from .base_sensor import BaseSensor
 from ..constants import Key, SensorType
 
-sensor_registry: typing.Dict[SensorType, typing.Type[BaseSensor]] = dict()
+sensor_registry: dict[SensorType, Type[BaseSensor]] = dict()
 
 
-def register_sensor(
-    sensor_type: SensorType, sensor_class: typing.Type[BaseSensor]
-) -> None:
+def register_sensor(sensor_type: SensorType, sensor_class: Type[BaseSensor]) -> None:
     """Register a BaseSensor subclass against a SensorType.
 
     Parameters
     ----------
     sensor_type : `SensorType`
         The SensorType to register against.
-    sensor_class : `typing.Type`
+    sensor_class : `Type`
         The BaseSensor subclass to register.
 
     Raises
@@ -60,7 +58,7 @@ def register_sensor(
 
 
 def create_sensor(
-    device_configuration: typing.Dict[str, typing.Any], log: logging.Logger
+    device_configuration: dict[str, Any], log: logging.Logger
 ) -> BaseSensor:
     """Create the sensor to connect to by using the specified
     configuration.

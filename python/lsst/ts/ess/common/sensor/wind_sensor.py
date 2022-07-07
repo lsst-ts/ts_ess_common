@@ -33,7 +33,6 @@ __all__ = [
 import logging
 import math
 import re
-from typing import List
 
 from .base_sensor import BaseSensor
 from ..constants import SensorType
@@ -109,7 +108,7 @@ class WindSensor(BaseSensor):
             rf"{END_CHARACTER}(?P<checksum>[0-9a-fA-F]{{2}}){self.terminator}$"
         )
 
-    async def extract_telemetry(self, line: str) -> List[float]:
+    async def extract_telemetry(self, line: str) -> list[float]:
         """Extract the wind telemetry from a line of Sensor data.
 
         Parameters
