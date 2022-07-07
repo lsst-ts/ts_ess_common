@@ -48,6 +48,7 @@ _DataClientClassRegistry: Dict[str, Type[BaseDataClient]] = dict()
 # because the ESS CSC already imports those two modules.
 ExternalDataClientModules = dict(
     LabJackDataClient="lsst.ts.ess.labjack",
+    LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
 )
 
 
