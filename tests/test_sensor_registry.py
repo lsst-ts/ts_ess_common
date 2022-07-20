@@ -41,6 +41,7 @@ class SensorRegistryTestCase(unittest.IsolatedAsyncioTestCase):
             dev_type=common.DeviceType.FTDI,
             dev_id="ABC",
             sens_type=common.SensorType.TEMPERATURE,
+            baud_rate=19200,
             location="Test1",
         )
         self.device_config_02 = common.DeviceConfig(
@@ -48,6 +49,7 @@ class SensorRegistryTestCase(unittest.IsolatedAsyncioTestCase):
             dev_type=common.DeviceType.FTDI,
             dev_id="ABC",
             sens_type=common.SensorType.HX85A,
+            baud_rate=19200,
             location="Test2",
         )
         self.device_config_03 = common.DeviceConfig(
@@ -55,6 +57,7 @@ class SensorRegistryTestCase(unittest.IsolatedAsyncioTestCase):
             dev_type=common.DeviceType.FTDI,
             dev_id="ABC",
             sens_type=common.SensorType.HX85BA,
+            baud_rate=19200,
             location="Test3",
         )
 

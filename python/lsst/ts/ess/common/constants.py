@@ -57,6 +57,7 @@ class Key(str, enum.Enum):
     """Keys that may be present in the device configuration or as command
     parameters."""
 
+    BAUD_RATE = "baud_rate"
     CHANNELS = "channels"
     CONFIGURATION = "configuration"
     DEVICE_TYPE = "device_type"

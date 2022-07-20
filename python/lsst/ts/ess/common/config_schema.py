@@ -52,6 +52,10 @@ CONFIG_SCHEMA = json.loads(
                 "Temperature",
                 "Wind"
               ]
+            },
+            "baud_rate": {
+              "type": "number",
+              "default": 19200
             }
           },
           "allOf": [
@@ -116,7 +120,8 @@ CONFIG_SCHEMA = json.loads(
           "required": [
             "device_type",
             "name",
-            "sensor_type"
+            "sensor_type",
+            "baud_rate"
           ]
         }
       ]

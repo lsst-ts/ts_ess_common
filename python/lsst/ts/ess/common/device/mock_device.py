@@ -65,6 +65,7 @@ class MockDevice(BaseDevice):
             name=name,
             device_id=device_id,
             sensor=sensor,
+            baud_rate=19600,
             callback_func=callback_func,
             log=log,
         )
