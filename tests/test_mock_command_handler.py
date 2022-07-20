@@ -69,17 +69,27 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             baud_rate=19200,
             location="Test3",
         )
+        self.device_config_04 = common.DeviceConfig(
+            name="Test04",
+            dev_type=common.DeviceType.FTDI,
+            dev_id="ABC",
+            sens_type=common.SensorType.CSAT3B,
+            baud_rate=151200,
+            location="Test4",
+        )
         self.configuration = {
             common.Key.DEVICES: [
                 self.device_config_01.as_dict(),
                 self.device_config_02.as_dict(),
                 self.device_config_03.as_dict(),
+                self.device_config_04.as_dict(),
             ]
         }
         self.device_configs = {
             self.device_config_01.name: self.device_config_01,
             self.device_config_02.name: self.device_config_02,
             self.device_config_03.name: self.device_config_03,
+            self.device_config_04.name: self.device_config_04,
         }
 
     async def callback(self, response: dict[common.ResponseCode, Any]) -> None:
@@ -107,6 +117,12 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         )
         assert isinstance(device, common.device.MockDevice)
         assert isinstance(device.sensor, common.sensor.Hx85baSensor)
+
+        device = self.command_handler.create_device(
+            device_configuration=self.device_config_04.as_dict()
+        )
+        assert isinstance(device, common.device.MockDevice)
+        assert isinstance(device.sensor, common.sensor.Csat3bSensor)
 
     async def test_configure(self) -> None:
         await self.command_handler.configure(configuration=self.configuration)
@@ -154,6 +170,8 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
                 mtt.check_hx85a_reply(reply=reply_to_check, name=name)
             elif device_config.sens_type == common.SensorType.HX85BA:
                 mtt.check_hx85ba_reply(reply=reply_to_check, name=name)
+            elif device_config.sens_type == common.SensorType.CSAT3B:
+                mtt.check_csat3b_reply(reply=reply_to_check, name=name)
             else:
                 raise ValueError(
                     f"Unsupported sensor type {device_config.sens_type} encountered."

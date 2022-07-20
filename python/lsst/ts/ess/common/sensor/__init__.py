@@ -20,6 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .base_sensor import *
+from .campbell_csat3b import *
 from .omega_hx85a import *
 from .omega_hx85ba import *
 from .sensor_registry import *

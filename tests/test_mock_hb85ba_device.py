@@ -74,8 +74,8 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
             if missed_channels > 0:
                 missed_channels = 0
 
-            # First read of the telemetry to verify that no more truncated data
-            # is produced is the MockDevice was instructed to produce such
+            # Now read the telemetry to verify that no more truncated data
+            # is produced if the MockDevice was instructed to produce such
             # data.
             self.reply = None
             while not self.reply:

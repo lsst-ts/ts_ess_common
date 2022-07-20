@@ -86,6 +86,7 @@ class ResponseCode(enum.IntEnum):
 class SensorType(str, enum.Enum):
     """Supported sensor types."""
 
+    CSAT3B = "CSAT3B"
     HX85A = "HX85A"
     HX85BA = "HX85BA"
     TEMPERATURE = "Temperature"

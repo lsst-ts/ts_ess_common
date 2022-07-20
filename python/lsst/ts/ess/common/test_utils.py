@@ -46,6 +46,47 @@ class SensorReply(TypedDict):
 
 
 class MockTestTools:
+    def check_csat3b_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: list[float | int] = []
+        for value in reply["sensor_telemetry"]:
+            assert isinstance(value, float) or isinstance(value, int)
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        if in_error_state:
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
+        else:
+            assert common.ResponseCode.OK == response_code
+        assert len(resp) == 7
+        for i in range(0, 7):
+            if i < missed_channels or in_error_state:
+                assert math.isnan(resp[i])
+            else:
+                if i in [0, 1, 2]:
+                    assert common.device.MockWindSpeedConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockWindSpeedConfig.max
+                elif i == 3:
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
+                elif i == 4:
+                    assert resp[i] == 0
+                elif i == 5:
+                    assert 0 <= resp[i]
+                    assert resp[i] <= 63
+                # else:
+                #     assert common.device.MockDewPointConfig.min <= resp[i]
+                #     assert resp[i] <= common.device.MockDewPointConfig.max
+
     def check_hx85a_reply(
         self,
         reply: SensorReply,

@@ -69,12 +69,12 @@ class BaseDevice(ABC):
         callback_func: Callable,
         log: logging.Logger,
     ) -> None:
-        self.name: str = name
-        self.device_id: str = device_id
-        self.sensor: BaseSensor = sensor
+        self.name = name
+        self.device_id = device_id
+        self.sensor = sensor
         self.baud_rate = baud_rate
-        self._callback_func: Callable = callback_func
-        self._telemetry_loop: asyncio.Future = utils.make_done_future()
+        self._callback_func = callback_func
+        self._telemetry_loop = utils.make_done_future()
         self.is_open = False
         self.log = log.getChild(type(self).__name__)
 

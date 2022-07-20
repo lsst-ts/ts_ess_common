@@ -27,10 +27,17 @@ import logging
 from typing import Type
 
 from .base_device import BaseDevice
+from .mock_csat3b_formatter import MockCsat3bFormatter
 from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
 from .mock_temperature_formatter import MockTemperatureFormatter
-from ..sensor import BaseSensor, Hx85aSensor, Hx85baSensor, TemperatureSensor
+from ..sensor import (
+    BaseSensor,
+    Csat3bSensor,
+    Hx85aSensor,
+    Hx85baSensor,
+    TemperatureSensor,
+)
 
 
 class MockDevice(BaseDevice):
@@ -88,6 +95,7 @@ class MockDevice(BaseDevice):
 
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: dict[Type[BaseSensor], MockFormatter] = {
+            Csat3bSensor: MockCsat3bFormatter(),
             Hx85aSensor: MockHx85aFormatter(),
             Hx85baSensor: MockHx85baFormatter(),
             TemperatureSensor: MockTemperatureFormatter(),

@@ -47,6 +47,7 @@ CONFIG_SCHEMA = json.loads(
             },
             "sensor_type": {
               "enum": [
+                "CSAT3B",
                 "HX85A",
                 "HX85BA",
                 "Temperature",
