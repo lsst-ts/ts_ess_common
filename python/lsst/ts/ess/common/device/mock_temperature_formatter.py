@@ -35,6 +35,10 @@ def format_temperature(i: int, disconnected_channel: int, missed_channels: int) 
     ----------
     i : `int`
         The 0-based temperature channel.
+    disconnected_channel : `int`
+        The index of the disconnected channel.
+    missed_channels : `int`
+        The number of missed channels.
     Returns
     -------
     s : `str`

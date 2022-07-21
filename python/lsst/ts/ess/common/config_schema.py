@@ -47,11 +47,16 @@ CONFIG_SCHEMA = json.loads(
             },
             "sensor_type": {
               "enum": [
+                "CSAT3B",
                 "HX85A",
                 "HX85BA",
                 "Temperature",
                 "Wind"
               ]
+            },
+            "baud_rate": {
+              "type": "number",
+              "default": 19200
             }
           },
           "allOf": [
@@ -116,7 +121,8 @@ CONFIG_SCHEMA = json.loads(
           "required": [
             "device_type",
             "name",
-            "sensor_type"
+            "sensor_type",
+            "baud_rate"
           ]
         }
       ]

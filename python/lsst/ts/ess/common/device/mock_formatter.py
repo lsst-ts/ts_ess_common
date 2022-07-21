@@ -25,6 +25,7 @@ __all__ = [
     "MockHumidityConfig",
     "MockPressureConfig",
     "MockTemperatureConfig",
+    "MockWindSpeedConfig",
 ]
 
 from abc import ABC, abstractmethod
@@ -43,6 +44,9 @@ MockDewPointConfig = types.SimpleNamespace(min=18.0, max=30.0)
 # The minimum and maximum air pressure values [mbar] used by the mock
 # device.
 MockPressureConfig = types.SimpleNamespace(min=10.0, max=1100.0)
+
+# The minimum and maximum wind speed values [m/s] used by the mock device.
+MockWindSpeedConfig = types.SimpleNamespace(min=0.0, max=10.0)
 
 
 class MockFormatter(ABC):

@@ -37,6 +37,8 @@ class DeviceConfig:
         The ID of the device.
     sens_type : `SensorType`
         The type of sensor.
+    baud_rate : `int`
+        The baud rate of the sensor.
     location: `str`
         The location of the device.
     num_channels : `int`, optional
@@ -50,6 +52,7 @@ class DeviceConfig:
         dev_type: DeviceType,
         dev_id: str,
         sens_type: SensorType,
+        baud_rate: int,
         location: str,
         num_channels: int = 0,
     ) -> None:
@@ -58,6 +61,7 @@ class DeviceConfig:
         self.dev_type = DeviceType(dev_type)
         self.dev_id = dev_id
         self.sens_type = SensorType(sens_type)
+        self.baud_rate = baud_rate
         self.location = location
 
     def as_dict(self) -> dict[str, str | int]:
@@ -74,6 +78,7 @@ class DeviceConfig:
             Key.NAME: self.name,
             Key.DEVICE_TYPE: self.dev_type,
             Key.SENSOR_TYPE: self.sens_type,
+            Key.BAUD_RATE: self.baud_rate,
             Key.LOCATION: self.location,
         }
 

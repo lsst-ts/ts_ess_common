@@ -21,7 +21,7 @@ from __future__ import annotations
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["BaseDevice", "BAUDRATE"]
+__all__ = ["BaseDevice"]
 
 from abc import ABC, abstractmethod
 import asyncio
@@ -33,9 +33,6 @@ from typing import Type
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
 from lsst.ts import utils
-
-
-BAUDRATE = 19200
 
 
 class BaseDevice(ABC):
@@ -55,6 +52,8 @@ class BaseDevice(ABC):
         the specific device.
     sensor : `BaseSensor`
         The sensor that produces the telemetry.
+    baud_rate : `int`
+        The baud rate of the sensor.
     callback_func : `Callable`
         Callback function to receive the telemetry.
     log : `logging.Logger`
@@ -66,14 +65,16 @@ class BaseDevice(ABC):
         name: str,
         device_id: str,
         sensor: BaseSensor,
+        baud_rate: int,
         callback_func: Callable,
         log: logging.Logger,
     ) -> None:
-        self.name: str = name
-        self.device_id: str = device_id
-        self.sensor: BaseSensor = sensor
-        self._callback_func: Callable = callback_func
-        self._telemetry_loop: asyncio.Future = utils.make_done_future()
+        self.name = name
+        self.device_id = device_id
+        self.sensor = sensor
+        self.baud_rate = baud_rate
+        self._callback_func = callback_func
+        self._telemetry_loop = utils.make_done_future()
         self.is_open = False
         self.log = log.getChild(type(self).__name__)
 

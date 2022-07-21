@@ -57,6 +57,7 @@ class Key(str, enum.Enum):
     """Keys that may be present in the device configuration or as command
     parameters."""
 
+    BAUD_RATE = "baud_rate"
     CHANNELS = "channels"
     CONFIGURATION = "configuration"
     DEVICE_TYPE = "device_type"
@@ -85,6 +86,7 @@ class ResponseCode(enum.IntEnum):
 class SensorType(str, enum.Enum):
     """Supported sensor types."""
 
+    CSAT3B = "CSAT3B"
     HX85A = "HX85A"
     HX85BA = "HX85BA"
     TEMPERATURE = "Temperature"
