@@ -39,13 +39,15 @@ class ConfigSchemaTestCase(unittest.IsolatedAsyncioTestCase):
             dev_type=common.DeviceType.FTDI.value,
             dev_id="ABC",
             sens_type=common.SensorType.TEMPERATURE.value,
+            baud_rate=19200,
             location="bla,bla,bla,bla",
         )
         device_config_02 = common.DeviceConfig(
-            name="Test01",
+            name="Test02",
             dev_type=common.DeviceType.SERIAL.value,
             dev_id="ABC",
             sens_type=common.SensorType.WIND.value,
+            baud_rate=19200,
             location="Motor 1 temp,Motor 2 temp,Strut 7 temp,Strut 8 temp,Strut 9 "
             "temp,Strut 10 temp,Strut 11 temp,Strut 12 temp",
         )

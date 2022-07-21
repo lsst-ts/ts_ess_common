@@ -105,7 +105,7 @@ class WindSensor(BaseSensor):
             rf"^{START_CHARACTER}{UNIT_IDENTIFIER}{self.delimiter}(?P<direction>\d{{3}})?{self.delimiter}"
             rf"(?P<speed>\d{{3}}\.\d{{2}}){self.delimiter}{WINDSPEED_UNIT}{self.delimiter}"
             rf"(?P<status>\d{{2}}){self.delimiter}"
-            rf"{END_CHARACTER}(?P<checksum>[0-9a-fA-F]{{2}}){self.terminator}$"
+            rf"{END_CHARACTER}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
         )
 
     async def extract_telemetry(self, line: str) -> list[float]:
@@ -121,7 +121,7 @@ class WindSensor(BaseSensor):
         -------
         `list`
             A list of 2 floats containing the telemetry as measured by the
-            sensor: the wind speed and directio.
+            sensor: the wind speed and direction.
         """
         m = re.search(self.telemetry_pattern, line)
         if m:

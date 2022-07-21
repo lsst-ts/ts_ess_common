@@ -136,6 +136,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
                     common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
                     common.Key.FTDI_ID: "ABC",
                     common.Key.SENSOR_TYPE: common.SensorType.TEMPERATURE,
+                    common.Key.BAUD_RATE: 19200,
                 }
             ]
         }
