@@ -23,16 +23,17 @@ from __future__ import annotations
 
 __all__ = ["BaseDevice"]
 
-from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import Callable
 import logging
 import types
+from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import Type
+
+from lsst.ts import utils
 
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
-from lsst.ts import utils
 
 
 class BaseDevice(ABC):

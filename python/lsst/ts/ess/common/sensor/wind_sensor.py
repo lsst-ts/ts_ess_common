@@ -34,8 +34,8 @@ import logging
 import math
 import re
 
-from .base_sensor import BaseSensor
 from ..constants import SensorType
+from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
 """ASCII start character."""

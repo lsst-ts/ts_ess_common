@@ -23,7 +23,6 @@ import logging
 import unittest
 
 import jsonschema
-
 from lsst.ts.ess import common
 
 logging.basicConfig(

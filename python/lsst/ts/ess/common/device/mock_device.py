@@ -22,15 +22,10 @@
 __all__ = ["MockDevice"]
 
 import asyncio
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Type
 
-from .base_device import BaseDevice
-from .mock_csat3b_formatter import MockCsat3bFormatter
-from .mock_formatter import MockFormatter
-from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
-from .mock_temperature_formatter import MockTemperatureFormatter
 from ..sensor import (
     BaseSensor,
     Csat3bSensor,
@@ -38,6 +33,11 @@ from ..sensor import (
     Hx85baSensor,
     TemperatureSensor,
 )
+from .base_device import BaseDevice
+from .mock_csat3b_formatter import MockCsat3bFormatter
+from .mock_formatter import MockFormatter
+from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
+from .mock_temperature_formatter import MockTemperatureFormatter
 
 
 class MockDevice(BaseDevice):

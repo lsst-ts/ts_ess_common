@@ -26,8 +26,8 @@ import math
 
 import numpy as np
 
-from .base_sensor import BaseSensor
 from ..constants import SensorType
+from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
 # The number of values in each telemetry string.

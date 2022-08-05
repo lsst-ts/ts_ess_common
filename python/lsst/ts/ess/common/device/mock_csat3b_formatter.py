@@ -24,11 +24,7 @@ __all__ = ["MockCsat3bFormatter"]
 import random
 
 from ..sensor import compute_signature
-from .mock_formatter import (
-    MockFormatter,
-    MockTemperatureConfig,
-    MockWindSpeedConfig,
-)
+from .mock_formatter import MockFormatter, MockTemperatureConfig, MockWindSpeedConfig
 
 # The diagnostic word is a value in the range [0, 63].
 _COUNT_RANGE = 64

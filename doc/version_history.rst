@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.9.0
+======
+
+* Add support for multiple Python versions for conda.
+* Sort imports with isort.
+* Install new pre-commit hooks.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.8.0
 ======
 

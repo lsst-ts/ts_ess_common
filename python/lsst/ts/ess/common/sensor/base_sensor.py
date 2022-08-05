@@ -21,8 +21,8 @@
 
 __all__ = ["BaseSensor"]
 
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 
 class BaseSensor(ABC):
