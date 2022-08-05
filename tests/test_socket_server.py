@@ -22,8 +22,8 @@
 import asyncio
 import json
 import logging
-from typing import Any
 import unittest
+from typing import Any
 
 from lsst.ts import tcpip
 from lsst.ts.ess import common

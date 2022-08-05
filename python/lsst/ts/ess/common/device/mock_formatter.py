@@ -28,8 +28,8 @@ __all__ = [
     "MockWindSpeedConfig",
 ]
 
-from abc import ABC, abstractmethod
 import types
+from abc import ABC, abstractmethod
 
 # The minimum and maximum temperatures [ºC] used by the mock device.
 MockTemperatureConfig = types.SimpleNamespace(min=18.0, max=30.0)

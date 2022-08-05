@@ -24,8 +24,8 @@ __all__ = ["Hx85aSensor"]
 import logging
 import math
 
-from .base_sensor import BaseSensor
 from ..constants import SensorType
+from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 from .utils import add_missing_telemetry
 

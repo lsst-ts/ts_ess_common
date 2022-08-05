@@ -24,8 +24,8 @@ __all__ = ["MockHx85baFormatter", "MockHx85aFormatter"]
 import random
 
 from .mock_formatter import (
-    MockFormatter,
     MockDewPointConfig,
+    MockFormatter,
     MockHumidityConfig,
     MockPressureConfig,
     MockTemperatureConfig,

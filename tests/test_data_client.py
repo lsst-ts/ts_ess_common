@@ -20,11 +20,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import unittest
 import types
+import unittest
 
 import pytest
-
 from lsst.ts.ess import common
 
 logging.basicConfig(
