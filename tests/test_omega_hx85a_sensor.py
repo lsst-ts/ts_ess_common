@@ -24,7 +24,6 @@ import math
 import unittest
 
 import pytest
-
 from lsst.ts.ess import common
 
 logging.basicConfig(

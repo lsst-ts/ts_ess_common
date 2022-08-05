@@ -21,11 +21,10 @@
 
 import asyncio
 import logging
-from typing import Any
 import unittest
+from typing import Any
 
 import pytest
-
 from lsst.ts.ess import common
 from lsst.ts.ess.common.test_utils import MockTestTools
 

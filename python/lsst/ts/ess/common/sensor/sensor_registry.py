@@ -24,8 +24,8 @@ __all__ = ["sensor_registry", "register_sensor", "create_sensor"]
 import logging
 from typing import Any, Type
 
-from .base_sensor import BaseSensor
 from ..constants import Key, SensorType
+from .base_sensor import BaseSensor
 
 sensor_registry: dict[SensorType, Type[BaseSensor]] = dict()
 

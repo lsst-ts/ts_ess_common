@@ -24,13 +24,14 @@ from __future__ import annotations
 __all__ = ["SocketServer"]
 
 import asyncio
-from collections.abc import Callable
 import json
 import logging
 import socket
+from collections.abc import Callable
+
+from lsst.ts import tcpip
 
 from .abstract_command_handler import AbstractCommandHandler
-from lsst.ts import tcpip
 
 
 class SocketServer(tcpip.OneClientServer):

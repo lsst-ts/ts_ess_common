@@ -31,6 +31,8 @@ else:
     except ImportError:
         __version__ = "?"
 
+# Import sub modules
+from . import device, sensor
 from .abstract_command_handler import *
 from .base_data_client import *
 from .command_error import *
@@ -40,7 +42,3 @@ from .device_config import *
 from .mock_command_handler import *
 from .mock_data_client import *
 from .socket_server import SocketServer
-
-# Import sub modules
-from . import device
-from . import sensor
