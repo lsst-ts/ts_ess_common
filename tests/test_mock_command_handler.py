@@ -73,7 +73,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             dev_type=common.DeviceType.FTDI,
             dev_id="ABC",
             sens_type=common.SensorType.CSAT3B,
-            baud_rate=151200,
+            baud_rate=115200,
             location="Test4",
         )
         self.configuration = {
