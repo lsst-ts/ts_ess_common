@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.9.1
+======
+
+* Fix CSAT3B telemetry in case of an invalid telemetry signature.
+* Restore pytest config.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.9.0
 ======
 
