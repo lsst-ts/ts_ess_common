@@ -70,7 +70,7 @@ class MockTestTools:
         assert len(resp) == 7
         for i in range(0, 7):
             if i < missed_channels or in_error_state:
-                assert math.isnan(resp[i])
+                assert math.isnan(resp[i]) if i < 5 else resp[i] == 0
             else:
                 if i in [0, 1, 2]:
                     assert common.device.MockWindSpeedConfig.min <= resp[i]

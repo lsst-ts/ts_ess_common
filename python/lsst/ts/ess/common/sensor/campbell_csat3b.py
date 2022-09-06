@@ -22,7 +22,6 @@
 __all__ = ["compute_signature", "Csat3bSensor"]
 
 import logging
-import math
 
 import numpy as np
 
@@ -39,8 +38,9 @@ _SHORT_RANGE = 0x100
 # The range of an unsigned word which is [0, 65535]
 _WORD_RANGE = 0x10000
 
-# Default output of NaN values in case of an error reading the sensor.
-_NANS_OUTPUT = [math.nan] * _NUM_VALUES
+# Default output of NaN values in case of an error reading the sensor. Note
+# that the final three values are int values and therefore cannot be NaN.
+_NANS_OUTPUT = [np.nan, np.nan, np.nan, np.nan, 0, 0, 0]
 
 
 def compute_signature(input_str: str, delimiter: str) -> int:
@@ -171,7 +171,7 @@ class Csat3bSensor(BaseSensor):
             if signature != s:
                 # The computed signature doesn't match the one returned by the
                 # sensor so the telemetry is invalid.
-                output = np.full(_NUM_VALUES, np.nan).tolist()
+                output = _NANS_OUTPUT
             else:
                 # The computed signature does match the one returned by the
                 # sensor so the telemetry is valid.
