@@ -80,9 +80,9 @@ class Csat3bSensorTestCase(unittest.IsolatedAsyncioTestCase):
         assert math.isnan(reply[1])
         assert math.isnan(reply[2])
         assert math.isnan(reply[3])
-        assert math.isnan(reply[4])
-        assert math.isnan(reply[5])
-        assert math.isnan(reply[6])
+        assert reply[4] == 0
+        assert reply[5] == 0
+        assert reply[6] == 0
 
         # Test with a wrong signature, which can happen in case of a sensor
         # fault or a bit flip.
@@ -92,6 +92,6 @@ class Csat3bSensorTestCase(unittest.IsolatedAsyncioTestCase):
         assert math.isnan(reply[1])
         assert math.isnan(reply[2])
         assert math.isnan(reply[3])
-        assert math.isnan(reply[4])
-        assert math.isnan(reply[5])
-        assert math.isnan(reply[6])
+        assert reply[4] == 0
+        assert reply[5] == 0
+        assert reply[6] == 0
