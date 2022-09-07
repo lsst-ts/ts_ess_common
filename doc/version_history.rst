@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.9.2
+======
+
+* Remove signature checking from the Campbell CSAT3B because the vendor documentation describing it is incorrect.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.9.1
 ======
 

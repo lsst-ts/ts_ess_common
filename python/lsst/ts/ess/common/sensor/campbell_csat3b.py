@@ -159,23 +159,7 @@ class Csat3bSensor(BaseSensor):
             d = int(line_items[4])
             c = int(line_items[5])
             s = int(line_items[6], 16)
-
-            # Prepare string for signature computation by removing the
-            # signature as reported by the sensor.
-            last_index = line.rfind(self.delimiter)
-            input_line = line[:last_index]
-
-            # Compute signature.
-            signature = compute_signature(input_line, self.delimiter)
-
-            if signature != s:
-                # The computed signature doesn't match the one returned by the
-                # sensor so the telemetry is invalid.
-                output = _NANS_OUTPUT
-            else:
-                # The computed signature does match the one returned by the
-                # sensor so the telemetry is valid.
-                output = [x, y, z, t, d, c, s]
+            output = [x, y, z, t, d, c, s]
         else:
             output = _NANS_OUTPUT
         return output
