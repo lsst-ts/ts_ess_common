@@ -48,7 +48,7 @@ DATA = [
 
 
 class Csat3bSensorTestCase(unittest.IsolatedAsyncioTestCase):
-    async def test_compute_sginature(self) -> None:
+    async def test_compute_signature(self) -> None:
         log = logging.getLogger(type(self).__name__)
         sensor = common.sensor.Csat3bSensor(log)
         for line in DATA:
@@ -75,18 +75,6 @@ class Csat3bSensorTestCase(unittest.IsolatedAsyncioTestCase):
         # Test with a truncated line, which can be the case with the first
         # telemetry received after connecting to the sensor.
         line = "0.06552,0.05726,19.69336,0,5,c3a6\r"
-        reply = await self.sensor.extract_telemetry(line=line)
-        assert math.isnan(reply[0])
-        assert math.isnan(reply[1])
-        assert math.isnan(reply[2])
-        assert math.isnan(reply[3])
-        assert reply[4] == 0
-        assert reply[5] == 0
-        assert reply[6] == 0
-
-        # Test with a wrong signature, which can happen in case of a sensor
-        # fault or a bit flip.
-        line = "0.08945,0.06552,0.05726,19.69336,0,5,c3a7\r"
         reply = await self.sensor.extract_telemetry(line=line)
         assert math.isnan(reply[0])
         assert math.isnan(reply[1])
