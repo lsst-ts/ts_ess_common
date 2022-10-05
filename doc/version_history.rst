@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.9.3
+======
+
+* Simplify the CSAT3B telemetry validation.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.9.2
 ======
 

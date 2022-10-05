@@ -67,8 +67,9 @@ class MockTestTools:
             assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
             assert common.ResponseCode.OK == response_code
-        assert len(resp) == 7
-        for i in range(0, 7):
+        # Only check the first 4 items (which are ux, uy, uz and ts) because
+        # the rest doesn't matter for the science of Rubin Observatory.
+        for i in range(0, 4):
             if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i]) if i < 5 else resp[i] == 0
             else:
@@ -78,14 +79,6 @@ class MockTestTools:
                 elif i == 3:
                     assert common.device.MockTemperatureConfig.min <= resp[i]
                     assert resp[i] <= common.device.MockTemperatureConfig.max
-                elif i == 4:
-                    assert resp[i] == 0
-                elif i == 5:
-                    assert 0 <= resp[i]
-                    assert resp[i] <= 63
-                # else:
-                #     assert common.device.MockDewPointConfig.min <= resp[i]
-                #     assert resp[i] <= common.device.MockDewPointConfig.max
 
     def check_hx85a_reply(
         self,
