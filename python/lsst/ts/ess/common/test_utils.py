@@ -155,10 +155,16 @@ class MockTestTools:
                     assert common.device.MockPressureConfig.min <= resp[i]
                     assert resp[i] <= common.device.MockPressureConfig.max
 
-        dew_point = common.sensor.Hx85baSensor.compute_dew_point(
-            relative_humidity=resp[0], temperature=resp[1]
-        )
-        assert resp[3] == pytest.approx(dew_point, nan_ok=True, rel=1e-4)
+        if missed_channels > 0 or in_error_state:
+            assert math.isnan(resp[3])
+        else:
+            # Check dew point computed with 2 digits of precision,
+            # since that is all the sensor reports.
+            dew_point = common.sensor.Hx85baSensor.compute_dew_point(
+                relative_humidity=round(resp[0], ndigits=2),
+                temperature=round(resp[1], ndigits=2),
+            )
+            assert resp[3] == pytest.approx(dew_point, nan_ok=True)
 
     def check_temperature_reply(
         self,
