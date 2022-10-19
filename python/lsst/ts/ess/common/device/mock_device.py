@@ -107,6 +107,7 @@ class MockDevice(BaseDevice):
 
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
+
         Returns
         -------
         line : `str`
@@ -117,7 +118,7 @@ class MockDevice(BaseDevice):
         # Mock the time needed to output telemetry.
         await asyncio.sleep(MockDevice.telemetry_interval)
 
-        # Mock a sensor that produces an error when being read.
+        # If requested, return an error reply
         if self.in_error_state:
             return f"{self.sensor.terminator}"
 
