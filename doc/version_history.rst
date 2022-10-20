@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.10.0
+=======
+
+* `DeviceConfig`: add ``num_samples``.
+* test_utils: make comparison of computed dew point more robust by rounding the input data to two decimal digits, matching what the sensor reports.
+* git ignore ``__pycache__``.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.9.3
 ======
 
