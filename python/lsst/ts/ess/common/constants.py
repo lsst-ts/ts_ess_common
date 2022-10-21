@@ -72,6 +72,7 @@ class Key(str, enum.Enum):
     SERIAL_PORT = "serial_port"
     TELEMETRY = "telemetry"
     TIMESTAMP = "timestamp"
+    NUM_SAMPLES = "num_samples"
 
 
 class ResponseCode(enum.IntEnum):

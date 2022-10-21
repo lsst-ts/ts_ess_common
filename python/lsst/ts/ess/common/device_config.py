@@ -21,9 +21,12 @@
 
 __all__ = ["DeviceConfig"]
 
+import dataclasses
+
 from .constants import DeviceType, Key, SensorType
 
 
+@dataclasses.dataclass
 class DeviceConfig:
     """Configuration for a device.
 
@@ -44,25 +47,25 @@ class DeviceConfig:
     num_channels : `int`, optional
         The number of channels the output data, or 0 indicating that the number
         of channels is not configurable for this type of device.
+    num_samples : `int`, optional
+        The number of samples to accumulate before reporting telemetry.
+        Only relevant for sensors that report statistics, such as anemometers.
+        For those sensors the value must be > 1, and preferably larger.
+        For other sensors use the default value of 0.
     """
 
-    def __init__(
-        self,
-        name: str,
-        dev_type: DeviceType,
-        dev_id: str,
-        sens_type: SensorType,
-        baud_rate: int,
-        location: str,
-        num_channels: int = 0,
-    ) -> None:
-        self.name = name
-        self.num_channels = num_channels
-        self.dev_type = DeviceType(dev_type)
-        self.dev_id = dev_id
-        self.sens_type = SensorType(sens_type)
-        self.baud_rate = baud_rate
-        self.location = location
+    name: str
+    dev_type: DeviceType | int
+    dev_id: str
+    sens_type: SensorType | int
+    baud_rate: int
+    location: str
+    num_channels: int = 0
+    num_samples: int = 0
+
+    def __post_init(self) -> None:
+        self.dev_type = DeviceType(self.dev_type)
+        self.sens_type = SensorType(self.sens_type)
 
     def as_dict(self) -> dict[str, str | int]:
         """Return a dict with the instance attributes and their values as

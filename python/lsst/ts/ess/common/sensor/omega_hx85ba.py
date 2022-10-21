@@ -105,7 +105,6 @@ class Hx85baSensor(BaseSensor):
         β = 17.62
         λ = 243.12
         f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
-        # Return the value truncated at two decimals.
         return λ * f / (β - f)
 
     async def extract_telemetry(self, line: str) -> list[float]:
