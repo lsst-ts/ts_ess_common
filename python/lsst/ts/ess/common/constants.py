@@ -25,6 +25,7 @@ __all__ = [
     "DeviceType",
     "DISCONNECTED_VALUE",
     "Key",
+    "LD250TelemetryPrefix",
     "ResponseCode",
     "SensorType",
 ]
@@ -36,6 +37,14 @@ CONTROLLER_PORT = 5000
 
 # The value emitted by a disconnected channel of the temperature sensors.
 DISCONNECTED_VALUE = "9999.9990"
+
+
+class LD250TelemetryPrefix(str, enum.Enum):
+    """Telemetry prefixes for the LD-250 sensor."""
+
+    NOISE_PREFIX = "WIMLN"
+    STATUS_PREFIX = "WIMST"
+    STRIKE_PREFIX = "WIMLI"
 
 
 class Command(str, enum.Enum):
@@ -65,14 +74,16 @@ class Key(str, enum.Enum):
     FTDI_ID = "ftdi_id"
     LOCATION = "location"
     NAME = "name"
+    NUM_SAMPLES = "num_samples"
     RESPONSE = "response"
     RESPONSE_CODE = "response_code"
+    SAFE_INTERVAL = "safe_interval"
     SENSOR_TELEMETRY = "sensor_telemetry"
     SENSOR_TYPE = "sensor_type"
     SERIAL_PORT = "serial_port"
     TELEMETRY = "telemetry"
+    THRESHOLD = "threshold"
     TIMESTAMP = "timestamp"
-    NUM_SAMPLES = "num_samples"
 
 
 class ResponseCode(enum.IntEnum):
@@ -88,7 +99,9 @@ class SensorType(str, enum.Enum):
     """Supported sensor types."""
 
     CSAT3B = "CSAT3B"
+    EFM100C = "EFM100C"
     HX85A = "HX85A"
     HX85BA = "HX85BA"
+    LD250 = "LD250"
     TEMPERATURE = "Temperature"
     WIND = "Wind"

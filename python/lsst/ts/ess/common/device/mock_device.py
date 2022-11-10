@@ -29,11 +29,19 @@ from typing import Type
 from ..sensor import (
     BaseSensor,
     Csat3bSensor,
+    Efm100cSensor,
     Hx85aSensor,
     Hx85baSensor,
+    Ld250Sensor,
     TemperatureSensor,
 )
 from .base_device import BaseDevice
+from .mock_boltek_formatter import (
+    MockEFM100CFormatter,
+    MockLD250NoiseFormatter,
+    MockLD250StatusFormatter,
+    MockLD250StrikeFormatter,
+)
 from .mock_csat3b_formatter import MockCsat3bFormatter
 from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
@@ -92,14 +100,25 @@ class MockDevice(BaseDevice):
         #     The sensor produces an error (True) or not (False) when being
         #     read.
         self.in_error_state = False
+        #     The sensor always (True) or never (False) produces noise
+        #     telemetry. This applies only to LD-250 sensors.
+        self.noise = False
+        #     The sensor produces only strike telemetry (True) or not (False)
+        #     when being read. This applies only to LD-250 sensors.
+        self.strike = False
 
         # Registry of formatters for the different types of sensors.
         self.formatter_registry: dict[Type[BaseSensor], MockFormatter] = {
             Csat3bSensor: MockCsat3bFormatter(),
+            Efm100cSensor: MockEFM100CFormatter(),
             Hx85aSensor: MockHx85aFormatter(),
             Hx85baSensor: MockHx85baFormatter(),
+            Ld250Sensor: MockLD250StatusFormatter(),
             TemperatureSensor: MockTemperatureFormatter(),
         }
+
+        # Initialize the formatter.
+        self.mock_formatter = self.formatter_registry[type(self.sensor)]
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
@@ -118,16 +137,26 @@ class MockDevice(BaseDevice):
         # Mock the time needed to output telemetry.
         await asyncio.sleep(MockDevice.telemetry_interval)
 
-        # If requested, return an error reply
+        # If requested, return an error reply.
         if self.in_error_state:
             return f"{self.sensor.terminator}"
 
-        mock_formatter = self.formatter_registry[type(self.sensor)]
-        channel_strs = mock_formatter.format_output(
-            num_channels=self.sensor.num_channels,
-            disconnected_channel=self.disconnected_channel,
-            missed_channels=self.missed_channels,
-        )
+        if isinstance(self.sensor, Ld250Sensor) and self.noise:
+            # If requested, return noise telemetry.
+            noise_formatter = MockLD250NoiseFormatter()
+            channel_strs = noise_formatter.format_output()
+
+        elif isinstance(self.sensor, Ld250Sensor) and self.strike:
+            # If requested, return strike telemetry.
+            strike_formatter = MockLD250StrikeFormatter()
+            channel_strs = strike_formatter.format_output()
+        else:
+            # Else produce normal sensor telemetry.
+            channel_strs = self.mock_formatter.format_output(
+                num_channels=self.sensor.num_channels,
+                disconnected_channel=self.disconnected_channel,
+                missed_channels=self.missed_channels,
+            )
 
         self.log.debug(f"channel_strs = {channel_strs}")
 

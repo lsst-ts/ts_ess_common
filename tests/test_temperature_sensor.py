@@ -20,9 +20,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import math
 import unittest
 
+import numpy as np
 import pytest
 from lsst.ts.ess import common
 
@@ -43,11 +43,11 @@ class TemperatureSensorTestCase(unittest.IsolatedAsyncioTestCase):
 
         line = f"C00=0021.1230,C01=0021.1220,C02=9999.9990,C03=0020.9999{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        assert reply == [21.123, 21.122, math.nan, 20.9999]
+        assert reply == [21.123, 21.122, np.nan, 20.9999]
 
         line = f"0021.1224,C02=0021.1243,C03=0020.9992{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        assert reply == [math.nan, math.nan, 21.1243, 20.9992]
+        assert reply == [np.nan, np.nan, 21.1243, 20.9992]
 
         # Incorrect format because of the "==" for C03.
         with pytest.raises(ValueError):
@@ -56,4 +56,4 @@ class TemperatureSensorTestCase(unittest.IsolatedAsyncioTestCase):
 
         line = f"{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        assert reply == [math.nan, math.nan, math.nan, math.nan]
+        assert reply == [np.nan, np.nan, np.nan, np.nan]

@@ -46,12 +46,18 @@ class DeviceConfig:
         The location of the device.
     num_channels : `int`, optional
         The number of channels the output data, or 0 indicating that the number
-        of channels is not configurable for this type of device.
+        of channels is not configurable for this type of device. Defaults to 0.
     num_samples : `int`, optional
         The number of samples to accumulate before reporting telemetry.
         Only relevant for sensors that report statistics, such as anemometers.
         For those sensors the value must be > 1, and preferably larger.
         For other sensors use the default value of 0.
+    safe_interval : `int`, optional
+        The number of seconds to sleep before an event is sent indicating that
+        a previously sent event is over. Defaults to 0.
+    threshold : `float`, optional
+        A threshold value that can be used to, for instance, determine if an
+        event needs to be sent. Defaults to 0.0.
     """
 
     name: str
@@ -62,6 +68,8 @@ class DeviceConfig:
     location: str
     num_channels: int = 0
     num_samples: int = 0
+    safe_interval: int = 0
+    threshold: float = 0.0
 
     def __post_init(self) -> None:
         self.dev_type = DeviceType(self.dev_type)

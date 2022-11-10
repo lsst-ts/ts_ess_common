@@ -22,7 +22,8 @@
 __all__ = ["TemperatureSensor"]
 
 import logging
-import math
+
+import numpy as np
 
 from ..constants import DISCONNECTED_VALUE, SensorType
 from .base_sensor import BaseSensor
@@ -64,7 +65,7 @@ class TemperatureSensor(BaseSensor):
     ) -> None:
         super().__init__(log=log, num_channels=num_channels)
 
-    async def extract_telemetry(self, line: str) -> list[float]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the temperature telemetry from a line of Sensor data.
 
         Parameters
@@ -81,18 +82,18 @@ class TemperatureSensor(BaseSensor):
             number of channels.
             If a channel is disconnected (its value will be DISCONNECTED_VALUE)
             or if a channel is missing because the connection to the sensor is
-            established mid output, then the value gets replaced by math.nan.
+            established mid output, then the value gets replaced by np.nan.
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output = []
+        output: list[float | int | str] = []
         for line_item in line_items:
             temperature_items = line_item.split("=")
             if len(temperature_items) == 1:
-                output.append(math.nan)
+                output.append(np.nan)
             elif len(temperature_items) == 2:
                 if temperature_items[1] == DISCONNECTED_VALUE:
-                    output.append(math.nan)
+                    output.append(np.nan)
                 else:
                     output.append(float(temperature_items[1]))
             else:
