@@ -40,7 +40,7 @@ _WORD_RANGE = 0x10000
 
 # Default output of NaN values in case of an error reading the sensor. Note
 # that the final three values are int values and therefore cannot be NaN.
-_NANS_OUTPUT = [np.nan, np.nan, np.nan, np.nan, 0, 0, 0]
+_NANS_OUTPUT: list[float | int | str] = [np.nan, np.nan, np.nan, np.nan, 0, 0, 0]
 
 
 def compute_signature(input_str: str, delimiter: str) -> int:
@@ -133,7 +133,7 @@ class Csat3bSensor(BaseSensor):
         # Override default value.
         self.charset = "ISO-8859-1"
 
-    async def extract_telemetry(self, line: str) -> list[float | int]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters
@@ -150,7 +150,7 @@ class Csat3bSensor(BaseSensor):
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output: list[float | int] = []
+        output: list[float | int | str] = []
         if len(line_items) == _NUM_VALUES:
             x = float(line_items[0])
             y = float(line_items[1])

@@ -56,7 +56,7 @@ class BaseSensor(ABC):
         self.charset = "ASCII"
 
     @abstractmethod
-    async def extract_telemetry(self, line: str) -> list[float]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the telemetry from a line of Sensor data.
 
         Returns

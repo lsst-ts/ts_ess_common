@@ -48,8 +48,10 @@ CONFIG_SCHEMA = json.loads(
             "sensor_type": {
               "enum": [
                 "CSAT3B",
+                "EFM100C",
                 "HX85A",
                 "HX85BA",
+                "LD250",
                 "Temperature",
                 "Wind"
               ]

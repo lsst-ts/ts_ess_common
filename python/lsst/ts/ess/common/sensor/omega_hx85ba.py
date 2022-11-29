@@ -24,6 +24,8 @@ __all__ = ["Hx85baSensor"]
 import logging
 import math
 
+import numpy as np
+
 from ..constants import SensorType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
@@ -107,7 +109,7 @@ class Hx85baSensor(BaseSensor):
         f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
         return λ * f / (β - f)
 
-    async def extract_telemetry(self, line: str) -> list[float]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters
@@ -122,15 +124,15 @@ class Hx85baSensor(BaseSensor):
             sensor: the relative humidity, the temperature and the barometric
             pressure.
             If a value is missing because the connection to the sensor is
-            established mid output, then the value gets replaced by math.nan.
+            established mid output, then the value gets replaced by np.nan.
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output = []
+        output: list[float | int | str] = []
         for line_item in line_items:
             telemetry_items = line_item.split("=")
             if len(telemetry_items) == 1:
-                output.append(math.nan)
+                output.append(np.nan)
             elif len(telemetry_items) == 2:
                 output.append(float(telemetry_items[1]))
             else:
@@ -144,9 +146,10 @@ class Hx85baSensor(BaseSensor):
         # channels need to be filled with NaN.
         output = add_missing_telemetry(output, NUM_VALUES)
 
-        # Add the computed dew point to the output
+        # Add the computed dew point to the output. The casts to float are
+        # necessary to keep mypy happy.
         dew_point = self.compute_dew_point(
-            relative_humidity=output[0], temperature=output[1]
+            relative_humidity=float(output[0]), temperature=float(output[1])
         )
         output.append(dew_point)
 

@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.10.1
+=======
+
+* Switch from py.test to pytest.
+* Add support for Boltek lightning and electric field intensity sensors.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.10.0
 =======
 

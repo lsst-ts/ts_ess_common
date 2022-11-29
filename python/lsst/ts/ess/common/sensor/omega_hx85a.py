@@ -22,7 +22,8 @@
 __all__ = ["Hx85aSensor"]
 
 import logging
-import math
+
+import numpy as np
 
 from ..constants import SensorType
 from .base_sensor import BaseSensor
@@ -73,7 +74,7 @@ class Hx85aSensor(BaseSensor):
         # Override default value.
         self.charset = "ISO-8859-1"
 
-    async def extract_telemetry(self, line: str) -> list[float]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters
@@ -87,15 +88,15 @@ class Hx85aSensor(BaseSensor):
             A list of 3 floats containing the telemetry as measured by the
             sensor: the relative humidity, the temperature and the dew point.
             If a value is missing because the connection to the sensor is
-            established mid output, then the value gets replaced by math.nan.
+            established mid output, then the value gets replaced by np.nan.
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output = []
+        output: list[float | int | str] = []
         for line_item in line_items:
             telemetry_items = line_item.split("=")
             if len(telemetry_items) == 1:
-                output.append(math.nan)
+                output.append(np.nan)
             elif len(telemetry_items) == 2:
                 output.append(float(telemetry_items[1]))
             else:

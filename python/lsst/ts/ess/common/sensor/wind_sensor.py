@@ -31,8 +31,9 @@ __all__ = [
 ]
 
 import logging
-import math
 import re
+
+import numpy as np
 
 from ..constants import SensorType
 from .base_sensor import BaseSensor
@@ -108,7 +109,7 @@ class WindSensor(BaseSensor):
             rf"{END_CHARACTER}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
         )
 
-    async def extract_telemetry(self, line: str) -> list[float]:
+    async def extract_telemetry(self, line: str) -> list[float | int | str]:
         """Extract the wind telemetry from a line of Sensor data.
 
         Parameters
@@ -144,20 +145,20 @@ class WindSensor(BaseSensor):
                 self.log.error(
                     f"Computed checksum {checksum} is not equal to telemetry checksum {checksum_val}."
                 )
-                speed = math.nan
-                direction = math.nan
+                speed = np.nan
+                direction = np.nan
             else:
                 if speed_str == DEFAULT_SPEED_VAL:
-                    speed = math.nan
+                    speed = np.nan
                 else:
                     speed = float(speed_str)
                 if direction_str == DEFAULT_DIRECTION_VAL or direction_str == "":
-                    direction = math.nan
+                    direction = np.nan
                 else:
                     direction = int(direction_str)
         elif line == f"{self.terminator}":
-            speed = math.nan
-            direction = math.nan
+            speed = np.nan
+            direction = np.nan
         else:
             raise ValueError(f"Received an unparsable line {line}")
         return [speed, direction]
