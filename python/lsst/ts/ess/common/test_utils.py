@@ -80,6 +80,78 @@ class MockTestTools:
                     assert common.device.MockTemperatureConfig.min <= resp[i]
                     assert resp[i] <= common.device.MockTemperatureConfig.max
 
+    def check_ld250_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: list[float | int | str] = []
+        for value in reply["sensor_telemetry"]:
+            assert (
+                isinstance(value, float)
+                or isinstance(value, int)
+                or isinstance(value, str)
+            )
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        assert common.ResponseCode.OK == response_code
+
+        if resp[0] == common.LD250TelemetryPrefix.NOISE_PREFIX:
+            # Check noise response.
+            assert len(resp) == 1
+        elif resp[0] == common.LD250TelemetryPrefix.STATUS_PREFIX:
+            # Check status response.
+            assert len(resp) == 6
+            assert common.device.MockStrikeRateConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockStrikeRateConfig.max
+            assert common.device.MockStrikeRateConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockStrikeRateConfig.max
+            assert resp[3] in [0, 1]
+            assert resp[4] in [0, 1]
+            assert common.device.MockAzimuthConfig.min <= resp[5]
+            assert resp[5] <= common.device.MockAzimuthConfig.max
+        elif resp[0] == common.LD250TelemetryPrefix.STRIKE_PREFIX:
+            # Check strike response.
+            assert len(resp) == 4
+            assert common.device.MockDistanceConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockDistanceConfig.max
+            assert common.device.MockDistanceConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockDistanceConfig.max
+            assert common.device.MockAzimuthConfig.min <= resp[3]
+            assert resp[3] <= common.device.MockAzimuthConfig.max
+
+    def check_efm100c_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: list[float | int] = []
+        for value in reply["sensor_telemetry"]:
+            assert isinstance(value, float) or isinstance(value, int)
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        assert common.ResponseCode.OK == response_code
+
+        assert common.device.MockElectricFieldStrengthConfig.min <= resp[0]
+        assert resp[0] <= common.device.MockElectricFieldStrengthConfig.max
+
+        if in_error_state:
+            assert resp[1] == 1
+        else:
+            assert resp[1] == 0
+
     def check_hx85a_reply(
         self,
         reply: SensorReply,

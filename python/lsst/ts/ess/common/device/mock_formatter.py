@@ -20,10 +20,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
-    "MockFormatter",
+    "MockAzimuthConfig",
     "MockDewPointConfig",
+    "MockDistanceConfig",
+    "MockElectricFieldStrengthConfig",
+    "MockFormatter",
     "MockHumidityConfig",
     "MockPressureConfig",
+    "MockStrikeRateConfig",
     "MockTemperatureConfig",
     "MockWindSpeedConfig",
 ]
@@ -31,21 +35,31 @@ __all__ = [
 import types
 from abc import ABC, abstractmethod
 
-# The minimum and maximum temperatures [ºC] used by the mock device.
-MockTemperatureConfig = types.SimpleNamespace(min=18.0, max=30.0)
+# The minimum and maximum azimuth values [deg].
+MockAzimuthConfig = types.SimpleNamespace(min=0.0, max=360.0)
 
-# The minimum and maximum humidity values [%] used by the mock device.
-MockHumidityConfig = types.SimpleNamespace(min=5.0, max=95.0)
-
-# The minimum and maximum dew point values [ºC] used by the mock
-# device.
+# The minimum and maximum dew point values [ºC].
 MockDewPointConfig = types.SimpleNamespace(min=18.0, max=30.0)
 
-# The minimum and maximum air pressure values [mbar] used by the mock
-# device.
+# The minimum and maximum distance values [km].
+MockDistanceConfig = types.SimpleNamespace(min=0, max=300)
+
+# The minimum and maximum electric field strength values [kV/m].
+MockElectricFieldStrengthConfig = types.SimpleNamespace(min=-20.0, max=20.0)
+
+# The minimum and maximum humidity values [%].
+MockHumidityConfig = types.SimpleNamespace(min=5.0, max=95.0)
+
+# The minimum and maximum air pressure values [mbar].
 MockPressureConfig = types.SimpleNamespace(min=10.0, max=1100.0)
 
-# The minimum and maximum wind speed values [m/s] used by the mock device.
+# The minimum and maximum strike rates (strikes/min).
+MockStrikeRateConfig = types.SimpleNamespace(min=0, max=999)
+
+# The minimum and maximum temperatures [ºC].
+MockTemperatureConfig = types.SimpleNamespace(min=18.0, max=30.0)
+
+# The minimum and maximum wind speed values [m/s].
 MockWindSpeedConfig = types.SimpleNamespace(min=0.0, max=10.0)
 
 

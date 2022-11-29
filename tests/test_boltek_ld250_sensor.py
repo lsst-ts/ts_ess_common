@@ -22,8 +22,6 @@
 import logging
 import unittest
 
-import numpy as np
-import pytest
 from lsst.ts.ess import common
 
 logging.basicConfig(
@@ -31,19 +29,23 @@ logging.basicConfig(
 )
 
 
-class OmegaHx85aSensorTestCase(unittest.IsolatedAsyncioTestCase):
+class Ld250SensorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_extract_telemetry(self) -> None:
-        log = logging.getLogger(type(self).__name__)
-        sensor = common.sensor.Hx85aSensor(log)
-        line = f"%RH=38.86,AT°C=24.32,DP°C=9.57{sensor.terminator}"
-        reply = await sensor.extract_telemetry(line=line)
-        assert reply == [38.86, 24.32, 9.57]
-        line = f"86,AT°C=24.32,DP°C=9.57{sensor.terminator}"
-        reply = await sensor.extract_telemetry(line=line)
-        assert reply == [np.nan, 24.32, 9.57]
-        with pytest.raises(ValueError):
-            line = f"%RH=38.86,AT°C=24.32,DP°C==9.57{sensor.terminator}"
-            reply = await sensor.extract_telemetry(line=line)
-        line = f"{sensor.terminator}"
-        reply = await sensor.extract_telemetry(line=line)
-        assert reply == [np.nan, np.nan, np.nan]
+        self.log = logging.getLogger(type(self).__name__)
+        self.sensor = common.sensor.Ld250Sensor(self.log)
+
+        line = f"${common.LD250TelemetryPrefix.STATUS_PREFIX},0,0,0,0,000.0*42\r\n"
+        reply = await self.sensor.extract_telemetry(line=line)
+        assert reply == [common.LD250TelemetryPrefix.STATUS_PREFIX, 0, 0, 0, 0, 0.0]
+
+        line = f"${common.LD250TelemetryPrefix.NOISE_PREFIX}*42\r\n"
+        reply = await self.sensor.extract_telemetry(line=line)
+        assert reply == [common.LD250TelemetryPrefix.NOISE_PREFIX]
+
+        line = f"${common.LD250TelemetryPrefix.STRIKE_PREFIX},0,1,010.0*42\r\n"
+        reply = await self.sensor.extract_telemetry(line=line)
+        assert reply == [common.LD250TelemetryPrefix.STRIKE_PREFIX, 0, 1, 10.0]
+
+        line = "$WIMSI,0,1,010.0*42\r\n"
+        reply = await self.sensor.extract_telemetry(line=line)
+        assert reply == []

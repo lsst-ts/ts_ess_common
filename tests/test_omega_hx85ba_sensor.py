@@ -20,9 +20,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import math
 import unittest
 
+import numpy as np
 import pytest
 from lsst.ts.ess import common
 
@@ -59,13 +59,11 @@ class OmegaHx85baSensorTestCase(unittest.IsolatedAsyncioTestCase):
         line = f"86,AT°C=24.32,Pmb=911.40{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
         assert reply == pytest.approx(
-            [math.nan, 24.32, 911.40, math.nan], abs=0.005, nan_ok=True
+            [np.nan, 24.32, 911.40, np.nan], abs=0.005, nan_ok=True
         )
         with pytest.raises(ValueError):
             line = f"%RH=38.86,AT°C==24.32,Pmb=911.40{sensor.terminator}"
             reply = await sensor.extract_telemetry(line=line)
         line = f"{sensor.terminator}"
         reply = await sensor.extract_telemetry(line=line)
-        assert reply == pytest.approx(
-            [math.nan, math.nan, math.nan, math.nan], nan_ok=True
-        )
+        assert reply == pytest.approx([np.nan, np.nan, np.nan, np.nan], nan_ok=True)

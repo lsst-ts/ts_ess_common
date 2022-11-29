@@ -20,6 +20,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .base_sensor import *
+from .boltek_efm100c import *
+from .boltek_ld250 import *
 from .campbell_csat3b import *
 from .omega_hx85a import *
 from .omega_hx85ba import *
