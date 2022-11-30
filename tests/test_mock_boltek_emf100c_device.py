@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import logging
 import unittest
 
@@ -32,45 +31,18 @@ logging.basicConfig(
 
 
 class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
-    async def _callback(self, reply: dict[str, list[str | float]]) -> None:
-        self.reply: None | dict[str, list[str | float]] = reply
-
-    async def _check_mock_efm100c_device(
-        self,
-        name: str,
-        in_error_state: bool = False,
-    ) -> None:
-        """Check the working of the MockDevice."""
-        log = logging.getLogger(type(self).__name__)
-        mtt = MockTestTools()
-        sensor = common.sensor.Efm100cSensor(log=log)
-        async with common.device.MockDevice(
-            name=name,
-            device_id="MockDevice",
-            sensor=sensor,
-            callback_func=self._callback,
-            log=log,
-        ) as device:
-            device.mock_formatter.in_error_state = in_error_state
-
-            self.reply = None
-            while not self.reply:
-                await asyncio.sleep(0.1)
-            reply_to_check = self.reply[common.Key.TELEMETRY]
-            mtt.check_efm100c_reply(
-                reply=reply_to_check,
-                name=name,
-                in_error_state=in_error_state,
-            )
-
     async def test_mock_efm100c_device(self) -> None:
         """Test the MockDevice with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        await self._check_mock_efm100c_device(name="MockSensor")
+        mtt = MockTestTools()
+        await mtt.check_mock_device(sensor_type=common.SensorType.EFM100C)
 
     async def test_mock_efm100c_device_in_fault_state(self) -> None:
         """Test the MockDevice with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        await self._check_mock_efm100c_device(name="MockSensor", in_error_state=True)
+        mtt = MockTestTools()
+        await mtt.check_mock_device(
+            sensor_type=common.SensorType.EFM100C, in_error_state=True
+        )

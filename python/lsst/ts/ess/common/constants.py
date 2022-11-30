@@ -28,6 +28,7 @@ __all__ = [
     "LD250TelemetryPrefix",
     "ResponseCode",
     "SensorType",
+    "TelemetryDataType",
 ]
 
 import enum
@@ -37,6 +38,9 @@ CONTROLLER_PORT = 5000
 
 # The value emitted by a disconnected channel of the temperature sensors.
 DISCONNECTED_VALUE = "9999.9990"
+
+# Alias for the type of the sensor data.
+TelemetryDataType = list[float | int | str]
 
 
 class LD250TelemetryPrefix(str, enum.Enum):

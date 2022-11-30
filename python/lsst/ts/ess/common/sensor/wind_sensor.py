@@ -35,7 +35,7 @@ import re
 
 import numpy as np
 
-from ..constants import SensorType
+from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
@@ -109,7 +109,7 @@ class WindSensor(BaseSensor):
             rf"{END_CHARACTER}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
         )
 
-    async def extract_telemetry(self, line: str) -> list[float | int | str]:
+    async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the wind telemetry from a line of Sensor data.
 
         Parameters
