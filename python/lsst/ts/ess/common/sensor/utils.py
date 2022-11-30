@@ -23,10 +23,12 @@ __all__ = ["add_missing_telemetry"]
 
 import numpy as np
 
+from ..constants import TelemetryDataType
+
 
 def add_missing_telemetry(
-    telemetry: list[float | int | str], expected_length: int
-) -> list[float | int | str]:
+    telemetry: TelemetryDataType, expected_length: int
+) -> TelemetryDataType:
     """Prepend a telemetry list with NaN values to make sure that it has the
     expected length.
 
@@ -47,7 +49,7 @@ def add_missing_telemetry(
     if len(telemetry) < expected_length:
         num_missing = expected_length - len(telemetry)
         # This next line is necessary to keep mypy happy.
-        nan_list: list[float | int | str] = [np.nan] * num_missing
+        nan_list: TelemetryDataType = [np.nan] * num_missing
         return nan_list + telemetry
     else:
         return telemetry

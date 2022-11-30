@@ -25,7 +25,7 @@ import re
 
 import numpy as np
 
-from ..constants import SensorType
+from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
@@ -57,7 +57,7 @@ class Efm100cSensor(BaseSensor):
     both cases polarity will be +).
     """
 
-    async def extract_telemetry(self, line: str) -> list[float | int | str]:
+    async def extract_telemetry(self, line: str) -> TelemetryDataType:
         efs_match = EFS_PATTERN.match(line)
         if efs_match:
             efs = float(efs_match.group(1))
@@ -65,7 +65,7 @@ class Efm100cSensor(BaseSensor):
         else:
             efs = np.nan
             fault = 1
-        output: list[float | int | str] = [efs, fault]
+        output: TelemetryDataType = [efs, fault]
         return output
 
 

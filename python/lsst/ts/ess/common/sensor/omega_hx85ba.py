@@ -26,7 +26,7 @@ import math
 
 import numpy as np
 
-from ..constants import SensorType
+from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 from .utils import add_missing_telemetry
@@ -109,7 +109,7 @@ class Hx85baSensor(BaseSensor):
         f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
         return λ * f / (β - f)
 
-    async def extract_telemetry(self, line: str) -> list[float | int | str]:
+    async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the telemetry from a line of Sensor data.
 
         Parameters
@@ -128,7 +128,7 @@ class Hx85baSensor(BaseSensor):
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output: list[float | int | str] = []
+        output: TelemetryDataType = []
         for line_item in line_items:
             telemetry_items = line_item.split("=")
             if len(telemetry_items) == 1:

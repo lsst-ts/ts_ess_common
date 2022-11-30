@@ -89,7 +89,7 @@ class MockTestTools:
         device_name = reply["name"]
         time = float(reply["timestamp"])
         response_code = reply["response_code"]
-        resp: list[float | int | str] = []
+        resp: common.TelemetryDataType = []
         for value in reply["sensor_telemetry"]:
             assert (
                 isinstance(value, float)
