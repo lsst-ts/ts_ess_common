@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.10.2
+=======
+
+* Introduce alias for the type of the sensor data.
+* Refactor the sensor unit tests into a single test class.
+* Refactor the device unit tests to remove duplicate code.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.10.1
 =======
 
