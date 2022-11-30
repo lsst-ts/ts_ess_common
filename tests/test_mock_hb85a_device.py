@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import logging
 import unittest
 
@@ -32,76 +31,27 @@ logging.basicConfig(
 
 
 class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
-    async def _callback(self, reply: dict[str, list[str | float]]) -> None:
-        self.reply: None | dict[str, list[str | float]] = reply
-
-    async def _check_mock_hx85a_device(
-        self,
-        name: str,
-        missed_channels: int = 0,
-        in_error_state: bool = False,
-    ) -> None:
-        """Check the working of the MockDevice."""
-        log = logging.getLogger(type(self).__name__)
-        mtt = MockTestTools()
-        sensor = common.sensor.Hx85aSensor(log=log)
-        async with common.device.MockDevice(
-            name=name,
-            device_id="MockDevice",
-            sensor=sensor,
-            callback_func=self._callback,
-            log=log,
-        ) as device:
-            device.missed_channels = missed_channels
-            device.in_error_state = in_error_state
-
-            # First read of the telemetry to verify that handling of truncated
-            # data is performed correctly if the MockDevice is instructed to
-            # produce such data.
-            self.reply = None
-            while not self.reply:
-                await asyncio.sleep(0.1)
-            reply_to_check = self.reply[common.Key.TELEMETRY]
-            mtt.check_hx85a_reply(
-                reply=reply_to_check,
-                name=name,
-                missed_channels=missed_channels,
-                in_error_state=in_error_state,
-            )
-
-            # Reset missed_channels for the second read otherwise the
-            # check will fail.
-            if missed_channels > 0:
-                missed_channels = 0
-
-            # Now read the telemetry to verify that no more truncated data
-            # is produced if the MockDevice was instructed to produce such
-            # data.
-            self.reply = None
-            while not self.reply:
-                await asyncio.sleep(0.1)
-            reply_to_check = self.reply[common.Key.TELEMETRY]
-            mtt.check_hx85a_reply(
-                reply=reply_to_check,
-                name=name,
-                missed_channels=missed_channels,
-                in_error_state=in_error_state,
-            )
-
     async def test_mock_hx85a_device(self) -> None:
         """Test the MockDevice with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
-        await self._check_mock_hx85a_device(name="MockSensor")
+        mtt = MockTestTools()
+        await mtt.check_mock_device(sensor_type=common.SensorType.HX85A)
 
     async def test_mock_hx85a_device_with_truncated_output(self) -> None:
         """Test the MockDevice with no disconnected channels and truncated data
         for two channels.
         """
-        await self._check_mock_hx85a_device(name="MockSensor", missed_channels=2)
+        mtt = MockTestTools()
+        await mtt.check_mock_device(
+            sensor_type=common.SensorType.HX85A, missed_channels=2
+        )
 
     async def test_mock_hx85a_device_in_error_state(self) -> None:
         """Test the MockDevice in error state meaning it will only return empty
         strings.
         """
-        await self._check_mock_hx85a_device(name="MockSensor", in_error_state=True)
+        mtt = MockTestTools()
+        await mtt.check_mock_device(
+            sensor_type=common.SensorType.HX85A, in_error_state=True
+        )

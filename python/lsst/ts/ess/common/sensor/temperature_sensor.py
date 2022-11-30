@@ -25,7 +25,7 @@ import logging
 
 import numpy as np
 
-from ..constants import DISCONNECTED_VALUE, SensorType
+from ..constants import DISCONNECTED_VALUE, SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 from .utils import add_missing_telemetry
@@ -65,7 +65,7 @@ class TemperatureSensor(BaseSensor):
     ) -> None:
         super().__init__(log=log, num_channels=num_channels)
 
-    async def extract_telemetry(self, line: str) -> list[float | int | str]:
+    async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the temperature telemetry from a line of Sensor data.
 
         Parameters
@@ -86,7 +86,7 @@ class TemperatureSensor(BaseSensor):
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output: list[float | int | str] = []
+        output: TelemetryDataType = []
         for line_item in line_items:
             temperature_items = line_item.split("=")
             if len(temperature_items) == 1:

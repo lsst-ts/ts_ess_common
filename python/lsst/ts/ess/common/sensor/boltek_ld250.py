@@ -23,7 +23,7 @@ __all__ = ["Ld250Sensor"]
 
 import re
 
-from ..constants import LD250TelemetryPrefix, SensorType
+from ..constants import LD250TelemetryPrefix, SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
@@ -101,10 +101,10 @@ class Ld250Sensor(BaseSensor):
     value for int and a zero-padded value for float values.
     """
 
-    async def extract_telemetry(self, line: str) -> list[float | int | str]:
+    async def extract_telemetry(self, line: str) -> TelemetryDataType:
         # stripped_line: str = line.strip(self.terminator)
         # line_items = stripped_line.split(self.delimiter)
-        output: list[str | int | float] = []
+        output: TelemetryDataType = []
 
         # Note that group(0) matches the whole pattern so that needs to be
         # skipped whenever groups in the match are accessed.
