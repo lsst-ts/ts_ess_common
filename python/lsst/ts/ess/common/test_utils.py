@@ -21,6 +21,9 @@
 
 __all__ = ["MockTestTools", "SensorReply"]
 
+import asyncio
+import inspect
+import logging
 import math
 from typing import TypedDict
 
@@ -45,7 +48,104 @@ class SensorReply(TypedDict):
     sensor_telemetry: list
 
 
+check_reply_func_dict = {
+    common.SensorType.CSAT3B: "check_csat3b_reply",
+    common.SensorType.EFM100C: "check_efm100c_reply",
+    common.SensorType.HX85A: "check_hx85a_reply",
+    common.SensorType.HX85BA: "check_hx85ba_reply",
+    common.SensorType.LD250: "check_ld250_reply",
+    common.SensorType.TEMPERATURE: "check_temperature_reply",
+}
+
+# Maximum number of times to wait before exiting a sleep loop.
+MAX_SLEEP_WAITS = 60
+
+
 class MockTestTools:
+    def __init__(self) -> None:
+        self.reply: None | dict[str, common.TelemetryDataType] = None
+
+    async def _callback(self, reply: dict[str, common.TelemetryDataType]) -> None:
+        self.reply = reply
+
+    async def wait_for_reply(self) -> None:
+        self.reply = None
+        num_sleep_waits = 0
+        while not self.reply:
+            await asyncio.sleep(0.1)
+            num_sleep_waits = num_sleep_waits + 1
+            if num_sleep_waits >= MAX_SLEEP_WAITS:
+                raise TimeoutError("Did't get telemetry on time.")
+
+    async def check_mock_device(
+        self,
+        sensor_type: common.SensorType,
+        num_channels: int = 0,
+        disconnected_channel: int = -1,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
+        noise: bool = False,
+        strike: bool = False,
+    ) -> None:
+        """Check the working of the MockDevice."""
+        log = logging.getLogger(type(self).__name__)
+        sensor_class = common.sensor.sensor_registry[sensor_type]
+        sensor_arg_values: dict[str, int | logging.Logger] = {"log": log}
+        sensor_args = inspect.getfullargspec(sensor_class.__init__)
+        if "num_channels" in sensor_args.args:
+            sensor_arg_values["num_channels"] = num_channels
+        sensor = sensor_class(**sensor_arg_values)
+        func = getattr(self, check_reply_func_dict[sensor_type])
+        async with common.device.MockDevice(
+            name="MockSensor",
+            device_id="MockDevice",
+            sensor=sensor,
+            callback_func=self._callback,
+            log=log,
+        ) as device:
+            device.disconnected_channel = disconnected_channel
+            device.missed_channels = missed_channels
+            if hasattr(device.mock_formatter, "in_error_state"):
+                device.mock_formatter.in_error_state = in_error_state
+            else:
+                device.in_error_state = in_error_state
+            device.noise = noise
+            device.strike = strike
+
+            # First read of the telemetry to verify that handling of truncated
+            # data is performed correctly if the MockDevice is instructed to
+            # produce such data.
+            await self.wait_for_reply()
+            assert self.reply is not None
+            func_arg_values = {
+                "reply": self.reply[common.Key.TELEMETRY],
+                "name": "MockSensor",
+                "in_error_state": in_error_state,
+            }
+            func_args = inspect.getfullargspec(func)
+            if "num_channels" in func_args.args:
+                func_arg_values["num_channels"] = num_channels
+            if "disconnected_channel" in func_args.args:
+                func_arg_values["disconnected_channel"] = disconnected_channel
+            if "missed_channels" in func_args.args:
+                func_arg_values["missed_channels"] = missed_channels
+            func(**func_arg_values)
+
+            # Reset missed_channels for the second read otherwise the
+            # check will fail.
+            if missed_channels > 0:
+                missed_channels = 0
+
+            # Now read the telemetry to verify that no more truncated data
+            # is produced if the MockDevice was instructed to produce such
+            # data.
+            await self.wait_for_reply()
+            assert self.reply is not None
+            func_arg_values["reply"] = self.reply[common.Key.TELEMETRY]
+            if "missed_channels" in func_args.args:
+                func_arg_values["missed_channels"] = missed_channels
+            func(**func_arg_values)
+
     def check_csat3b_reply(
         self,
         reply: SensorReply,
