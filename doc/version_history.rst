@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.10.3
+=======
+
+* pre-commit: update mypy and types-PyYAML versions.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.10.2
 =======
 
