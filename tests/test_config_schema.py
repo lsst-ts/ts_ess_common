@@ -45,7 +45,7 @@ class ConfigSchemaTestCase(unittest.IsolatedAsyncioTestCase):
             name="Test02",
             dev_type=common.DeviceType.SERIAL.value,
             dev_id="ABC",
-            sens_type=common.SensorType.WIND.value,
+            sens_type=common.SensorType.WINDSONIC.value,
             baud_rate=19200,
             location="Motor 1 temp,Motor 2 temp,Strut 7 temp,Strut 8 temp,Strut 9 "
             "temp,Strut 10 temp,Strut 11 temp,Strut 12 temp",
