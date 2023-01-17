@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
-    "WindSensor",
+    "WindsonicSensor",
     "DEFAULT_DIRECTION_VAL",
     "DEFAULT_SPEED_VAL",
     "GOOD_STATUS",
@@ -28,6 +28,7 @@ __all__ = [
     "START_CHARACTER",
     "UNIT_IDENTIFIER",
     "WINDSPEED_UNIT",
+    "compute_checksum",
 ]
 
 import logging
@@ -61,8 +62,27 @@ DEFAULT_DIRECTION_VAL: str = "999"
 DEFAULT_SPEED_VAL: str = "9999.9990"
 
 
-class WindSensor(BaseSensor):
-    """Wind Sensor.
+def compute_checksum(checksum_string: str) -> int:
+    """Compute the checksum for a Gill Windsonic 2D Sensor.
+
+    Parameters
+    ----------
+    checksum_string : `str`
+        The string for which the checksum is computed.
+
+    Returns
+    -------
+    checksum : `int`
+        The checksum.
+    """
+    checksum: int = 0
+    for i in checksum_string:
+        checksum ^= ord(i)
+    return checksum
+
+
+class WindsonicSensor(BaseSensor):
+    """Windsonic Sensor.
 
     Perform protocol conversion for Gill Windsonic Ultrasonic Anemometer
     instruments. The instrument is assumed to use its default message format -
@@ -136,10 +156,8 @@ class WindSensor(BaseSensor):
                     f"Expected status {GOOD_STATUS} but received {status}. Continuing."
                 )
 
-            checksum_string = f"Q,{direction_str},{speed_str},M,{status},"
-            checksum: int = 0
-            for i in checksum_string:
-                checksum ^= ord(i)
+            checksum_string = f"{UNIT_IDENTIFIER},{direction_str},{speed_str},{WINDSPEED_UNIT},{status},"
+            checksum = compute_checksum(checksum_string)
 
             if checksum != checksum_val:
                 self.log.error(
@@ -164,4 +182,4 @@ class WindSensor(BaseSensor):
         return [speed, direction]
 
 
-register_sensor(SensorType.WIND, WindSensor)
+register_sensor(SensorType.WINDSONIC, WindsonicSensor)

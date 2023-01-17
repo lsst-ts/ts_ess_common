@@ -48,8 +48,8 @@ CSAT3B_DATA = [
     "0.11630,0.03674,0.05579,19.78812,0,16,5cD7",
 ]
 
-# Data for the wind sensor.
-WIND_DATA_LIST = [
+# Data for the Windsonic sensor.
+WINDSONIC_DATA_LIST = [
     ["015.00", "010"],
     ["001.00", ""],
     ["015.00", "010"],
@@ -235,9 +235,9 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_wind_sensor(self) -> None:
         """Add a wind sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.WindSensor(self.log)
+        sensor = common.sensor.WindsonicSensor(self.log)
         data: SensorDataType = {}
-        for wind_data in WIND_DATA_LIST:
+        for wind_data in WINDSONIC_DATA_LIST:
             raw_telemetry = self.create_wind_sensor_line(
                 sensor=sensor, speed=wind_data[0], direction=wind_data[1]
             )
@@ -283,7 +283,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     def create_wind_sensor_line(
         self,
-        sensor: common.sensor.WindSensor,
+        sensor: common.sensor.WindsonicSensor,
         speed: str,
         direction: str,
         valid_checksum: bool = True,
@@ -301,9 +301,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
             + common.sensor.GOOD_STATUS
             + sensor.delimiter
         )
-        checksum: int = 0
-        for i in checksum_string:
-            checksum ^= ord(i)
+        checksum = common.sensor.compute_checksum(checksum_string)
 
         # Mock a bad checksum
         if not valid_checksum:
