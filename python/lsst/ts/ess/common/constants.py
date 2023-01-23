@@ -108,4 +108,4 @@ class SensorType(str, enum.Enum):
     HX85BA = "HX85BA"
     LD250 = "LD250"
     TEMPERATURE = "Temperature"
-    WIND = "Wind"
+    WINDSONIC = "Windsonic"

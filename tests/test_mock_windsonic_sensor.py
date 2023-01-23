@@ -19,10 +19,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import platform
+import logging
+import unittest
 
-from .base_device import *
-from .mock_device import *
-from .mock_formatter import *
-from .mock_temperature_formatter import *
-from .mock_windsonic_formatter import *
+from lsst.ts.ess import common
+from lsst.ts.ess.common.test_utils import MockTestTools
+
+logging.basicConfig(
+    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
+)
+
+
+class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
+    async def test_mock_windsonic_device(self) -> None:
+        """Test the MockDevice with a nominal configuration, i.e. no
+        disconnected channels and no truncated data.
+        """
+        mtt = MockTestTools()
+        await mtt.check_mock_device(sensor_type=common.SensorType.WINDSONIC)
