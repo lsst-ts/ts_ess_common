@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.11.0
+=======
+
+* Rename the WindSensor to WindsonicSensor and add a mock formatter for the simulation mode.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.10.3
 =======
 

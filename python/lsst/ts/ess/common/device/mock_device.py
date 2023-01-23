@@ -34,6 +34,7 @@ from ..sensor import (
     Hx85baSensor,
     Ld250Sensor,
     TemperatureSensor,
+    WindsonicSensor,
 )
 from .base_device import BaseDevice
 from .mock_boltek_formatter import (
@@ -46,6 +47,7 @@ from .mock_csat3b_formatter import MockCsat3bFormatter
 from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
 from .mock_temperature_formatter import MockTemperatureFormatter
+from .mock_windsonic_formatter import MockWindsonicFormatter
 
 
 class MockDevice(BaseDevice):
@@ -115,6 +117,7 @@ class MockDevice(BaseDevice):
             Hx85baSensor: MockHx85baFormatter(),
             Ld250Sensor: MockLD250StatusFormatter(),
             TemperatureSensor: MockTemperatureFormatter(),
+            WindsonicSensor: MockWindsonicFormatter(),
         }
 
         # Initialize the formatter.
@@ -145,7 +148,6 @@ class MockDevice(BaseDevice):
             # If requested, return noise telemetry.
             noise_formatter = MockLD250NoiseFormatter()
             channel_strs = noise_formatter.format_output()
-
         elif isinstance(self.sensor, Ld250Sensor) and self.strike:
             # If requested, return strike telemetry.
             strike_formatter = MockLD250StrikeFormatter()

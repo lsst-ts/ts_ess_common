@@ -22,6 +22,7 @@
 __all__ = [
     "MockAzimuthConfig",
     "MockDewPointConfig",
+    "MockDirectionConfig",
     "MockDistanceConfig",
     "MockElectricFieldStrengthConfig",
     "MockFormatter",
@@ -40,6 +41,9 @@ MockAzimuthConfig = types.SimpleNamespace(min=0.0, max=360.0)
 
 # The minimum and maximum dew point values [ºC].
 MockDewPointConfig = types.SimpleNamespace(min=18.0, max=30.0)
+
+# The minimum and maximum direction values [deg].
+MockDirectionConfig = types.SimpleNamespace(min=0, max=360)
 
 # The minimum and maximum distance values [km].
 MockDistanceConfig = types.SimpleNamespace(min=0, max=300)

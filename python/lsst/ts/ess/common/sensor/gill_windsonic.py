@@ -19,16 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = [
-    "WindSensor",
-    "DEFAULT_DIRECTION_VAL",
-    "DEFAULT_SPEED_VAL",
-    "GOOD_STATUS",
-    "END_CHARACTER",
-    "START_CHARACTER",
-    "UNIT_IDENTIFIER",
-    "WINDSPEED_UNIT",
-]
+__all__ = ["WindsonicSensor", "compute_checksum"]
 
 import logging
 import re
@@ -39,30 +30,28 @@ from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
-"""ASCII start character."""
-START_CHARACTER: str = "\x02"
 
-"""Unit Identifier."""
-UNIT_IDENTIFIER: str = "Q"
+def compute_checksum(checksum_string: str) -> int:
+    """Compute the checksum for a Gill Windsonic 2D Sensor.
 
-"""Windspeed unit."""
-WINDSPEED_UNIT: str = "M"
+    Parameters
+    ----------
+    checksum_string : `str`
+        The string for which the checksum is computed.
 
-"""Default status."""
-GOOD_STATUS: str = "00"
-
-"""ASCII end charactor."""
-END_CHARACTER = "\x03"
-
-"""Default value for the wind direction."""
-DEFAULT_DIRECTION_VAL: str = "999"
-
-"""Default value for the wind speed."""
-DEFAULT_SPEED_VAL: str = "9999.9990"
+    Returns
+    -------
+    checksum : `int`
+        The checksum.
+    """
+    checksum: int = 0
+    for i in checksum_string:
+        checksum ^= ord(i)
+    return checksum
 
 
-class WindSensor(BaseSensor):
-    """Wind Sensor.
+class WindsonicSensor(BaseSensor):
+    """Windsonic Sensor.
 
     Perform protocol conversion for Gill Windsonic Ultrasonic Anemometer
     instruments. The instrument is assumed to use its default message format -
@@ -95,6 +84,27 @@ class WindSensor(BaseSensor):
         The logger for which to create a child logger.
     """
 
+    # ASCII start character.
+    start_character: str = "\x02"
+
+    # Unit Identifier.
+    unit_identifier: str = "Q"
+
+    # Windspeed unit.
+    windspeed_unit: str = "M"
+
+    # Default status.
+    good_status: str = "00"
+
+    # ASCII end charactor.
+    end_character = "\x03"
+
+    # Default value for the wind direction.
+    default_direction_str: str = "999"
+
+    # Default value for the wind speed.
+    default_speed_str: str = "9999.9990"
+
     def __init__(
         self,
         log: logging.Logger,
@@ -103,10 +113,11 @@ class WindSensor(BaseSensor):
 
         # Regex pattern to process a line of telemetry.
         self.telemetry_pattern = re.compile(
-            rf"^{START_CHARACTER}{UNIT_IDENTIFIER}{self.delimiter}(?P<direction>\d{{3}})?{self.delimiter}"
-            rf"(?P<speed>\d{{3}}\.\d{{2}}){self.delimiter}{WINDSPEED_UNIT}{self.delimiter}"
+            rf"^{WindsonicSensor.start_character}{WindsonicSensor.unit_identifier}{self.delimiter}"
+            rf"(?P<direction>\d{{3}})?{self.delimiter}"
+            rf"(?P<speed>\d{{3}}\.\d{{2}}){self.delimiter}{WindsonicSensor.windspeed_unit}{self.delimiter}"
             rf"(?P<status>\d{{2}}){self.delimiter}"
-            rf"{END_CHARACTER}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
+            rf"{WindsonicSensor.end_character}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
         )
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
@@ -131,15 +142,16 @@ class WindSensor(BaseSensor):
             status = m.group("status")
             checksum_val = int(m.group("checksum"), 16)
 
-            if status != GOOD_STATUS:
+            if status != WindsonicSensor.good_status:
                 self.log.error(
-                    f"Expected status {GOOD_STATUS} but received {status}. Continuing."
+                    f"Expected status {WindsonicSensor.good_status} but received {status}. Continuing."
                 )
 
-            checksum_string = f"Q,{direction_str},{speed_str},M,{status},"
-            checksum: int = 0
-            for i in checksum_string:
-                checksum ^= ord(i)
+            checksum_string = (
+                f"{WindsonicSensor.unit_identifier},{direction_str},{speed_str},"
+                f"{WindsonicSensor.windspeed_unit},{status},"
+            )
+            checksum = compute_checksum(checksum_string)
 
             if checksum != checksum_val:
                 self.log.error(
@@ -148,11 +160,14 @@ class WindSensor(BaseSensor):
                 speed = np.nan
                 direction = np.nan
             else:
-                if speed_str == DEFAULT_SPEED_VAL:
+                if speed_str == WindsonicSensor.default_speed_str:
                     speed = np.nan
                 else:
                     speed = float(speed_str)
-                if direction_str == DEFAULT_DIRECTION_VAL or direction_str == "":
+                if (
+                    direction_str == WindsonicSensor.default_direction_str
+                    or direction_str == ""
+                ):
                     direction = np.nan
                 else:
                     direction = int(direction_str)
@@ -164,4 +179,4 @@ class WindSensor(BaseSensor):
         return [speed, direction]
 
 
-register_sensor(SensorType.WIND, WindSensor)
+register_sensor(SensorType.WINDSONIC, WindsonicSensor)

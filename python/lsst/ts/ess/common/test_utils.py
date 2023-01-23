@@ -55,6 +55,7 @@ check_reply_func_dict = {
     common.SensorType.HX85BA: "check_hx85ba_reply",
     common.SensorType.LD250: "check_ld250_reply",
     common.SensorType.TEMPERATURE: "check_temperature_reply",
+    common.SensorType.WINDSONIC: "check_windsonic_reply",
 }
 
 # Maximum number of times to wait before exiting a sleep loop.
@@ -370,3 +371,33 @@ class MockTestTools:
             else:
                 assert common.device.MockTemperatureConfig.min <= resp[i]
                 assert resp[i] <= common.device.MockTemperatureConfig.max
+
+    def check_windsonic_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        num_channels: int = 0,
+        disconnected_channel: int = -1,
+        missed_channels: int = 0,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: list[float | int] = []
+        assert len(reply["sensor_telemetry"]) == 2
+        assert isinstance(reply["sensor_telemetry"][0], float)
+        assert isinstance(reply["sensor_telemetry"][1], int)
+        for value in reply["sensor_telemetry"]:
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        if in_error_state:
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
+        else:
+            assert common.ResponseCode.OK == response_code
+        assert common.device.MockWindSpeedConfig.min <= resp[0]
+        assert resp[0] <= common.device.MockWindSpeedConfig.max
+        assert common.device.MockDirectionConfig.min <= resp[1]
+        assert resp[1] <= common.device.MockDirectionConfig.max
