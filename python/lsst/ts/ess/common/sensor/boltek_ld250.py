@@ -21,6 +21,7 @@
 
 __all__ = ["Ld250Sensor"]
 
+import logging
 import re
 
 from ..constants import LD250TelemetryPrefix, SensorType, TelemetryDataType
@@ -100,6 +101,15 @@ class Ld250Sensor(BaseSensor):
     The placeholders shown for the values are displaying a non-zero-padded
     value for int and a zero-padded value for float values.
     """
+
+    def __init__(
+        self,
+        log: logging.Logger,
+    ) -> None:
+        super().__init__(log=log)
+
+        # Override default value.
+        self.charset = "UTF-8"
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         # stripped_line: str = line.strip(self.terminator)

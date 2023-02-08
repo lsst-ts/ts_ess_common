@@ -21,6 +21,7 @@
 
 __all__ = ["Efm100cSensor"]
 
+import logging
 import re
 
 import numpy as np
@@ -56,6 +57,15 @@ class Efm100cSensor(BaseSensor):
     present, even if the electric field level value is zero or positive (for
     both cases polarity will be +).
     """
+
+    def __init__(
+        self,
+        log: logging.Logger,
+    ) -> None:
+        super().__init__(log=log)
+
+        # Override default value.
+        self.charset = "UTF-8"
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         efs_match = EFS_PATTERN.match(line)
