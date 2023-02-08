@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.11.2
+=======
+
+* Add aioserial and jsonschema to conda recipe dependencies.
+* Add __repr__ and __str__ to BaseSensor and BaseDevice.
+* Set charset for EFM100 and LD250 sensors to UTF-8.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.11.1
 =======
 
