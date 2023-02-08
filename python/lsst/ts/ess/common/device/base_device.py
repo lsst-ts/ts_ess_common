@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
@@ -21,7 +19,7 @@ from __future__ import annotations
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["BaseDevice"]
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -34,6 +32,8 @@ from lsst.ts import utils
 
 from ..constants import Key, ResponseCode
 from ..sensor import BaseSensor
+
+__all__ = ["BaseDevice"]
 
 
 class BaseDevice(ABC):
@@ -93,6 +93,19 @@ class BaseDevice(ABC):
         traceback: None | types.TracebackType,
     ) -> None:
         await self.close()
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        vars_list = [
+            f"{var}={val!r}"
+            for var, val in vars(self).items()
+            if var not in ["log", "terminator"]
+        ]
+        vars_str = ", ".join(vars_list)
+        st = f"{type(self).__name__}<{vars_str}>"
+        return st
 
     async def open(self) -> None:
         """Generic open function.

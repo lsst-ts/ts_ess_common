@@ -69,3 +69,16 @@ class BaseSensor(ABC):
             channels.
         """
         pass
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        vars_list = [
+            f"{var}={val!r}"
+            for var, val in vars(self).items()
+            if var not in ["log", "terminator"]
+        ]
+        vars_str = ", ".join(vars_list)
+        st = f"{type(self).__name__}<{vars_str}>"
+        return st
