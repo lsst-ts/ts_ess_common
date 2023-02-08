@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.11.2
+=======
+
+* Add aioserial to conda recipe dependencies.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.11.1
 =======
 
