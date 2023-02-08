@@ -21,6 +21,7 @@ test:
     - ts-conda-build =0.3
     - ts-tcpip
     - ts-utils
+    - aioserial
   source_files:
     - python
     - tests
@@ -46,3 +47,4 @@ requirements:
     - setuptools_scm
     - ts-tcpip
     - ts-utils
+    - aioserial
