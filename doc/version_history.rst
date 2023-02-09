@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.11.2
+=======
+
+* Add aioserial and jsonschema to conda recipe dependencies.
+* Add __repr__ to BaseSensor and BaseDevice.
+* Promoted several instance variables to class variables to simplify the code and get rid of constructors in all sensor classes.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.11.1
 =======
 

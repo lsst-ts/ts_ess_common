@@ -21,9 +21,6 @@
 
 __all__ = ["Hx85baSensor"]
 
-import logging
-import math
-
 import numpy as np
 
 from ..constants import SensorType, TelemetryDataType
@@ -77,16 +74,10 @@ class Hx85baSensor(BaseSensor):
         • rh = relative humidity in %
     """
 
-    def __init__(
-        self,
-        log: logging.Logger,
-    ) -> None:
-        super().__init__(log=log, num_channels=NUM_VALUES)
-
-        # Override default value.
-        self.terminator = "\n\r"
-        # Override default value.
-        self.charset = "ISO-8859-1"
+    # Override default value.
+    terminator = "\n\r"
+    # Override default value.
+    charset = "ISO-8859-1"
 
     @staticmethod
     def compute_dew_point(relative_humidity: float, temperature: float) -> float:
@@ -106,7 +97,7 @@ class Hx85baSensor(BaseSensor):
         """
         β = 17.62
         λ = 243.12
-        f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
+        f = np.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
         return λ * f / (β - f)
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:

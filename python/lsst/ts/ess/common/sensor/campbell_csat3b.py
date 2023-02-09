@@ -21,8 +21,6 @@
 
 __all__ = ["compute_signature", "Csat3bSensor"]
 
-import logging
-
 import numpy as np
 
 from ..constants import SensorType, TelemetryDataType
@@ -122,16 +120,10 @@ class Csat3bSensor(BaseSensor):
         The logger for which to create a child logger.
     """
 
-    def __init__(
-        self,
-        log: logging.Logger,
-    ) -> None:
-        super().__init__(log=log)
-
-        # Override default value.
-        self.terminator = "\r"
-        # Override default value.
-        self.charset = "ISO-8859-1"
+    # Override default value.
+    terminator = "\r"
+    # Override default value.
+    charset = "ISO-8859-1"
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the telemetry from a line of Sensor data.
