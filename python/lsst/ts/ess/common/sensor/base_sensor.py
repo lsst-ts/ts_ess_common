@@ -43,19 +43,19 @@ class BaseSensor(ABC):
         default value is 0 meaning that the number of channels is not variable.
     """
 
+    # Data line terminator. In general this is the value used by all
+    # sensors but some sensors may need to override this value.
+    terminator = "\r\n"
+    # Data line terminator. In general this is the value used by all
+    # sensors but some sensors may need to override this value.
+    delimiter = ","
+    # Character set for the data line. In general this is the value used by
+    # all sensors but some sensors may need to override this value.
+    charset = "ASCII"
+
     def __init__(self, log: logging.Logger, num_channels: int = 0) -> None:
         self.num_channels: int = num_channels
         self.log = log.getChild(type(self).__name__)
-
-        # Data line terminator. In general this is the value used by all
-        # sensors but some sensors may need to override this value.
-        self.terminator = "\r\n"
-        # Data line terminator. In general this is the value used by all
-        # sensors but some sensors may need to override this value.
-        self.delimiter = ","
-        # Character set for the data line. In general this is the value used by
-        # all sensors but some sensors may need to override this value.
-        self.charset = "ASCII"
 
     @abstractmethod
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
