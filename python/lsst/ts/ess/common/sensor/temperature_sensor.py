@@ -21,8 +21,6 @@
 
 __all__ = ["TemperatureSensor"]
 
-import logging
-
 import numpy as np
 
 from ..constants import DISCONNECTED_VALUE, SensorType, TelemetryDataType
@@ -57,13 +55,6 @@ class TemperatureSensor(BaseSensor):
     num_channels : `int`
         The number of temperature channels.
     """
-
-    def __init__(
-        self,
-        log: logging.Logger,
-        num_channels: int,
-    ) -> None:
-        super().__init__(log=log, num_channels=num_channels)
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the temperature telemetry from a line of Sensor data.

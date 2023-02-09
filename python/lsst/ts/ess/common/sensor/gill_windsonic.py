@@ -21,7 +21,6 @@
 
 __all__ = ["WindsonicSensor", "compute_checksum"]
 
-import logging
 import re
 
 import numpy as np
@@ -105,20 +104,14 @@ class WindsonicSensor(BaseSensor):
     # Default value for the wind speed.
     default_speed_str: str = "9999.9990"
 
-    def __init__(
-        self,
-        log: logging.Logger,
-    ) -> None:
-        super().__init__(log=log)
-
-        # Regex pattern to process a line of telemetry.
-        self.telemetry_pattern = re.compile(
-            rf"^{WindsonicSensor.start_character}{WindsonicSensor.unit_identifier}{self.delimiter}"
-            rf"(?P<direction>\d{{3}})?{self.delimiter}"
-            rf"(?P<speed>\d{{3}}\.\d{{2}}){self.delimiter}{WindsonicSensor.windspeed_unit}{self.delimiter}"
-            rf"(?P<status>\d{{2}}){self.delimiter}"
-            rf"{WindsonicSensor.end_character}(?P<checksum>[\da-fA-F]{{2}}){self.terminator}$"
-        )
+    # Regex pattern to process a line of telemetry.
+    telemetry_pattern = re.compile(
+        rf"^{start_character}{unit_identifier}{BaseSensor.delimiter}"
+        rf"(?P<direction>\d{{3}})?{BaseSensor.delimiter}"
+        rf"(?P<speed>\d{{3}}\.\d{{2}}){BaseSensor.delimiter}{windspeed_unit}{BaseSensor.delimiter}"
+        rf"(?P<status>\d{{2}}){BaseSensor.delimiter}"
+        rf"{end_character}(?P<checksum>[\da-fA-F]{{2}}){BaseSensor.terminator}$"
+    )
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the wind telemetry from a line of Sensor data.
@@ -142,14 +135,14 @@ class WindsonicSensor(BaseSensor):
             status = m.group("status")
             checksum_val = int(m.group("checksum"), 16)
 
-            if status != WindsonicSensor.good_status:
+            if status != self.good_status:
                 self.log.error(
-                    f"Expected status {WindsonicSensor.good_status} but received {status}. Continuing."
+                    f"Expected status {self.good_status} but received {status}. Continuing."
                 )
 
             checksum_string = (
-                f"{WindsonicSensor.unit_identifier},{direction_str},{speed_str},"
-                f"{WindsonicSensor.windspeed_unit},{status},"
+                f"{self.unit_identifier},{direction_str},{speed_str},"
+                f"{self.windspeed_unit},{status},"
             )
             checksum = compute_checksum(checksum_string)
 
@@ -160,14 +153,11 @@ class WindsonicSensor(BaseSensor):
                 speed = np.nan
                 direction = np.nan
             else:
-                if speed_str == WindsonicSensor.default_speed_str:
+                if speed_str == self.default_speed_str:
                     speed = np.nan
                 else:
                     speed = float(speed_str)
-                if (
-                    direction_str == WindsonicSensor.default_direction_str
-                    or direction_str == ""
-                ):
+                if direction_str == self.default_direction_str or direction_str == "":
                     direction = np.nan
                 else:
                     direction = int(direction_str)
