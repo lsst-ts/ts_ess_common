@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.12.0
+=======
+
+* Add `compute_dew_point_magnus` function.
+  Remove the correponding ``compute_dew_point`` static method of `Hx85baSensor`.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.11.2
 =======
 

@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["add_missing_telemetry"]
+__all__ = ["add_missing_telemetry", "compute_dew_point_magnus"]
 
-import numpy as np
+import math
 
 from ..constants import TelemetryDataType
 
@@ -44,12 +44,33 @@ def add_missing_telemetry(
     `list`
         The telemetry list or, if the length of the telemetry list is shorter
         then the expected length, the telemetry list with NaN values prepended
-        such that the legth matches the expected length.
+        such that the length matches the expected length.
     """
     if len(telemetry) < expected_length:
         num_missing = expected_length - len(telemetry)
         # This next line is necessary to keep mypy happy.
-        nan_list: TelemetryDataType = [np.nan] * num_missing
+        nan_list: TelemetryDataType = [math.nan] * num_missing
         return nan_list + telemetry
     else:
         return telemetry
+
+
+def compute_dew_point_magnus(relative_humidity: float, temperature: float) -> float:
+    """Compute dew point using the Magnus formula.
+
+    Parameters
+    ----------
+    relative_humidity : `float`
+        Relative humidity (%)
+    temperature : `float`
+        Air temperature (C)
+
+    Returns
+    -------
+    `float`
+        Dew point (C)
+    """
+    β = 17.62
+    λ = 243.12
+    f = math.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
+    return λ * f / (β - f)

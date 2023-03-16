@@ -26,7 +26,7 @@ import numpy as np
 from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
-from .utils import add_missing_telemetry
+from .utils import add_missing_telemetry, compute_dew_point_magnus
 
 """The number of output values for this sensor is 3."""
 NUM_VALUES = 3
@@ -79,27 +79,6 @@ class Hx85baSensor(BaseSensor):
     # Override default value.
     charset = "ISO-8859-1"
 
-    @staticmethod
-    def compute_dew_point(relative_humidity: float, temperature: float) -> float:
-        """Compute dew point using the Magnus formula.
-
-        Parameters
-        ----------
-        relative_humidity : `float`
-            Relative humidity (%)
-        temperature : `float`
-            Air temperature (C)
-
-        Returns
-        -------
-        `float`
-            Dew point (C)
-        """
-        β = 17.62
-        λ = 243.12
-        f = np.log(relative_humidity * 0.01) + β * temperature / (λ + temperature)
-        return λ * f / (β - f)
-
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract the telemetry from a line of Sensor data.
 
@@ -139,7 +118,7 @@ class Hx85baSensor(BaseSensor):
 
         # Add the computed dew point to the output. The casts to float are
         # necessary to keep mypy happy.
-        dew_point = self.compute_dew_point(
+        dew_point = compute_dew_point_magnus(
             relative_humidity=float(output[0]), temperature=float(output[1])
         )
         output.append(dew_point)
