@@ -333,7 +333,7 @@ class MockTestTools:
         else:
             # Check dew point computed with 2 digits of precision,
             # since that is all the sensor reports.
-            dew_point = common.sensor.Hx85baSensor.compute_dew_point(
+            dew_point = common.sensor.compute_dew_point_magnus(
                 relative_humidity=round(resp[0], ndigits=2),
                 temperature=round(resp[1], ndigits=2),
             )

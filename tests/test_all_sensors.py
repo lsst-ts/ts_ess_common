@@ -263,7 +263,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
             signature = common.sensor.compute_signature(input_line, sensor.delimiter)
             assert signature == expected_signature
 
-    async def test_hx85ba_dew_point(self) -> None:
+    async def test_compute_dew_point_magnus(self) -> None:
         # Test data from
         # doc/Dewpoint_Calculation_Humidity_Sensor_E.pdf
         # RH=10%, T=25°C -> Dew point = -8.77°C
@@ -275,7 +275,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         ]
         # Test the compute_dew_point static method
         for data_dict, desired_dew_point in data_list:
-            dew_point = common.sensor.Hx85baSensor.compute_dew_point(
+            dew_point = common.sensor.compute_dew_point_magnus(
                 relative_humidity=data_dict["relativeHumidity"],
                 temperature=data_dict["temperature"],
             )
