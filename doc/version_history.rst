@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.13.0
+=======
+
+* Use ts_pre_commit_conf.
+* Use DevelopPipeline.
+* Make mock device ID independent of device type.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.12.0
 =======
 
