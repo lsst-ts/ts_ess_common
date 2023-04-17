@@ -28,6 +28,8 @@ from .constants import Key
 from .device import BaseDevice, MockDevice
 from .sensor import create_sensor
 
+MOCK_DEVICE_ID_PREFIX = "MockDevice"
+
 
 class MockCommandHandler(AbstractCommandHandler):
     def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
@@ -53,11 +55,11 @@ class MockCommandHandler(AbstractCommandHandler):
         """
         sensor = create_sensor(device_configuration=device_configuration, log=self.log)
         self.log.debug(
-            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}"
+            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}."
         )
         device: BaseDevice = MockDevice(
             name=device_configuration[Key.NAME],
-            device_id=device_configuration[Key.FTDI_ID],
+            device_id=f"{MOCK_DEVICE_ID_PREFIX}-{device_configuration[Key.NAME]}",
             sensor=sensor,
             callback_func=self._callback,
             log=self.log,
