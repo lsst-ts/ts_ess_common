@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
@@ -21,7 +19,7 @@ from __future__ import annotations
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["MockDataClient"]
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -30,14 +28,16 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from .base_read_loop_data_client import BaseReadLoopDataClient
+
 if TYPE_CHECKING:
     from lsst.ts import salobj
 
-from .base_data_client import BaseDataClient
+__all__ = ["TestReadLoopDataClient"]
 
 
-class MockDataClient(BaseDataClient):
-    """Trivial concrete subclass of BaseMode."""
+class TestReadLoopDataClient(BaseReadLoopDataClient):
+    """Concrete subclass of BaseReadLoopDataClient for unit tests."""
 
     def __init__(
         self,
@@ -46,16 +46,25 @@ class MockDataClient(BaseDataClient):
         log: logging.Logger,
         simulation_mode: int = 0,
     ) -> None:
-        self.connected = False
-        # Exceptions to raise in the specified methods, or None to not raise.
-        # Set to an *instance* of an exception, not a class.
-        self.connect_exception: None | Exception = None
-        self.disconnect_exception: None | Exception = None
-        self.run_exception: None | Exception = None
-        self.num_run = 0
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
         )
+
+        # Keep track of how often the read_data coro is called to mock reading
+        # data.
+        self.num_read_data = 0
+
+        # Event to monitor for results in unit tests.
+        self.data_read_event = asyncio.Event()
+
+        # This is set to a low number so the unit tests won't take much time.
+        self.max_read_timouts = 2
+
+        # This is set to a low number so the unit tests won't take much time.
+        self.read_sleep_time = 0.2
+
+        # For mocking timeouts, set this to True.
+        self.do_timeout = False
 
     @classmethod
     def get_config_schema(cls) -> dict[str, Any]:
@@ -73,8 +82,12 @@ type: object
 properties:
   name:
     type: string
+  max_read_timeouts:
+    type: int
+    default: 5
 required:
   - name
+  - max_read_timeouts
 additionalProperties: false
 """
         )
@@ -82,21 +95,9 @@ additionalProperties: false
     def descr(self) -> str:
         return f"name={self.config.name}"
 
-    async def connect(self) -> None:
-        await asyncio.sleep(0.1)  # arbitrary short time
-        if self.connect_exception is not None:
-            raise self.connect_exception
-        self.connected = True
-
-    async def disconnect(self) -> None:
-        await asyncio.sleep(0.1)  # arbitrary short time
-        if self.disconnect_exception is not None:
-            raise self.disconnect_exception
-        self.connected = False
-
-    async def run(self) -> None:
-        if self.run_exception is not None:
-            raise self.run_exception
-        self.num_run += 1
-        while True:
-            await asyncio.sleep(1)  # arbitrary
+    async def read_data(self) -> None:
+        if self.do_timeout:
+            raise asyncio.TimeoutError
+        self.num_read_data += 1
+        self.data_read_event.set()
+        await asyncio.sleep(self.read_sleep_time)

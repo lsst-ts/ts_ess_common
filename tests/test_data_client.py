@@ -41,14 +41,14 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.config = types.SimpleNamespace(name="test_config")
 
     def test_constructor(self) -> None:
-        data_client = common.MockDataClient(
+        data_client = common.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
         assert data_client.simulation_mode == 0
         assert isinstance(data_client.log, logging.Logger)
 
         for simulation_mode in (0, 1):
-            data_client = common.MockDataClient(
+            data_client = common.TestDataClient(
                 config=self.config,
                 topics=self.topics,
                 log=self.log,
@@ -57,7 +57,7 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
             assert data_client.simulation_mode == simulation_mode
 
     async def test_basics(self) -> None:
-        data_client = common.MockDataClient(
+        data_client = common.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
         assert not data_client.connected
@@ -72,7 +72,7 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert data_client.run_task.done()
 
     async def test_exceptions(self) -> None:
-        data_client = common.MockDataClient(
+        data_client = common.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
 
@@ -106,13 +106,13 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert data_client.run_task.done()
 
     async def test_registry(self) -> None:
-        data_client_class = common.get_data_client_class("MockDataClient")
-        assert data_client_class is common.MockDataClient
+        data_client_class = common.get_data_client_class("TestDataClient")
+        assert data_client_class is common.TestDataClient
 
         # case matters
         with pytest.raises(KeyError):
-            common.get_data_client_class("mockdataclient")
+            common.get_data_client_class("testdataclient")
 
         # abstract subclasses of BaseDataClass are not registered
         with pytest.raises(KeyError):
-            common.get_data_client_class("AbstractDataClass")
+            common.get_data_client_class("BaseDataClient")
