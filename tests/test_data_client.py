@@ -34,12 +34,6 @@ TIMEOUT = 5
 """Standard timeout in seconds."""
 
 
-class AbstractDataClient(common.BaseDataClient):
-    """Use to prove an abstract subclass of BaseDataClass is not registered."""
-
-    pass
-
-
 class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger()
