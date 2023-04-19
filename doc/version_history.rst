@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.14.0
+=======
+
+* Add BaseReadLoopDataClient which reattempts to read data when a TimeoutError happens up to a configurable number of consecutive timeouts.
+* Add MockReadLoopDataClient for unit testing of BaseReadLoopDataClient.
+
+Requires:
+
+* ts_tcpip 0.4
+* ts_utils 1.0
+
 v0.13.0
 =======
 
