@@ -40,7 +40,7 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.topics = types.SimpleNamespace()
         self.config = types.SimpleNamespace(name="test_config")
 
-    def test_constructor(self) -> None:
+    async def test_constructor(self) -> None:
         data_client = common.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
