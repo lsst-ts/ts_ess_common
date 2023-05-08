@@ -1,5 +1,3 @@
-.sconsign.dblite
-.sconf_temp
 *.log
 __pycache__
 
