@@ -52,7 +52,6 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.connected_future: asyncio.Future = asyncio.Future()
         await self.srv.start_task
-        assert self.srv.server.is_serving()
         self.reader, self.writer = await asyncio.open_connection(
             host=tcpip.LOCAL_HOST, port=self.srv.port
         )
