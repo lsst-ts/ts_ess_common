@@ -1,6 +1,6 @@
-.. py:currentmodule:: lsst.ts.ess.common
+.. py:currentmodule:: lsst.ts.ess.dataclients
 
-.. _lsst.ts.ess.common.version_history:
+.. _lsst.ts.ess.dataclients.version_history:
 
 ###############
 Version History
@@ -195,7 +195,7 @@ v0.7.6
 ======
 
 * Restore conditional import of lsst.ts.salobj only if type checking.
-* ``ups/ts_ess_common.table``: add setupOptional(ts_salobj); it is optional because it is only used for type checking.
+* ``ups/ts_ess_dataclients.table``: add setupOptional(ts_salobj); it is optional because it is only used for type checking.
 
 Requires:
 
@@ -326,12 +326,12 @@ Requires:
 v0.3.0
 ======
 
-* Moved all device reply validating code from ts.ess.controller to ts.ess.common.
-* Moved all sensors code from ts.ess.controller to ts.ess.common.
-* Moved code to determine what sensor is connected from ts.ess.controller to ts.ess.common.
-* Moved BaseDevice and MockDevice from ts.ess.controller to ts.ess.common.
+* Moved all device reply validating code from ts.ess.controller to ts.ess.dataclients.
+* Moved all sensors code from ts.ess.controller to ts.ess.dataclients.
+* Moved code to determine what sensor is connected from ts.ess.controller to ts.ess.dataclients.
+* Moved BaseDevice and MockDevice from ts.ess.controller to ts.ess.dataclients.
 * Added a unit test for the config schema.
-* Moved most of the command handler code and the socket server unit test from ts.ess.controller to ts.ess.common.
+* Moved most of the command handler code and the socket server unit test from ts.ess.controller to ts.ess.dataclients.
 * Added tests for all supported devices in the test class for the mock control handler.
 
 Requires:

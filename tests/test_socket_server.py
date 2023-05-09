@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -26,8 +26,8 @@ import unittest
 from typing import Any
 
 from lsst.ts import tcpip
-from lsst.ts.ess import common
-from lsst.ts.ess.common.test_utils import MockTestTools
+from lsst.ts.ess import dataclients
+from lsst.ts.ess.dataclients.test_utils import MockTestTools
 
 # Standard timeout in seconds.
 TIMEOUT = 60
@@ -36,14 +36,14 @@ TIMEOUT = 60
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.writer = None
-        self.server = common.SocketServer(
+        self.server = dataclients.SocketServer(
             name="EssSensorsServer",
             host="0.0.0.0",
             port=0,
             simulation_mode=1,
             connect_callback=self.connect_callback,
         )
-        command_handler = common.MockCommandHandler(
+        command_handler = dataclients.MockCommandHandler(
             callback=self.server.write, simulation_mode=1
         )
         self.server.set_command_handler(command_handler)
@@ -96,7 +96,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.writer.write(st.encode() + tcpip.TERMINATOR)
         await self.writer.drain()
 
-    async def connect_callback(self, server: common.SocketServer) -> None:
+    async def connect_callback(self, server: dataclients.SocketServer) -> None:
         if not self.connected_future.done():
             self.connected_future.set_result(server.connected)
             await self.server.connect_callback(server)
@@ -105,7 +105,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.connected_future = asyncio.Future()
         assert self.server.connected
         await self.assert_configure(name="TEST_DISCONNECT")
-        await self.write(command=common.Command.DISCONNECT, parameters={})
+        await self.write(command=dataclients.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
         assert not self.server.connected
@@ -114,7 +114,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.connected_future = asyncio.Future()
         assert self.server.connected
         await self.assert_configure(name="TEST_EXIT")
-        await self.write(command=common.Command.EXIT, parameters={})
+        await self.write(command=dataclients.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
         assert not self.server.connected
@@ -128,23 +128,23 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         in_error_state: bool = False,
     ) -> None:
         configuration = {
-            common.Key.DEVICES: [
+            dataclients.Key.DEVICES: [
                 {
-                    common.Key.NAME: name,
-                    common.Key.CHANNELS: num_channels,
-                    common.Key.DEVICE_TYPE: common.DeviceType.FTDI,
-                    common.Key.FTDI_ID: "ABC",
-                    common.Key.SENSOR_TYPE: common.SensorType.TEMPERATURE,
-                    common.Key.BAUD_RATE: 19200,
+                    dataclients.Key.NAME: name,
+                    dataclients.Key.CHANNELS: num_channels,
+                    dataclients.Key.DEVICE_TYPE: dataclients.DeviceType.FTDI,
+                    dataclients.Key.FTDI_ID: "ABC",
+                    dataclients.Key.SENSOR_TYPE: dataclients.SensorType.TEMPERATURE,
+                    dataclients.Key.BAUD_RATE: 19200,
                 }
             ]
         }
         await self.write(
-            command=common.Command.CONFIGURE,
-            parameters={common.Key.CONFIGURATION: configuration},
+            command=dataclients.Command.CONFIGURE,
+            parameters={dataclients.Key.CONFIGURATION: configuration},
         )
         data = await self.read()
-        assert common.ResponseCode.OK == data[common.Key.RESPONSE]
+        assert dataclients.ResponseCode.OK == data[dataclients.Key.RESPONSE]
 
     async def check_server_test(
         self,
@@ -186,7 +186,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.server.command_handler.devices[0].in_error_state = in_error_state
 
         self.reply = await self.read()
-        reply_to_check = self.reply[common.Key.TELEMETRY]
+        reply_to_check = self.reply[dataclients.Key.TELEMETRY]
         mtt.check_temperature_reply(
             reply=reply_to_check,
             name=name,
@@ -201,7 +201,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         missed_channels = 0
 
         self.reply = await self.read()
-        reply_to_check = self.reply[common.Key.TELEMETRY]
+        reply_to_check = self.reply[dataclients.Key.TELEMETRY]
         mtt.check_temperature_reply(
             reply=reply_to_check,
             name=name,
@@ -211,8 +211,8 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             in_error_state=in_error_state,
         )
 
-        await self.write(command=common.Command.DISCONNECT, parameters={})
-        await self.write(command=common.Command.EXIT, parameters={})
+        await self.write(command=dataclients.Command.DISCONNECT, parameters={})
+        await self.write(command=dataclients.Command.EXIT, parameters={})
 
     async def test_full_command_sequence(self) -> None:
         """Test the SocketServer with a nominal configuration, i.e. no

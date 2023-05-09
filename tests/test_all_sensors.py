@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -26,7 +26,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
-from lsst.ts.ess import common
+from lsst.ts.ess import dataclients
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -56,12 +56,12 @@ WINDSONIC_DATA_LIST = [
 ]
 
 # Alias for the type of the sensor data.
-SensorDataType = dict[str, common.TelemetryDataType]
+SensorDataType = dict[str, dataclients.TelemetryDataType]
 
 
 @dataclass
 class SensorAndData:
-    sensor: common.sensor.BaseSensor
+    sensor: dataclients.sensor.BaseSensor
     data: SensorDataType
 
 
@@ -73,7 +73,9 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
             assert math.isclose(expected_reply, reply, abs_tol=0.005)
 
     async def verify_sensor_telemetry(
-        self, reply: common.TelemetryDataType, sensor_data: common.TelemetryDataType
+        self,
+        reply: dataclients.TelemetryDataType,
+        sensor_data: dataclients.TelemetryDataType,
     ) -> None:
         for index, expected_reply in enumerate(sensor_data):
             if isinstance(expected_reply, float):
@@ -111,7 +113,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_efm100c_sensor(self) -> None:
         """Add an EFM100C sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.Efm100cSensor(self.log)
+        sensor = dataclients.sensor.Efm100cSensor(self.log)
         data: SensorDataType = {
             f"$+10.65,0*CE{sensor.terminator}": [10.65, 0.0],
             f"$+00.64,0*CD{sensor.terminator}": [0.64, 0.0],
@@ -127,21 +129,21 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_ld250_sensor(self) -> None:
         """Add an LD250 sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.Ld250Sensor(self.log)
+        sensor = dataclients.sensor.Ld250Sensor(self.log)
         data = {
-            f"${common.LD250TelemetryPrefix.STATUS_PREFIX},0,0,0,0,000.0*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.STATUS_PREFIX,
+            f"${dataclients.LD250TelemetryPrefix.STATUS_PREFIX},0,0,0,0,000.0*42{sensor.terminator}": [
+                dataclients.LD250TelemetryPrefix.STATUS_PREFIX,
                 0,
                 0,
                 0,
                 0,
                 0.0,
             ],
-            f"${common.LD250TelemetryPrefix.NOISE_PREFIX}*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.NOISE_PREFIX
+            f"${dataclients.LD250TelemetryPrefix.NOISE_PREFIX}*42{sensor.terminator}": [
+                dataclients.LD250TelemetryPrefix.NOISE_PREFIX
             ],
-            f"${common.LD250TelemetryPrefix.STRIKE_PREFIX},0,1,010.0*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.STRIKE_PREFIX,
+            f"${dataclients.LD250TelemetryPrefix.STRIKE_PREFIX},0,1,010.0*42{sensor.terminator}": [
+                dataclients.LD250TelemetryPrefix.STRIKE_PREFIX,
                 0,
                 1,
                 10.0,
@@ -153,7 +155,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_csat3b_sensor(self) -> None:
         """Add a CSAT3B sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.Csat3bSensor(self.log)
+        sensor = dataclients.sensor.Csat3bSensor(self.log)
         data: SensorDataType = {
             f"0.08945,0.06552,0.05726,19.69336,0,5,c3a6{sensor.terminator}": [
                 0.08945,
@@ -181,7 +183,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_hx85a_sensor(self) -> None:
         """Add a HX85A sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.Hx85aSensor(self.log)
+        sensor = dataclients.sensor.Hx85aSensor(self.log)
         data: SensorDataType = {
             f"%RH=38.86,AT°C=24.32,DP°C=9.57{sensor.terminator}": [38.86, 24.32, 9.57],
             f"86,AT°C=24.32,DP°C=9.57{sensor.terminator}": [np.nan, 24.32, 9.57],
@@ -196,7 +198,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_hx85ba_sensor(self) -> None:
         """Add a HX85BA sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.Hx85baSensor(self.log)
+        sensor = dataclients.sensor.Hx85baSensor(self.log)
         data: SensorDataType = {
             f"%RH=38.86,AT°C=24.32,Pmb=911.40{sensor.terminator}": [
                 38.86,
@@ -223,7 +225,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         """Add a temperature sensor plus its data to the sensors to be
         tested."""
         num_channels = 4
-        sensor = common.sensor.TemperatureSensor(self.log, num_channels)
+        sensor = dataclients.sensor.TemperatureSensor(self.log, num_channels)
         data: SensorDataType = {}
         sensor_and_data = SensorAndData(sensor=sensor, data=data)
         self.sensor_and_data_list.append(sensor_and_data)
@@ -235,13 +237,13 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def add_wind_sensor(self) -> None:
         """Add a wind sensor plus its data to the sensors to be tested."""
-        sensor = common.sensor.WindsonicSensor(self.log)
+        sensor = dataclients.sensor.WindsonicSensor(self.log)
         data: SensorDataType = {}
         for wind_data in WINDSONIC_DATA_LIST:
             raw_telemetry = self.create_wind_sensor_line(
                 sensor=sensor, speed=wind_data[0], direction=wind_data[1]
             )
-            expected_wind_telemetry: common.TelemetryDataType = []
+            expected_wind_telemetry: dataclients.TelemetryDataType = []
             for wd in wind_data:
                 try:
                     expected_wind_telemetry.append(float(wd))
@@ -255,12 +257,14 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_compute_csat3b_signature(self) -> None:
         """Test the computation of the CSAT3B signature."""
         log = logging.getLogger(type(self).__name__)
-        sensor = common.sensor.Csat3bSensor(log)
+        sensor = dataclients.sensor.Csat3bSensor(log)
         for line in CSAT3B_DATA:
             last_index = line.rfind(",")
             input_line = line[:last_index]
             expected_signature = int(line[last_index + 1 :], 16)
-            signature = common.sensor.compute_signature(input_line, sensor.delimiter)
+            signature = dataclients.sensor.compute_signature(
+                input_line, sensor.delimiter
+            )
             assert signature == expected_signature
 
     async def test_compute_dew_point_magnus(self) -> None:
@@ -275,7 +279,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         ]
         # Test the compute_dew_point static method
         for data_dict, desired_dew_point in data_list:
-            dew_point = common.sensor.compute_dew_point_magnus(
+            dew_point = dataclients.sensor.compute_dew_point_magnus(
                 relative_humidity=data_dict["relativeHumidity"],
                 temperature=data_dict["temperature"],
             )
@@ -283,34 +287,34 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     def create_wind_sensor_line(
         self,
-        sensor: common.sensor.WindsonicSensor,
+        sensor: dataclients.sensor.WindsonicSensor,
         speed: str,
         direction: str,
         valid_checksum: bool = True,
     ) -> str:
         """Create a line of output as can be expected from a wind sensor."""
         checksum_string: str = (
-            common.sensor.WindsonicSensor.unit_identifier
+            dataclients.sensor.WindsonicSensor.unit_identifier
             + sensor.delimiter
             + direction
             + sensor.delimiter
             + speed
             + sensor.delimiter
-            + common.sensor.WindsonicSensor.windspeed_unit
+            + dataclients.sensor.WindsonicSensor.windspeed_unit
             + sensor.delimiter
-            + common.sensor.WindsonicSensor.good_status
+            + dataclients.sensor.WindsonicSensor.good_status
             + sensor.delimiter
         )
-        checksum = common.sensor.compute_checksum(checksum_string)
+        checksum = dataclients.sensor.compute_checksum(checksum_string)
 
         # Mock a bad checksum
         if not valid_checksum:
             checksum = 0
 
         line = (
-            common.sensor.WindsonicSensor.start_character
+            dataclients.sensor.WindsonicSensor.start_character
             + checksum_string
-            + common.sensor.WindsonicSensor.end_character
+            + dataclients.sensor.WindsonicSensor.end_character
             + f"{checksum:02x}"
             + sensor.terminator
         )

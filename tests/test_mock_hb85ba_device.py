@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -22,8 +22,8 @@
 import logging
 import unittest
 
-from lsst.ts.ess import common
-from lsst.ts.ess.common.test_utils import MockTestTools
+from lsst.ts.ess import dataclients
+from lsst.ts.ess.dataclients.test_utils import MockTestTools
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -36,7 +36,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         disconnected channels and no truncated data.
         """
         mtt = MockTestTools()
-        await mtt.check_mock_device(sensor_type=common.SensorType.HX85BA)
+        await mtt.check_mock_device(sensor_type=dataclients.SensorType.HX85BA)
 
     async def test_mock_hx85ba_device_with_truncated_output(self) -> None:
         """Test the MockDevice with no disconnected channels and truncated data
@@ -44,7 +44,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.HX85BA, missed_channels=2
+            sensor_type=dataclients.SensorType.HX85BA, missed_channels=2
         )
 
     async def test_mock_hx85ba_device_in_error_state(self) -> None:
@@ -53,5 +53,5 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.HX85BA, in_error_state=True
+            sensor_type=dataclients.SensorType.HX85BA, in_error_state=True
         )

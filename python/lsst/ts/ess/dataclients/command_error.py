@@ -1,6 +1,6 @@
 # This file is part of ts_ess_dataclients.
 #
-# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,21 +19,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-import unittest
+__all__ = ["CommandError"]
 
-from lsst.ts.ess import dataclients
-from lsst.ts.ess.dataclients.test_utils import MockTestTools
-
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
+from .constants import ResponseCode
 
 
-class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
-    async def test_mock_csat3b_device(self) -> None:
-        """Test the MockDevice with a nominal configuration, i.e. no
-        disconnected channels and no truncated data.
-        """
-        mtt = MockTestTools()
-        await mtt.check_mock_device(sensor_type=dataclients.SensorType.CSAT3B)
+class CommandError(Exception):
+    """Exception raised if a command fails.
+
+    Parameters
+    ----------
+    msg : `str`
+        Error message
+    response_code : `ResponseCode`
+        Response code.
+    """
+
+    def __init__(self, msg: str, response_code: ResponseCode) -> None:
+        super().__init__(msg)
+        self.response_code = response_code

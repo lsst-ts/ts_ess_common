@@ -1,2 +1,2 @@
 @Library('JenkinsShared')_
-CondaPipeline([], "ts-ess-common", "lsst.ts.ess.common", "noarch")
+CondaPipeline([], "ts-ess-dataclients", "lsst.ts.ess.dataclients", "noarch")

@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -24,7 +24,7 @@ import types
 import unittest
 
 import pytest
-from lsst.ts.ess import common
+from lsst.ts.ess import dataclients
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -41,14 +41,14 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.config = types.SimpleNamespace(name="test_config")
 
     async def test_constructor(self) -> None:
-        data_client = common.TestDataClient(
+        data_client = dataclients.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
         assert data_client.simulation_mode == 0
         assert isinstance(data_client.log, logging.Logger)
 
         for simulation_mode in (0, 1):
-            data_client = common.TestDataClient(
+            data_client = dataclients.TestDataClient(
                 config=self.config,
                 topics=self.topics,
                 log=self.log,
@@ -57,7 +57,7 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
             assert data_client.simulation_mode == simulation_mode
 
     async def test_basics(self) -> None:
-        data_client = common.TestDataClient(
+        data_client = dataclients.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
         assert not data_client.connected
@@ -72,7 +72,7 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert data_client.run_task.done()
 
     async def test_exceptions(self) -> None:
-        data_client = common.TestDataClient(
+        data_client = dataclients.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
 
@@ -106,13 +106,13 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert data_client.run_task.done()
 
     async def test_registry(self) -> None:
-        data_client_class = common.get_data_client_class("TestDataClient")
-        assert data_client_class is common.TestDataClient
+        data_client_class = dataclients.get_data_client_class("TestDataClient")
+        assert data_client_class is dataclients.TestDataClient
 
         # case matters
         with pytest.raises(KeyError):
-            common.get_data_client_class("testdataclient")
+            dataclients.get_data_client_class("testdataclient")
 
         # abstract subclasses of BaseDataClass are not registered
         with pytest.raises(KeyError):
-            common.get_data_client_class("BaseDataClient")
+            dataclients.get_data_client_class("BaseDataClient")

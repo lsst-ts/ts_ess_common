@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -25,7 +25,7 @@ import types
 import typing
 import unittest
 
-from lsst.ts.ess import common
+from lsst.ts.ess import dataclients
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -37,7 +37,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.log = logging.getLogger()
         self.topics = types.SimpleNamespace()
         self.config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
-        self.data_client = common.TestReadLoopDataClient(
+        self.data_client = dataclients.TestReadLoopDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
 

@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -23,7 +23,7 @@ import logging
 import unittest
 
 import jsonschema
-from lsst.ts.ess import common
+from lsst.ts.ess import dataclients
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -32,30 +32,30 @@ logging.basicConfig(
 
 class ConfigSchemaTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_config_schema(self) -> None:
-        device_config_01 = common.DeviceConfig(
+        device_config_01 = dataclients.DeviceConfig(
             name="Test01",
             num_channels=4,
-            dev_type=common.DeviceType.FTDI.value,
+            dev_type=dataclients.DeviceType.FTDI.value,
             dev_id="ABC",
-            sens_type=common.SensorType.TEMPERATURE.value,
+            sens_type=dataclients.SensorType.TEMPERATURE.value,
             baud_rate=19200,
             location="bla,bla,bla,bla",
         )
-        device_config_02 = common.DeviceConfig(
+        device_config_02 = dataclients.DeviceConfig(
             name="Test02",
-            dev_type=common.DeviceType.SERIAL.value,
+            dev_type=dataclients.DeviceType.SERIAL.value,
             dev_id="ABC",
-            sens_type=common.SensorType.WINDSONIC.value,
+            sens_type=dataclients.SensorType.WINDSONIC.value,
             baud_rate=19200,
             location="Motor 1 temp,Motor 2 temp,Strut 7 temp,Strut 8 temp,Strut 9 "
             "temp,Strut 10 temp,Strut 11 temp,Strut 12 temp",
         )
         configuration = {
-            common.Key.DEVICES: [
+            dataclients.Key.DEVICES: [
                 device_config_01.as_dict(),
                 device_config_02.as_dict(),
             ]
         }
 
         # Validate the configurations against the JSON schema.
-        jsonschema.validate(configuration, common.CONFIG_SCHEMA)
+        jsonschema.validate(configuration, dataclients.CONFIG_SCHEMA)

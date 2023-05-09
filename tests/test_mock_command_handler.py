@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -25,8 +25,8 @@ import unittest
 from typing import Any
 
 import pytest
-from lsst.ts.ess import common
-from lsst.ts.ess.common.test_utils import MockTestTools
+from lsst.ts.ess import dataclients
+from lsst.ts.ess.dataclients.test_utils import MockTestTools
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -39,45 +39,45 @@ TIMEOUT = 5
 class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger(type(self).__name__)
-        self.responses: list[dict[common.ResponseCode, Any]] = []
-        self.command_handler = common.MockCommandHandler(
+        self.responses: list[dict[dataclients.ResponseCode, Any]] = []
+        self.command_handler = dataclients.MockCommandHandler(
             callback=self.callback, simulation_mode=1
         )
-        self.device_config_01 = common.DeviceConfig(
+        self.device_config_01 = dataclients.DeviceConfig(
             name="Test01",
             num_channels=4,
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.TEMPERATURE,
+            sens_type=dataclients.SensorType.TEMPERATURE,
             baud_rate=19200,
             location="Test1",
         )
-        self.device_config_02 = common.DeviceConfig(
+        self.device_config_02 = dataclients.DeviceConfig(
             name="Test02",
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.HX85A,
+            sens_type=dataclients.SensorType.HX85A,
             baud_rate=19200,
             location="Test2",
         )
-        self.device_config_03 = common.DeviceConfig(
+        self.device_config_03 = dataclients.DeviceConfig(
             name="Test03",
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.HX85BA,
+            sens_type=dataclients.SensorType.HX85BA,
             baud_rate=19200,
             location="Test3",
         )
-        self.device_config_04 = common.DeviceConfig(
+        self.device_config_04 = dataclients.DeviceConfig(
             name="Test04",
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.CSAT3B,
+            sens_type=dataclients.SensorType.CSAT3B,
             baud_rate=115200,
             location="Test4",
         )
         self.configuration = {
-            common.Key.DEVICES: [
+            dataclients.Key.DEVICES: [
                 self.device_config_01.as_dict(),
                 self.device_config_02.as_dict(),
                 self.device_config_03.as_dict(),
@@ -91,37 +91,37 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             self.device_config_04.name: self.device_config_04,
         }
 
-    async def callback(self, response: dict[common.ResponseCode, Any]) -> None:
+    async def callback(self, response: dict[dataclients.ResponseCode, Any]) -> None:
         self.responses.append(response)
 
-    def validate_response(self, response_code: common.ResponseCode) -> None:
+    def validate_response(self, response_code: dataclients.ResponseCode) -> None:
         response = self.responses.pop()
-        assert response[common.Key.RESPONSE] == response_code
+        assert response[dataclients.Key.RESPONSE] == response_code
 
     async def test_create_device(self) -> None:
-        device: common.device.BaseDevice = self.command_handler.create_device(
+        device: dataclients.device.BaseDevice = self.command_handler.create_device(
             device_configuration=self.device_config_01.as_dict()
         )
-        assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device.sensor, common.sensor.TemperatureSensor)
+        assert isinstance(device, dataclients.device.MockDevice)
+        assert isinstance(device.sensor, dataclients.sensor.TemperatureSensor)
 
         device = self.command_handler.create_device(
             device_configuration=self.device_config_02.as_dict()
         )
-        assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device.sensor, common.sensor.Hx85aSensor)
+        assert isinstance(device, dataclients.device.MockDevice)
+        assert isinstance(device.sensor, dataclients.sensor.Hx85aSensor)
 
         device = self.command_handler.create_device(
             device_configuration=self.device_config_03.as_dict()
         )
-        assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device.sensor, common.sensor.Hx85baSensor)
+        assert isinstance(device, dataclients.device.MockDevice)
+        assert isinstance(device.sensor, dataclients.sensor.Hx85baSensor)
 
         device = self.command_handler.create_device(
             device_configuration=self.device_config_04.as_dict()
         )
-        assert isinstance(device, common.device.MockDevice)
-        assert isinstance(device.sensor, common.sensor.Csat3bSensor)
+        assert isinstance(device, dataclients.device.MockDevice)
+        assert isinstance(device.sensor, dataclients.sensor.Csat3bSensor)
 
     async def test_configure(self) -> None:
         await self.command_handler.configure(configuration=self.configuration)
@@ -130,10 +130,10 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.command_handler.stop_sending_telemetry()
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
-        with pytest.raises(common.CommandError) as cm:
+        with pytest.raises(dataclients.CommandError) as cm:
             await self.command_handler.stop_sending_telemetry()
         command_error = cm.value
-        assert command_error.response_code == common.ResponseCode.NOT_STARTED
+        assert command_error.response_code == dataclients.ResponseCode.NOT_STARTED
 
         # The next function calls should not raise an exception. The working of
         # the functions is tested in test_handle_command.
@@ -143,9 +143,9 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_handle_command(self) -> None:
         mtt = MockTestTools()
         await self.command_handler.handle_command(
-            command=common.Command.CONFIGURE, configuration=self.configuration
+            command=dataclients.Command.CONFIGURE, configuration=self.configuration
         )
-        self.validate_response(common.ResponseCode.OK)
+        self.validate_response(dataclients.ResponseCode.OK)
         assert self.configuration == self.command_handler.configuration
         assert self.command_handler._started
 
@@ -156,20 +156,20 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         devices_names_checked: set[str] = set()
         while len(devices_names_checked) != len(self.device_configs):
             reply = self.responses.pop()
-            name = reply[common.Key.TELEMETRY][common.Key.NAME]
+            name = reply[dataclients.Key.TELEMETRY][dataclients.Key.NAME]
             devices_names_checked.add(name)
             device_config = self.device_configs[name]
-            reply_to_check = reply[common.Key.TELEMETRY]
-            if device_config.sens_type == common.SensorType.TEMPERATURE:
+            reply_to_check = reply[dataclients.Key.TELEMETRY]
+            if device_config.sens_type == dataclients.SensorType.TEMPERATURE:
                 num_channels = device_config.num_channels
                 mtt.check_temperature_reply(
                     reply=reply_to_check, name=name, num_channels=num_channels
                 )
-            elif device_config.sens_type == common.SensorType.HX85A:
+            elif device_config.sens_type == dataclients.SensorType.HX85A:
                 mtt.check_hx85a_reply(reply=reply_to_check, name=name)
-            elif device_config.sens_type == common.SensorType.HX85BA:
+            elif device_config.sens_type == dataclients.SensorType.HX85BA:
                 mtt.check_hx85ba_reply(reply=reply_to_check, name=name)
-            elif device_config.sens_type == common.SensorType.CSAT3B:
+            elif device_config.sens_type == dataclients.SensorType.CSAT3B:
                 mtt.check_csat3b_reply(reply=reply_to_check, name=name)
             else:
                 raise ValueError(

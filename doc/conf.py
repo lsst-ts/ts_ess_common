@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -28,7 +28,7 @@ https://developer.lsst.io/stack/building-single-package-docs.html
 
 from documenteer.conf.pipelinespkg import *  # noqa
 
-project = "ts_ess_common"
+project = "ts_ess_dataclients"
 html_theme_options["logotext"] = project  # type: ignore # noqa
 html_title = project
 html_short_title = project

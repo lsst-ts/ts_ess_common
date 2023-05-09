@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -22,7 +22,7 @@
 import logging
 import unittest
 
-from lsst.ts.ess import common
+from lsst.ts.ess import dataclients
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -35,44 +35,44 @@ TIMEOUT = 5
 class SensorRegistryTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger(type(self).__name__)
-        self.device_config_01 = common.DeviceConfig(
+        self.device_config_01 = dataclients.DeviceConfig(
             name="Test01",
             num_channels=4,
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.TEMPERATURE,
+            sens_type=dataclients.SensorType.TEMPERATURE,
             baud_rate=19200,
             location="Test1",
         )
-        self.device_config_02 = common.DeviceConfig(
+        self.device_config_02 = dataclients.DeviceConfig(
             name="Test02",
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.HX85A,
+            sens_type=dataclients.SensorType.HX85A,
             baud_rate=19200,
             location="Test2",
         )
-        self.device_config_03 = common.DeviceConfig(
+        self.device_config_03 = dataclients.DeviceConfig(
             name="Test03",
-            dev_type=common.DeviceType.FTDI,
+            dev_type=dataclients.DeviceType.FTDI,
             dev_id="ABC",
-            sens_type=common.SensorType.HX85BA,
+            sens_type=dataclients.SensorType.HX85BA,
             baud_rate=19200,
             location="Test3",
         )
 
     async def test_create_sensor(self) -> None:
-        sensor: common.sensor.BaseSensor = common.sensor.create_sensor(
+        sensor: dataclients.sensor.BaseSensor = dataclients.sensor.create_sensor(
             device_configuration=self.device_config_01.as_dict(), log=self.log
         )
-        assert isinstance(sensor, common.sensor.TemperatureSensor)
+        assert isinstance(sensor, dataclients.sensor.TemperatureSensor)
 
-        sensor = common.sensor.create_sensor(
+        sensor = dataclients.sensor.create_sensor(
             device_configuration=self.device_config_02.as_dict(), log=self.log
         )
-        assert isinstance(sensor, common.sensor.Hx85aSensor)
+        assert isinstance(sensor, dataclients.sensor.Hx85aSensor)
 
-        sensor = common.sensor.create_sensor(
+        sensor = dataclients.sensor.create_sensor(
             device_configuration=self.device_config_03.as_dict(), log=self.log
         )
-        assert isinstance(sensor, common.sensor.Hx85baSensor)
+        assert isinstance(sensor, dataclients.sensor.Hx85baSensor)

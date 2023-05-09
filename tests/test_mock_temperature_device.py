@@ -1,4 +1,4 @@
-# This file is part of ts_ess_common.
+# This file is part of ts_ess_dataclients.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
@@ -22,8 +22,8 @@
 import logging
 import unittest
 
-from lsst.ts.ess import common
-from lsst.ts.ess.common.test_utils import MockTestTools
+from lsst.ts.ess import dataclients
+from lsst.ts.ess.dataclients.test_utils import MockTestTools
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -37,7 +37,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.TEMPERATURE, num_channels=4
+            sensor_type=dataclients.SensorType.TEMPERATURE, num_channels=4
         )
 
     async def test_mock_temperature_device_with_disconnected_channel(self) -> None:
@@ -46,7 +46,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.TEMPERATURE,
+            sensor_type=dataclients.SensorType.TEMPERATURE,
             num_channels=4,
             disconnected_channel=2,
         )
@@ -57,7 +57,9 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.TEMPERATURE, num_channels=4, missed_channels=2
+            sensor_type=dataclients.SensorType.TEMPERATURE,
+            num_channels=4,
+            missed_channels=2,
         )
 
     async def test_mock_temperature_device_in_error_state(self) -> None:
@@ -66,7 +68,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         """
         mtt = MockTestTools()
         await mtt.check_mock_device(
-            sensor_type=common.SensorType.TEMPERATURE,
+            sensor_type=dataclients.SensorType.TEMPERATURE,
             num_channels=4,
             in_error_state=True,
         )

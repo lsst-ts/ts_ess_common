@@ -1,10 +1,10 @@
 #############
-ts_ess_common
+ts_ess_dataclients
 #############
 
-``ts_ess_common`` is a package in the `LSST Science Pipelines <https://pipelines.lsst.io>`_.
+``ts_ess_dataclients`` is a package in the `LSST Science Pipelines <https://pipelines.lsst.io>`_.
 
-`Documentation <https://ts-ess-common.lsst.io>`_
+`Documentation <https://ts-ess-dataclients.lsst.io>`_
 
 Common code used by all Environmental Sensors Suite packages is collected in this package.
 
