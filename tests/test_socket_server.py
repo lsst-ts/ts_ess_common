@@ -36,7 +36,7 @@ TIMEOUT = 60
 class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.writer = None
-        self.srv = common.SocketServer(
+        self.server = common.SocketServer(
             name="EssSensorsServer",
             host="0.0.0.0",
             port=0,
@@ -44,31 +44,30 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             connect_callback=self.connect_callback,
         )
         command_handler = common.MockCommandHandler(
-            callback=self.srv.write, simulation_mode=1
+            callback=self.server.write, simulation_mode=1
         )
-        self.srv.set_command_handler(command_handler)
+        self.server.set_command_handler(command_handler)
 
         self.log = logging.getLogger(type(self).__name__)
 
         self.connected_future: asyncio.Future = asyncio.Future()
-        await self.srv.start_task
-        assert self.srv.server.is_serving()
+        await self.server.start_task
         self.reader, self.writer = await asyncio.open_connection(
-            host=tcpip.LOCAL_HOST, port=self.srv.port
+            host=tcpip.LOCAL_HOST, port=self.server.port
         )
         # Give time to the socket server to respond.
         await self.connected_future
-        assert self.srv.connected
+        assert self.server.connected
         self.log.info("===== End of asyncSetUp =====")
 
     async def asyncTearDown(self) -> None:
         self.log.info("===== Start of asyncTearDown =====")
-        if self.srv.connected:
-            await self.srv.disconnect()
+        if self.server.connected:
+            await self.server.disconnect()
         if self.writer:
             self.writer.close()
             await self.writer.wait_closed()
-        await self.srv.exit()
+        await self.server.exit()
 
     async def read(self) -> dict[str, Any]:
         """Read a string from the reader and unmarshal it
@@ -97,28 +96,28 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
         self.writer.write(st.encode() + tcpip.TERMINATOR)
         await self.writer.drain()
 
-    def connect_callback(self, server: common.SocketServer) -> None:
+    async def connect_callback(self, server: common.SocketServer) -> None:
         if not self.connected_future.done():
             self.connected_future.set_result(server.connected)
-            self.srv.connect_callback(server)
+            await self.server.connect_callback(server)
 
     async def test_disconnect(self) -> None:
         self.connected_future = asyncio.Future()
-        assert self.srv.connected
+        assert self.server.connected
         await self.assert_configure(name="TEST_DISCONNECT")
         await self.write(command=common.Command.DISCONNECT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
-        assert not self.srv.connected
+        assert not self.server.connected
 
     async def test_exit(self) -> None:
         self.connected_future = asyncio.Future()
-        assert self.srv.connected
+        assert self.server.connected
         await self.assert_configure(name="TEST_EXIT")
         await self.write(command=common.Command.EXIT, parameters={})
         # Give time to the socket server to clean up internal state and exit.
         await self.connected_future
-        assert not self.srv.connected
+        assert not self.server.connected
 
     async def assert_configure(
         self,
@@ -176,13 +175,15 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
 
         # Make sure that the mock sensor outputs data for a disconnected
         # channel.
-        self.srv.command_handler.devices[0].disconnected_channel = disconnected_channel
+        self.server.command_handler.devices[
+            0
+        ].disconnected_channel = disconnected_channel
 
         # Make sure that the mock sensor outputs truncated data.
-        self.srv.command_handler.devices[0].missed_channels = missed_channels
+        self.server.command_handler.devices[0].missed_channels = missed_channels
 
         # Make sure that the mock sensor is in error state.
-        self.srv.command_handler.devices[0].in_error_state = in_error_state
+        self.server.command_handler.devices[0].in_error_state = in_error_state
 
         self.reply = await self.read()
         reply_to_check = self.reply[common.Key.TELEMETRY]

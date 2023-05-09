@@ -6,6 +6,26 @@
 Version History
 ###############
 
+v0.15.0
+=======
+
+* Add compatibility with ts_tcpip 1.1.
+  Also lose compatibility with ts_tcpip < 1.0.
+* Remove scons support.
+* Git hide egg info and simplify .gitignore.
+* `TestDataClient` and `TestReadLoopDataClient`: mark as not pytest test cases, to eliminate pytest warnings.
+* Fix some warnings.
+  This change requires ts_tcpip 1.0.
+* Further refinements for ts_pre_commit_config:
+
+  * Delete ``setup.cfg``; it has been replaced by ``.flake8``.
+  * ``conda/meta.yaml``: remove setup.cfg (and the obsolete script_env section).
+
+Requires:
+
+* ts_tcpip 1.0
+* ts_utils 1.0
+
 v0.14.0
 =======
 

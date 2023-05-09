@@ -39,6 +39,8 @@ from .base_data_client import BaseDataClient
 class TestDataClient(BaseDataClient):
     """Concrete subclass of BaseDataClient for unit tests."""
 
+    __test__ = False  # Stop pytest from warning that this is not a test.
+
     def __init__(
         self,
         config: types.SimpleNamespace,

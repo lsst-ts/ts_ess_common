@@ -1,22 +1,23 @@
-.sconsign.dblite
-.sconf_temp
-*.log
 __pycache__
-
-# Built by sconsUtils
+*.egg
+*.egg-info
+.sconf_temp
+.sconsign.dblite
+*.log
 version.py
-bin/
 
-# Pytest
+# pytest
 tests/.tests
 pytest_session.txt
-.cache/
+.hypothesis
 .pytest_cache
 .coverage
-.hypothesis
 
-# Editors
+# editors
+.idea
 .vscode
+
+# ts_pre_commit_conf
 .pre-commit-config.yaml
 .flake8
 .isort.cfg

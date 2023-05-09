@@ -1,4 +1,3 @@
-setupRequired(sconsUtils)
 setupRequired(ts_tcpip)
 setupRequired(ts_utils)
 setupOptional(ts_salobj)  # for type checking
