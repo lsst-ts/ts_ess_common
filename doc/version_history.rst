@@ -14,7 +14,7 @@ v0.15.0
 * Remove scons support.
 * Git hide egg info and simplify .gitignore.
 * `TestDataClient` and `TestReadLoopDataClient`: mark as not pytest test cases, to eliminate pytest warnings.
-* Fix some warnings in unit tests.
+* Fix some warnings.
   This change requires ts_tcpip 1.0.
 * Further refinements for ts_pre_commit_config:
 
