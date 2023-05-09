@@ -104,7 +104,7 @@ class SocketServer(tcpip.OneClientServer):
         """
         self.command_handler = command_handler
 
-    def connect_callback(self, server: SocketServer) -> None:
+    async def connect_callback(self, server: SocketServer) -> None:
         """A client has connected or disconnected."""
         if self.connected:
             self.log.info("Client connected.")

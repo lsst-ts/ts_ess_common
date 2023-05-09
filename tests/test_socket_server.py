@@ -99,7 +99,7 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
     async def connect_callback(self, server: common.SocketServer) -> None:
         if not self.connected_future.done():
             self.connected_future.set_result(server.connected)
-            self.server.connect_callback(server)
+            await self.server.connect_callback(server)
 
     async def test_disconnect(self) -> None:
         self.connected_future = asyncio.Future()
