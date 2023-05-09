@@ -39,6 +39,8 @@ __all__ = ["TestReadLoopDataClient"]
 class TestReadLoopDataClient(BaseReadLoopDataClient):
     """Concrete subclass of BaseReadLoopDataClient for unit tests."""
 
+    __test__ = False  # Stop pytest from warning that this is not a test.
+
     def __init__(
         self,
         config: types.SimpleNamespace,
