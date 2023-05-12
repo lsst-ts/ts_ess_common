@@ -178,12 +178,10 @@ class AbstractCommandHandler(ABC):
             A CommandError with ResponseCode NOT_STARTED is raised if the
             command handler was not started yet.
         """
-        self.log.info("stop_sending_telemetry")
+        self.log.debug("stop_sending_telemetry")
         if not self._started:
-            raise CommandError(
-                msg="Not started yet. Ignoring stop command.",
-                response_code=ResponseCode.NOT_STARTED,
-            )
+            self.log.warning("Not started yet. Ignoring stop command.")
+            return
 
         while self.devices:
             device: BaseDevice = self.devices.pop(-1)
