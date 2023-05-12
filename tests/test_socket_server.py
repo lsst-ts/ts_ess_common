@@ -19,11 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
-import json
-import logging
-import unittest
-from typing import Any
+import contextlib
+import typing
 
 from lsst.ts import tcpip
 from lsst.ts.ess import common
@@ -33,94 +30,28 @@ from lsst.ts.ess.common.test_utils import MockTestTools
 TIMEOUT = 60
 
 
-class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self) -> None:
-        self.writer = None
-        self.server = common.SocketServer(
+class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
+    server_class = common.SocketServer
+
+    @contextlib.asynccontextmanager
+    async def create_server_with_command_handler(
+        self,
+    ) -> typing.AsyncGenerator[common.SocketServer, None]:
+        async with self.create_server(
             name="EssSensorsServer",
-            host="0.0.0.0",
-            port=0,
+            host=tcpip.DEFAULT_LOCALHOST,
             simulation_mode=1,
             connect_callback=self.connect_callback,
-        )
-        command_handler = common.MockCommandHandler(
-            callback=self.server.write, simulation_mode=1
-        )
-        self.server.set_command_handler(command_handler)
-
-        self.log = logging.getLogger(type(self).__name__)
-
-        self.connected_future: asyncio.Future = asyncio.Future()
-        await self.server.start_task
-        self.reader, self.writer = await asyncio.open_connection(
-            host=tcpip.LOCAL_HOST, port=self.server.port
-        )
-        # Give time to the socket server to respond.
-        await self.connected_future
-        assert self.server.connected
-        self.log.info("===== End of asyncSetUp =====")
-
-    async def asyncTearDown(self) -> None:
-        self.log.info("===== Start of asyncTearDown =====")
-        if self.server.connected:
-            await self.server.disconnect()
-        if self.writer:
-            self.writer.close()
-            await self.writer.wait_closed()
-        await self.server.exit()
-
-    async def read(self) -> dict[str, Any]:
-        """Read a string from the reader and unmarshal it
-
-        Returns
-        -------
-        data : `dict`
-            A dictionary with objects representing the string read.
-        """
-        read_bytes = await asyncio.wait_for(
-            self.reader.readuntil(tcpip.TERMINATOR), timeout=TIMEOUT
-        )
-        data = json.loads(read_bytes.decode())
-        return data
-
-    async def write(self, **data: dict[str, Any]) -> None:
-        """Write the data appended with a tcpip.TERMINATOR string.
-
-        Parameters
-        ----------
-        data:
-            The data to write.
-        """
-        st = json.dumps({**data})
-        assert self.writer is not None
-        self.writer.write(st.encode() + tcpip.TERMINATOR)
-        await self.writer.drain()
-
-    async def connect_callback(self, server: common.SocketServer) -> None:
-        if not self.connected_future.done():
-            self.connected_future.set_result(server.connected)
-            await self.server.connect_callback(server)
-
-    async def test_disconnect(self) -> None:
-        self.connected_future = asyncio.Future()
-        assert self.server.connected
-        await self.assert_configure(name="TEST_DISCONNECT")
-        await self.write(command=common.Command.DISCONNECT, parameters={})
-        # Give time to the socket server to clean up internal state and exit.
-        await self.connected_future
-        assert not self.server.connected
-
-    async def test_exit(self) -> None:
-        self.connected_future = asyncio.Future()
-        assert self.server.connected
-        await self.assert_configure(name="TEST_EXIT")
-        await self.write(command=common.Command.EXIT, parameters={})
-        # Give time to the socket server to clean up internal state and exit.
-        await self.connected_future
-        assert not self.server.connected
+        ) as server:
+            command_handler = common.MockCommandHandler(
+                callback=server.write_json, simulation_mode=1
+            )
+            server.set_command_handler(command_handler)
+            yield server
 
     async def assert_configure(
         self,
+        client: tcpip.Client,
         name: str,
         num_channels: int = 0,
         disconnected_channel: int = -1,
@@ -139,12 +70,30 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
                 }
             ]
         }
-        await self.write(
-            command=common.Command.CONFIGURE,
-            parameters={common.Key.CONFIGURATION: configuration},
+        await client.write_json(
+            data={
+                common.JsonKeys.COMMAND: common.Command.CONFIGURE,
+                common.JsonKeys.PARAMETERS: {common.Key.CONFIGURATION: configuration},
+            }
         )
-        data = await self.read()
+        data = await client.read_json()
         assert common.ResponseCode.OK == data[common.Key.RESPONSE]
+
+    async def test_disconnect(self) -> None:
+        async with self.create_server_with_command_handler() as server, self.create_client(
+            server
+        ) as client:
+            await self.assert_next_connected(True)
+            await self.assert_configure(client=client, name="TEST_DISCONNECT")
+            await client.write_json(
+                data={
+                    common.JsonKeys.COMMAND: common.Command.DISCONNECT,
+                    common.JsonKeys.PARAMETERS: {},
+                }
+            )
+            await self.assert_next_connected(False)
+            assert not server.connected
+            assert not client.connected
 
     async def check_server_test(
         self,
@@ -165,54 +114,62 @@ class SocketServerTestCase(unittest.IsolatedAsyncioTestCase):
             - exit
         """
         mtt = MockTestTools()
-        await self.assert_configure(
-            name=name,
-            num_channels=num_channels,
-            disconnected_channel=disconnected_channel,
-            missed_channels=missed_channels,
-            in_error_state=in_error_state,
-        )
+        async with self.create_server_with_command_handler() as server, self.create_client(
+            server
+        ) as client:
+            await self.assert_configure(
+                client=client,
+                name=name,
+                num_channels=num_channels,
+                disconnected_channel=disconnected_channel,
+                missed_channels=missed_channels,
+                in_error_state=in_error_state,
+            )
 
-        # Make sure that the mock sensor outputs data for a disconnected
-        # channel.
-        self.server.command_handler.devices[
-            0
-        ].disconnected_channel = disconnected_channel
+            # Make sure that the mock sensor outputs data for a disconnected
+            # channel.
+            server.command_handler.devices[
+                0
+            ].disconnected_channel = disconnected_channel
 
-        # Make sure that the mock sensor outputs truncated data.
-        self.server.command_handler.devices[0].missed_channels = missed_channels
+            # Make sure that the mock sensor outputs truncated data.
+            server.command_handler.devices[0].missed_channels = missed_channels
 
-        # Make sure that the mock sensor is in error state.
-        self.server.command_handler.devices[0].in_error_state = in_error_state
+            # Make sure that the mock sensor is in error state.
+            server.command_handler.devices[0].in_error_state = in_error_state
 
-        self.reply = await self.read()
-        reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(
-            reply=reply_to_check,
-            name=name,
-            num_channels=num_channels,
-            disconnected_channel=disconnected_channel,
-            missed_channels=missed_channels,
-            in_error_state=in_error_state,
-        )
+            reply = await client.read_json()
+            reply_to_check = reply[common.Key.TELEMETRY]
+            mtt.check_temperature_reply(
+                reply=reply_to_check,
+                name=name,
+                num_channels=num_channels,
+                disconnected_channel=disconnected_channel,
+                missed_channels=missed_channels,
+                in_error_state=in_error_state,
+            )
 
-        # Reset self.missed_channels and read again. The data should not be
-        # truncated anymore.
-        missed_channels = 0
+            # Reset self.missed_channels and read again. The data should not be
+            # truncated anymore.
+            missed_channels = 0
 
-        self.reply = await self.read()
-        reply_to_check = self.reply[common.Key.TELEMETRY]
-        mtt.check_temperature_reply(
-            reply=reply_to_check,
-            name=name,
-            num_channels=num_channels,
-            disconnected_channel=disconnected_channel,
-            missed_channels=missed_channels,
-            in_error_state=in_error_state,
-        )
+            reply = await client.read_json()
+            reply_to_check = reply[common.Key.TELEMETRY]
+            mtt.check_temperature_reply(
+                reply=reply_to_check,
+                name=name,
+                num_channels=num_channels,
+                disconnected_channel=disconnected_channel,
+                missed_channels=missed_channels,
+                in_error_state=in_error_state,
+            )
 
-        await self.write(command=common.Command.DISCONNECT, parameters={})
-        await self.write(command=common.Command.EXIT, parameters={})
+            await client.write_json(
+                data={
+                    common.JsonKeys.COMMAND: common.Command.DISCONNECT,
+                    common.JsonKeys.PARAMETERS: {},
+                }
+            )
 
     async def test_full_command_sequence(self) -> None:
         """Test the SocketServer with a nominal configuration, i.e. no

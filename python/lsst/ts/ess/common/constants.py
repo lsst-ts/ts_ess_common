@@ -24,6 +24,7 @@ __all__ = [
     "CONTROLLER_PORT",
     "DeviceType",
     "DISCONNECTED_VALUE",
+    "JsonKeys",
     "Key",
     "LD250TelemetryPrefix",
     "ResponseCode",
@@ -64,6 +65,11 @@ class DeviceType(str, enum.Enum):
 
     FTDI = "FTDI"
     SERIAL = "Serial"
+
+
+class JsonKeys(str, enum.Enum):
+    COMMAND = "command"
+    PARAMETERS = "parameters"
 
 
 class Key(str, enum.Enum):

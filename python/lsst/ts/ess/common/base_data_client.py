@@ -113,7 +113,7 @@ class BaseDataClient(abc.ABC):
         self.connect_task = utils.make_done_future()
         self.run_task = utils.make_done_future()
         self.disconnect_task = utils.make_done_future()
-        self.log = log.getChild(str(self))
+        self.log = log.getChild(type(self).__name__)
         self.simulation_mode = simulation_mode
 
     @classmethod
