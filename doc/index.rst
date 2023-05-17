@@ -25,4 +25,4 @@ Version History
 
 .. toctree::
     version_history
-    :maxdepth: 1
+    :maxdepth: 2

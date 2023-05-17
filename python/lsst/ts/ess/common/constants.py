@@ -72,6 +72,7 @@ class Key(str, enum.Enum):
 
     BAUD_RATE = "baud_rate"
     CHANNELS = "channels"
+    COMMAND = "command"
     CONFIGURATION = "configuration"
     DEVICE_TYPE = "device_type"
     DEVICES = "devices"
@@ -79,6 +80,7 @@ class Key(str, enum.Enum):
     LOCATION = "location"
     NAME = "name"
     NUM_SAMPLES = "num_samples"
+    PARAMETERS = "parameters"
     RESPONSE = "response"
     RESPONSE_CODE = "response_code"
     SAFE_INTERVAL = "safe_interval"

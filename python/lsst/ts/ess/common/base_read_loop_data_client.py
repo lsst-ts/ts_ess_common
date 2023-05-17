@@ -21,6 +21,8 @@
 
 from __future__ import annotations
 
+__all__ = ["BaseReadLoopDataClient"]
+
 import abc
 import asyncio
 import logging
@@ -31,8 +33,6 @@ from .base_data_client import BaseDataClient
 
 if TYPE_CHECKING:
     from lsst.ts import salobj
-
-__all__ = ["BaseReadLoopDataClient"]
 
 
 class BaseReadLoopDataClient(BaseDataClient, abc.ABC):

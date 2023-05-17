@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
@@ -20,6 +18,8 @@ from __future__ import annotations
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+from __future__ import annotations
 
 __all__ = [
     "BaseDataClient",
@@ -113,7 +113,7 @@ class BaseDataClient(abc.ABC):
         self.connect_task = utils.make_done_future()
         self.run_task = utils.make_done_future()
         self.disconnect_task = utils.make_done_future()
-        self.log = log.getChild(str(self))
+        self.log = log.getChild(type(self).__name__)
         self.simulation_mode = simulation_mode
 
     @classmethod
