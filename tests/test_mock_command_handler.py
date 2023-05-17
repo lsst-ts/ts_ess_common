@@ -24,7 +24,6 @@ import logging
 import unittest
 from typing import Any
 
-import pytest
 from lsst.ts.ess import common
 from lsst.ts.ess.common.test_utils import MockTestTools
 
@@ -130,15 +129,21 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         await self.command_handler.stop_sending_telemetry()
 
     async def test_start_and_stop_sending_telemetry(self) -> None:
-        with pytest.raises(common.CommandError) as cm:
+        assert len(self.command_handler.devices) == 0
+        with self.assertLogs("MockCommandHandler", level="DEBUG") as log:
             await self.command_handler.stop_sending_telemetry()
-        command_error = cm.value
-        assert command_error.response_code == common.ResponseCode.NOT_STARTED
+        assert "DEBUG:MockCommandHandler:stop_sending_telemetry" in log.output
+        assert (
+            "WARNING:MockCommandHandler:Not started yet. Ignoring stop command."
+            in log.output
+        )
+        assert len(self.command_handler.devices) == 0
 
-        # The next function calls should not raise an exception. The working of
-        # the functions is tested in test_handle_command.
+        # The working of the functions is tested in test_handle_command.
         await self.command_handler.configure(configuration=self.configuration)
+        assert len(self.command_handler.devices) == 4
         await self.command_handler.stop_sending_telemetry()
+        assert len(self.command_handler.devices) == 0
 
     async def test_handle_command(self) -> None:
         mtt = MockTestTools()

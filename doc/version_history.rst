@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.16.0
+=======
+
+* Use ts_tcpip OneClientReadLoopServer.
+  This requires ts_tcpip 1.1.
+* Fix missing API docs.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.15.0
 =======
 
@@ -23,7 +35,7 @@ v0.15.0
 
 Requires:
 
-* ts_tcpip 1.0
+* ts_tcpip 1.1
 * ts_utils 1.0
 
 v0.14.0

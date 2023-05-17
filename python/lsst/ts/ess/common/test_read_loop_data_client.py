@@ -21,6 +21,8 @@
 
 from __future__ import annotations
 
+__all__ = ["TestReadLoopDataClient"]
+
 import asyncio
 import logging
 import types
@@ -32,8 +34,6 @@ from .base_read_loop_data_client import BaseReadLoopDataClient
 
 if TYPE_CHECKING:
     from lsst.ts import salobj
-
-__all__ = ["TestReadLoopDataClient"]
 
 
 class TestReadLoopDataClient(BaseReadLoopDataClient):

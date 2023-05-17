@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera Rubin Observatory Telescope and Site Systems.
@@ -21,25 +19,23 @@ from __future__ import annotations
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 __all__ = ["SocketServer"]
 
-import asyncio
-import json
 import logging
-import socket
-from collections.abc import Callable
+import typing
 
 from lsst.ts import tcpip
 
 from .abstract_command_handler import AbstractCommandHandler
+from .constants import Command, Key
 
 
-class SocketServer(tcpip.OneClientServer):
-    """A server for exchanging messages that talks over TCP/IP.
+class SocketServer(tcpip.OneClientReadLoopServer):
+    """A server for exchanging JSON messages via TCP/IP.
 
-    Upon initiation a socket server is set up which waits for incoming
-    commands. When an exit command is received, the socket server will exit.
-    All other commands are dispatched to the command handler.
+    See ``tcpip.OneClientReadLoopServer`` for the inner workings.
 
     Parameters
     ----------
@@ -52,9 +48,6 @@ class SocketServer(tcpip.OneClientServer):
         IP port for this server. If 0 then use a random port.
     simulation_mode : `int`, optional
         Simulation mode. The default is 0: do not simulate.
-    family : `socket.AddressFamily`
-        The address family that the socket will use. The default is
-        AF_UNSPEC.
     """
 
     valid_simulation_modes = (0, 1)
@@ -64,9 +57,9 @@ class SocketServer(tcpip.OneClientServer):
         name: str,
         host: None | str,
         port: int,
+        log: logging.Logger,
         simulation_mode: int = 0,
-        family: socket.AddressFamily = socket.AF_UNSPEC,
-        connect_callback: None | Callable = None,
+        connect_callback: None | tcpip.ConnectCallbackType = None,
     ) -> None:
         self.name = name
         if simulation_mode not in self.valid_simulation_modes:
@@ -75,21 +68,16 @@ class SocketServer(tcpip.OneClientServer):
                 f"not in valid_simulation_modes={self.valid_simulation_modes}"
             )
 
+        self.log = logging.getLogger(type(self).__name__)
         self.simulation_mode = simulation_mode
-        self.read_loop_task: asyncio.Future = asyncio.Future()
-        self.log: logging.Logger = logging.getLogger(type(self).__name__)
         self.command_handler: None | AbstractCommandHandler = None
 
-        if connect_callback is None:
-            connect_callback = self.connect_callback
-
         super().__init__(
-            name=self.name,
-            host=host,
             port=port,
+            host=host,
             log=self.log,
             connect_callback=connect_callback,
-            family=family,
+            name=self.name,
         )
 
     def set_command_handler(self, command_handler: AbstractCommandHandler) -> None:
@@ -104,68 +92,20 @@ class SocketServer(tcpip.OneClientServer):
         """
         self.command_handler = command_handler
 
-    async def connect_callback(self, server: SocketServer) -> None:
-        """A client has connected or disconnected."""
-        if self.connected:
-            self.log.info("Client connected.")
-            self.read_loop_task = asyncio.create_task(self.read_loop())
+    async def read_and_dispatch(self) -> None:
+        items = await self.read_json()
+        cmd = items[Key.COMMAND]
+        kwargs = items[Key.PARAMETERS]
+        if cmd == Command.EXIT:
+            await self.exit()
+        elif cmd == Command.DISCONNECT:
+            await self.close_client()
         else:
-            self.log.info("Client disconnected.")
+            if self.command_handler is not None:
+                await self.command_handler.handle_command(cmd, **kwargs)
 
-    async def write(self, data: dict) -> None:
-        """Write the data appended with a newline character.
-
-        The data are encoded via JSON and then passed on to the StreamWriter
-        associated with the socket.
-
-        Parameters
-        ----------
-        data : `dict`
-            The data to write.
-        """
-        st = json.dumps({**data})
-        self.log.debug(st)
-        if self.connected:
-            self.writer.write(st.encode() + tcpip.TERMINATOR)
-            await self.writer.drain()
-
-    async def read_loop(self) -> None:
-        """Read commands and output replies."""
-        try:
-            self.log.info(f"The read_loop begins connected? {self.connected}")
-            while self.connected:
-                self.log.debug("Waiting for next incoming message.")
-                line = await self.reader.readuntil(tcpip.TERMINATOR)
-                if line:
-                    line = line.decode().strip()
-                    self.log.debug(f"Read command line: {line!r}")
-                    items = json.loads(line)
-                    cmd = items["command"]
-                    kwargs = items["parameters"]
-                    if cmd == "exit":
-                        await self.exit()
-                    elif cmd == "disconnect":
-                        await self.disconnect()
-                    else:
-                        if self.command_handler is not None:
-                            await self.command_handler.handle_command(cmd, **kwargs)
-
-        except Exception:
-            self.log.exception("read_loop failed. Disconnecting.")
-            await self.disconnect()
-
-    async def disconnect(self) -> None:
+    async def close_client(self, **kwargs: typing.Any) -> None:
         """Stop sending telemetry and close the client."""
         if self.command_handler is not None:
             await self.command_handler.stop_sending_telemetry()
-        self.log.debug("Cancelling read_loop_task.")
-        self.read_loop_task.cancel()
-        self.log.debug("Closing client.")
-        await self.close_client()
-
-    async def exit(self) -> None:
-        """Stop the TCP/IP server."""
-        self.log.info("Closing server")
-        await self.close()
-
-        self.log.info("Done closing")
+        await super().close_client(**kwargs)
