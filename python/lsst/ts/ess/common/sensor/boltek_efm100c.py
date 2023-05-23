@@ -36,25 +36,9 @@ EFS_PATTERN = re.compile(r"^\$([+-]\d\d\.\d\d),([01])\*[0-9a-fA-F]{2}\r\n$")
 class Efm100cSensor(BaseSensor):
     """Boltek EFM-100C Electric Field Strength Sensor.
 
-    Perform protocol conversion for Boltek EFM-100C Electric Field Strength
-    instruments. Serial data is output by the instrument 20 times per second
-    with the following format:
-
-        '$<p><ee.ee>,<f>*<cs><\r><\n>'
-
-    where:
-
-        $           Start of telemetry indicator.
-        p           Polarity of the electric field + or -.
-        ee.ee       Electric field level (Range -20.00 kV/m to +20.00 kV/m).
-        f           Fault (0: Normal, 1: Rotator fault).
-        cs          Hex checksum (Range 00 to FF).
-        <\r><\n>    2-character terminator.
-
-    The placeholders shown for the values are displaying the fixed width for
-    those values. The values are prepended with zeros and polarity always is
-    present, even if the electric field level value is zero or positive (for
-    both cases polarity will be +).
+    Perform protocol conversion for the
+    :ref:`Boltek EFM-100C Atmospheric Electric Field Monitor
+    <lsst.ts.ess.common.boltek_LD-250_sensor>`.
     """
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:

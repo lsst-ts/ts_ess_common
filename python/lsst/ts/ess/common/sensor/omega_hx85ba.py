@@ -35,43 +35,17 @@ NUM_VALUES = 3
 class Hx85baSensor(BaseSensor):
     """Omega HX85BA Humidity Sensor.
 
-    Perform protocol conversion for Omega HX85BA Humidity instruments. Serial
-    data is output by the instrument once per second with the following
-    format:
+    Perform protocol conversion for a :ref:`Omega HX85BA Humidity Sensor
+    <lsst.ts.ess.common.omega_hx80a_series_sensors>`.
 
-        '%RH=38.86,AT°C=24.32,Pmb=911.40<\n><\r>'
-
-    where:
-
-        %RH=        Relative Humidity prefix.
-        dd.dd       Relative Humidity value (Range 5% to 95%).
-        AT°C=       Air Temperature prefix.
-        -ddd.dd     Air Temperature value (Range -20C to +120C).
-        Pmb=        Barometric Pressure prefix.
-        ddd.dd      Barometric Pressure value (10mbar to 1100mbar).
-        <LF><CR>    2-character terminator ('\n\r').
-
-    The placeholders shown for the values are displaying the maximum width for
-    those values. The values are not prepended with zeros and only show a sign
-    in case of a negative value.
+    The HX85BA measure barometric pressure, in addition to relative humidity
+    and air temperature. It then uses the :ref:`Magnus formula
+    <lsst.ts.ess.common.magnus_dewpoint_formula>` to compute dew point.
 
     Parameters
     ----------
     log : `logger`
         The logger for which to create a child logger.
-
-    Notes
-    -----
-    Use the `Magnus formula
-    <https://github.com/lsst-ts/ts_ess_common/blob/develop/doc/Dewpoint_Calculation_Humidity_Sensor_E.pdf>`_:: # noqa
-        dp = λ·f / (β - f)
-        Where:
-        • dp is dew point in deg C
-        • β = 17.62
-        • λ = 243.12 C
-        • f = ln(rh/100) + (β·t)/(λ+t))
-        • t = air temperature in deg C
-        • rh = relative humidity in %
     """
 
     # Override default value.
