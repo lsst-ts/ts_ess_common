@@ -146,10 +146,8 @@ def scaled_from_raw(raw: float, scale: float, offset: float) -> float:
 
 
 class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
-    """Get environmental data from Young 32400 weather station
-    serial interface.
-
-    The interface is assumed to be connected to a serial-to-ethernet adapter.
+    """Get environmental data from a Young 32400 weather station serial
+    interface.
 
     Parameters
     ----------
@@ -166,16 +164,22 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
 
     Notes
     -----
-    This code assumes the 32400 is configured to provide ASCII or
-    PRECIPITATION formatted output, depending if there is a rain gauge.
+    This code assumes the following about the Young 32400 Serial Interface:
 
-    Sensors must be connected as follows (this is the standard order
-    for NMEA output, plus the standard input for a rain gauge):
+    * The serial interface is connected to a serial to ethernet adapter.
+    * The jumpers are configured for output format PRECIPITATION, if a rain
+      gauge is connected, or ASCII if not.
+    * Sensors are be connected in the standard way: (the order for NMEA output,
+      plus the standard input for a rain gauge):
 
-    * VIN1: temperature
-    * VIN2: relative humidity
-    * VIN3: barometric pressure
-    * VIN4: tipping bucket rain gauge
+        * VIN1: temperature
+        * VIN2: relative humidity
+        * VIN3: barometric pressure
+        * VIN4: tipping bucket rain gauge
+
+    The protocol is defined in the 32400 serial interface manual
+    which is linked from :ref:`Young Weather Station
+    <lsst.ts.ess.common.young_weather_station>`.
     """
 
     def __init__(
