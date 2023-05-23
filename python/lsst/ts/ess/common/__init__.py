@@ -32,15 +32,12 @@ else:
         __version__ = "?"
 
 # Import sub modules
-from . import device, sensor
+from . import accumulator, data_client, device, sensor
 from .abstract_command_handler import *
-from .base_data_client import *
-from .base_read_loop_data_client import *
 from .command_error import *
 from .config_schema import *
 from .constants import *
 from .device_config import *
 from .mock_command_handler import *
-from .socket_server import SocketServer
-from .test_data_client import *
-from .test_read_loop_data_client import *
+from .socket_server import *
+from .utils import *

@@ -19,12 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .base_sensor import *
-from .boltek_efm100c import *
-from .boltek_ld250 import *
-from .campbell_csat3b import *
-from .gill_windsonic import *
-from .omega_hx85a import *
-from .omega_hx85ba import *
-from .sensor_registry import *
-from .temperature_sensor import *
+from .base_data_client import *
+from .base_read_loop_data_client import *
+from .controller_data_client import *
+from .lightning_data_client import *
+from .rpi_data_client import *
+from .siglent_ssa3000x_spectrum_analyzer_data_client import *
+from .test_data_client import *
+from .test_read_loop_data_client import *
+from .young_32400_weather_station_data_client import *

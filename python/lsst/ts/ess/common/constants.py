@@ -24,6 +24,7 @@ __all__ = [
     "CONTROLLER_PORT",
     "DeviceType",
     "DISCONNECTED_VALUE",
+    "PASCALS_PER_MILLIBAR",
     "Key",
     "LD250TelemetryPrefix",
     "ResponseCode",
@@ -38,6 +39,9 @@ CONTROLLER_PORT = 5000
 
 # The value emitted by a disconnected channel of the temperature sensors.
 DISCONNECTED_VALUE = "9999.9990"
+
+PASCALS_PER_MILLIBAR = 100
+
 
 # Alias for the type of the sensor data.
 TelemetryDataType = list[float | int | str]

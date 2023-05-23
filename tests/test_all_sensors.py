@@ -275,7 +275,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         ]
         # Test the compute_dew_point static method
         for data_dict, desired_dew_point in data_list:
-            dew_point = common.sensor.compute_dew_point_magnus(
+            dew_point = common.compute_dew_point_magnus(
                 relative_humidity=data_dict["relativeHumidity"],
                 temperature=data_dict["temperature"],
             )

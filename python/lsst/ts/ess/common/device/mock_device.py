@@ -56,6 +56,7 @@ class MockDevice(BaseDevice):
     telemetry_interval = 1
 
     """Mock Sensor Device.
+
     Parameters
     ----------
     name : `str`

@@ -19,12 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .base_sensor import *
-from .boltek_efm100c import *
-from .boltek_ld250 import *
-from .campbell_csat3b import *
-from .gill_windsonic import *
-from .omega_hx85a import *
-from .omega_hx85ba import *
-from .sensor_registry import *
-from .temperature_sensor import *
+from .air_flow_accumulator import *
+from .air_turbulence_accumulator import *
+from .electric_field_strength_accumulator import *
