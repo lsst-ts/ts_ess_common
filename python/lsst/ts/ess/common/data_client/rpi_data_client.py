@@ -38,6 +38,9 @@ from .controller_data_client import ControllerDataClient
 class RPiDataClient(ControllerDataClient):
     """Get environmental data from a Raspberry Pi with custom hat.
 
+    Uses the :ref:`RPi Communication Protocol
+    <lsst.ts.ess.common.rpi_communication_protocol>`.
+
     Parameters
     ----------
     name : str
