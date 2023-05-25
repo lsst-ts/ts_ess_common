@@ -50,32 +50,10 @@ def compute_checksum(checksum_string: str) -> int:
 
 
 class WindsonicSensor(BaseSensor):
-    """Windsonic Sensor.
+    """GILL Windsonic 2-D Sonic Anemometer Sensor.
 
-    Perform protocol conversion for Gill Windsonic Ultrasonic Anemometer
-    instruments. The instrument is assumed to use its default message format -
-    "Gill - Polar, Continuous" as documented in Gill Windsonic Doc No 1405 PS
-    0019 Issue 28.
-    Serial data is output by the anemometer once per second with the following
-    format:
-
-        '<STX>Q,ddd,sss.ss,M,00,<ETX>checksum<CR><LF>'
-
-    where:
-
-        <STX>       ASCII start character.
-        'Q'         Unit Identifier ('Q' is default value).
-        ddd         Wind direction. Three character, leading zero's integer.
-                    000-359 degrees. Wind direction value is empty ('') when
-                    wind speed is below 0.05 m/s.
-        sss.ss      Wind speed. Six character, floating point, leading zero's.
-                    0 to 60 m/s.
-        'M'         Unit of speed measurement ('M' is m/s default)
-        '00'        Status.
-        <ETX>       ASCII end charactor.
-        checksum    Exclusive OR of all bytes in the string between <STX> and
-                    <ETX> characters.
-        <CR><LF>    2-character terminator ('\r\n').
+    Perform protocol conversion for a :ref:`Gill Windsonic 2-D Sonic
+    Anemometer <lsst.ts.ess.common.gill_windsonic_2-d_sonic_wind_sensor>`.
 
     Parameters
     ----------

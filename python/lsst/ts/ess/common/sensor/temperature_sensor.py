@@ -24,29 +24,16 @@ __all__ = ["TemperatureSensor"]
 import numpy as np
 
 from ..constants import DISCONNECTED_VALUE, SensorType, TelemetryDataType
+from ..utils import add_missing_telemetry
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
-from .utils import add_missing_telemetry
 
 
 class TemperatureSensor(BaseSensor):
-    """Temperature Sensor.
+    """SEL multi-channel temperature reader.
 
-    Perform protocol conversion for RTD thermal sensors. Serial data is output
-    by the instrument once per second with the following format:
-
-        'C00=0010.1100,C01=0009.9896<\r><\n>'
-
-    where:
-
-        C00=        First channel temperature prefix.
-        -dddd.dddd  Temperature value.
-        C01=        Second channel temperature prefix.
-        -dddd.dddd  Temperature value.
-        <LF><CR>    2-character terminator ('\n\r').
-
-    The values only show a sign in case of a negative value. The number of
-    channels determines the exact telemetry string.
+    Perform protocol conversion for a :ref:`SEL multi-channel temperature
+    reader <lsst.ts.ess.common.sel_multi_channel_temperature_reader>`.
 
     Parameters
     ----------

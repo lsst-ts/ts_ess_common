@@ -265,7 +265,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_compute_dew_point_magnus(self) -> None:
         # Test data from
-        # doc/Dewpoint_Calculation_Humidity_Sensor_E.pdf
+        # doc/dewpoint_magnus_formula.pdf
         # RH=10%, T=25°C -> Dew point = -8.77°C
         # RH=90%, T=50°C -> Dew point = 47.90°C
         # List of (data dict for the hx85a topic, expected dew point)
@@ -275,7 +275,7 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         ]
         # Test the compute_dew_point static method
         for data_dict, desired_dew_point in data_list:
-            dew_point = common.sensor.compute_dew_point_magnus(
+            dew_point = common.compute_dew_point_magnus(
                 relative_humidity=data_dict["relativeHumidity"],
                 temperature=data_dict["temperature"],
             )

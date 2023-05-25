@@ -6,10 +6,6 @@ ts_ess_common
 
 `Documentation <https://ts-ess-common.lsst.io>`_
 
-Common code used by all Environmental Sensors Suite packages is collected in this package.
-
-Included are
-
-    - A Socket Server
-    - A json schema and code to validate the device configuration sent via the Socket Server
-    - Common constants and enums
+Common code used by all Environmental Sensors Suite packages is collected in this package, including code
+to read most supported sensors (a few that require hard-to-install libraries are in other packages,
+such as ts_ess_labjack). This package also includes documentation for all sensors the ESS reads.

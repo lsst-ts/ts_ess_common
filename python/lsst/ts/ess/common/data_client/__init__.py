@@ -1,6 +1,6 @@
 # This file is part of ts_ess_common.
 #
-# Developed for the Vera Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,20 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Sphinx configuration file for an LSST stack package.
-
-This configuration only affects single-package Sphinx documentation builds.
-For more information, see:
-https://developer.lsst.io/stack/building-single-package-docs.html
-"""
-
-from documenteer.conf.pipelinespkg import *  # noqa
-
-project = "ts_ess_common"
-html_theme_options["logotext"] = project  # type: ignore # noqa
-html_title = project
-html_short_title = project
-
-intersphinx_mapping["ts_salobj"] = ("https://ts-salobj.lsst.io", None)  # type: ignore # noqa
-intersphinx_mapping["ts_tcpip"] = ("https://ts-tcpip.lsst.io", None)  # type: ignore # noqa
-intersphinx_mapping["ts_utils"] = ("https://ts-utils.lsst.io", None)  # type: ignore # noqa
+from .base_data_client import *
+from .base_read_loop_data_client import *
+from .controller_data_client import *
+from .lightning_data_client import *
+from .rpi_data_client import *
+from .siglent_ssa3000x_spectrum_analyzer_data_client import *
+from .test_data_client import *
+from .test_read_loop_data_client import *
+from .young_32400_weather_station_data_client import *

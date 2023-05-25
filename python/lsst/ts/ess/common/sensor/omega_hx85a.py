@@ -24,9 +24,9 @@ __all__ = ["Hx85aSensor"]
 import numpy as np
 
 from ..constants import SensorType, TelemetryDataType
+from ..utils import add_missing_telemetry
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
-from .utils import add_missing_telemetry
 
 """The number of output values for this sensor is 3."""
 NUM_VALUES = 3
@@ -35,25 +35,11 @@ NUM_VALUES = 3
 class Hx85aSensor(BaseSensor):
     """Omega HX85A Humidity Sensor.
 
-    Perform protocol conversion for Omega HX85A Humidity instruments. Serial
-    data is output by the instrument once per second with the following
-    format:
+    Perform protocol conversion for a :ref:`Omega HX85A Humidity Sensor
+    <lsst.ts.ess.common.omega_hx80a_series_sensors>`.
 
-        '%RH=38.86,AT°C=24.32,DP°C=9.57<\n><\r>'
-
-    where:
-
-        %RH=        Relative Humidity prefix.
-        dd.dd       Relative Humidity value (Range 5% to 95%).
-        AT°C=       Air Temperature prefix.
-        -ddd.dd     Air Temperature value (Range -20C to +120C).
-        DP°C=       Dew Point prefix.
-        dd.dd       Dew Point value (Range -60C to +40C).
-        <LF><CR>    2-character terminator ('\n\r').
-
-    The placeholders shown for the values are displaying the maximum width for
-    those values. The values are not prepended with zeros and only show a sign
-    in case of a negative value.
+    The HX85A measure dew point, in addition to relative humidity
+    and air temperature. It does not report barometric pressure.
 
     Parameters
     ----------

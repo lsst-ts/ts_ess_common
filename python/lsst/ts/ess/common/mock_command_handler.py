@@ -32,9 +32,10 @@ MOCK_DEVICE_ID_PREFIX = "MockDevice"
 
 
 class MockCommandHandler(AbstractCommandHandler):
+    """Mock command handler for SocketServer simulation mode and tests."""
+
     def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
-        """Create the device to connect to by using the specified
-        configuration.
+        """Create a MockDevice using the specified configuration.
 
         Parameters
         ----------
@@ -45,8 +46,8 @@ class MockCommandHandler(AbstractCommandHandler):
 
         Returns
         -------
-        device : `common.device.BaseDevice`
-            The device to connect to.
+        device : `MockDevice`
+            The mock device.
 
         Raises
         ------
@@ -57,11 +58,10 @@ class MockCommandHandler(AbstractCommandHandler):
         self.log.debug(
             f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}."
         )
-        device: BaseDevice = MockDevice(
+        return MockDevice(
             name=device_configuration[Key.NAME],
             device_id=f"{MOCK_DEVICE_ID_PREFIX}-{device_configuration[Key.NAME]}",
             sensor=sensor,
             callback_func=self._callback,
             log=self.log,
         )
-        return device
