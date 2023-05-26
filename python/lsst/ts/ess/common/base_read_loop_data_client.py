@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from lsst.ts import salobj
 
 
-class BaseReadLoopDataClient(BaseDataClient):
+class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
     """Base class to read environmental data from a server and publish it
     as ESS telemetry.
 

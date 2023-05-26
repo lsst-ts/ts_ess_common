@@ -25,32 +25,18 @@ import asyncio
 import inspect
 import logging
 import math
-from typing import TypedDict, cast
+from typing import TypedDict
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    raise ImportError(
+        "Failed to import pytest. test_utils is only available for testing purposes. To use it "
+        "install pytest manually with 'conda install pytest' or install the full build suite with "
+        "'conda install -c lsstts ts-conda-build'"
+    )
 
-from .constants import (
-    Key,
-    LD250TelemetryPrefix,
-    ResponseCode,
-    SensorType,
-    TelemetryDataType,
-)
-from .device import (
-    MockAzimuthConfig,
-    MockDevice,
-    MockDewPointConfig,
-    MockDirectionConfig,
-    MockDistanceConfig,
-    MockElectricFieldStrengthConfig,
-    MockHumidityConfig,
-    MockPressureConfig,
-    MockStrikeRateConfig,
-    MockTemperatureConfig,
-    MockWindSpeedConfig,
-)
-from .sensor import sensor_registry
-from .utils import compute_dew_point_magnus
+from lsst.ts.ess import common
 
 
 class SensorReply(TypedDict):
@@ -63,13 +49,13 @@ class SensorReply(TypedDict):
 
 
 check_reply_func_dict = {
-    SensorType.CSAT3B: "check_csat3b_reply",
-    SensorType.EFM100C: "check_efm100c_reply",
-    SensorType.HX85A: "check_hx85a_reply",
-    SensorType.HX85BA: "check_hx85ba_reply",
-    SensorType.LD250: "check_ld250_reply",
-    SensorType.TEMPERATURE: "check_temperature_reply",
-    SensorType.WINDSONIC: "check_windsonic_reply",
+    common.SensorType.CSAT3B: "check_csat3b_reply",
+    common.SensorType.EFM100C: "check_efm100c_reply",
+    common.SensorType.HX85A: "check_hx85a_reply",
+    common.SensorType.HX85BA: "check_hx85ba_reply",
+    common.SensorType.LD250: "check_ld250_reply",
+    common.SensorType.TEMPERATURE: "check_temperature_reply",
+    common.SensorType.WINDSONIC: "check_windsonic_reply",
 }
 
 # Maximum number of times to wait before exiting a sleep loop.
@@ -78,9 +64,9 @@ MAX_SLEEP_WAITS = 60
 
 class MockTestTools:
     def __init__(self) -> None:
-        self.reply: None | dict[str, TelemetryDataType] = None
+        self.reply: None | dict[str, common.TelemetryDataType] = None
 
-    async def _callback(self, reply: dict[str, TelemetryDataType]) -> None:
+    async def _callback(self, reply: dict[str, common.TelemetryDataType]) -> None:
         self.reply = reply
 
     async def wait_for_reply(self) -> None:
@@ -94,7 +80,7 @@ class MockTestTools:
 
     async def check_mock_device(
         self,
-        sensor_type: SensorType,
+        sensor_type: common.SensorType,
         num_channels: int = 0,
         disconnected_channel: int = -1,
         missed_channels: int = 0,
@@ -104,21 +90,20 @@ class MockTestTools:
     ) -> None:
         """Check the working of the MockDevice."""
         log = logging.getLogger(type(self).__name__)
-        sensor_class = sensor_registry[sensor_type]
-        num_channels_kwargs: dict[str, int] = dict()
+        sensor_class = common.sensor.sensor_registry[sensor_type]
+        sensor_arg_values: dict[str, int | logging.Logger] = {"log": log}
         sensor_args = inspect.getfullargspec(sensor_class.__init__)
         if "num_channels" in sensor_args.args:
-            num_channels_kwargs["num_channels"] = num_channels
-        sensor = sensor_class(log=log, **num_channels_kwargs)
+            sensor_arg_values["num_channels"] = num_channels
+        sensor = sensor_class(**sensor_arg_values)
         func = getattr(self, check_reply_func_dict[sensor_type])
-        async with MockDevice(
+        async with common.device.MockDevice(
             name="MockSensor",
             device_id="MockDevice",
             sensor=sensor,
             callback_func=self._callback,
             log=log,
         ) as device:
-            device = cast(MockDevice, device)  # need by mypy; why?
             device.disconnected_channel = disconnected_channel
             device.missed_channels = missed_channels
             if hasattr(device.mock_formatter, "in_error_state"):
@@ -134,7 +119,7 @@ class MockTestTools:
             await self.wait_for_reply()
             assert self.reply is not None
             func_arg_values = {
-                "reply": self.reply[Key.TELEMETRY],
+                "reply": self.reply[common.Key.TELEMETRY],
                 "name": "MockSensor",
                 "in_error_state": in_error_state,
             }
@@ -157,7 +142,7 @@ class MockTestTools:
             # data.
             await self.wait_for_reply()
             assert self.reply is not None
-            func_arg_values["reply"] = self.reply[Key.TELEMETRY]
+            func_arg_values["reply"] = self.reply[common.Key.TELEMETRY]
             if "missed_channels" in func_args.args:
                 func_arg_values["missed_channels"] = missed_channels
             func(**func_arg_values)
@@ -180,9 +165,9 @@ class MockTestTools:
         assert name == device_name
         assert time > 0
         if in_error_state:
-            assert ResponseCode.DEVICE_READ_ERROR == response_code
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
-            assert ResponseCode.OK == response_code
+            assert common.ResponseCode.OK == response_code
         # Only check the first 4 items (which are ux, uy, uz and ts) because
         # the rest doesn't matter for the science of Rubin Observatory.
         for i in range(0, 4):
@@ -190,11 +175,11 @@ class MockTestTools:
                 assert math.isnan(resp[i]) if i < 5 else resp[i] == 0
             else:
                 if i in [0, 1, 2]:
-                    assert MockWindSpeedConfig.min <= resp[i]
-                    assert resp[i] <= MockWindSpeedConfig.max
+                    assert common.device.MockWindSpeedConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockWindSpeedConfig.max
                 elif i == 3:
-                    assert MockTemperatureConfig.min <= resp[i]
-                    assert resp[i] <= MockTemperatureConfig.max
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
 
     def check_ld250_reply(
         self,
@@ -205,7 +190,7 @@ class MockTestTools:
         device_name = reply["name"]
         time = float(reply["timestamp"])
         response_code = reply["response_code"]
-        resp: TelemetryDataType = []
+        resp: common.TelemetryDataType = []
         for value in reply["sensor_telemetry"]:
             assert (
                 isinstance(value, float)
@@ -216,31 +201,31 @@ class MockTestTools:
 
         assert name == device_name
         assert time > 0
-        assert ResponseCode.OK == response_code
+        assert common.ResponseCode.OK == response_code
 
-        if resp[0] == LD250TelemetryPrefix.NOISE_PREFIX:
+        if resp[0] == common.LD250TelemetryPrefix.NOISE_PREFIX:
             # Check noise response.
             assert len(resp) == 1
-        elif resp[0] == LD250TelemetryPrefix.STATUS_PREFIX:
+        elif resp[0] == common.LD250TelemetryPrefix.STATUS_PREFIX:
             # Check status response.
             assert len(resp) == 6
-            assert MockStrikeRateConfig.min <= resp[1]
-            assert resp[1] <= MockStrikeRateConfig.max
-            assert MockStrikeRateConfig.min <= resp[2]
-            assert resp[2] <= MockStrikeRateConfig.max
+            assert common.device.MockStrikeRateConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockStrikeRateConfig.max
+            assert common.device.MockStrikeRateConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockStrikeRateConfig.max
             assert resp[3] in [0, 1]
             assert resp[4] in [0, 1]
-            assert MockAzimuthConfig.min <= resp[5]
-            assert resp[5] <= MockAzimuthConfig.max
-        elif resp[0] == LD250TelemetryPrefix.STRIKE_PREFIX:
+            assert common.device.MockAzimuthConfig.min <= resp[5]
+            assert resp[5] <= common.device.MockAzimuthConfig.max
+        elif resp[0] == common.LD250TelemetryPrefix.STRIKE_PREFIX:
             # Check strike response.
             assert len(resp) == 4
-            assert MockDistanceConfig.min <= resp[1]
-            assert resp[1] <= MockDistanceConfig.max
-            assert MockDistanceConfig.min <= resp[2]
-            assert resp[2] <= MockDistanceConfig.max
-            assert MockAzimuthConfig.min <= resp[3]
-            assert resp[3] <= MockAzimuthConfig.max
+            assert common.device.MockDistanceConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockDistanceConfig.max
+            assert common.device.MockDistanceConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockDistanceConfig.max
+            assert common.device.MockAzimuthConfig.min <= resp[3]
+            assert resp[3] <= common.device.MockAzimuthConfig.max
 
     def check_efm100c_reply(
         self,
@@ -258,10 +243,10 @@ class MockTestTools:
 
         assert name == device_name
         assert time > 0
-        assert ResponseCode.OK == response_code
+        assert common.ResponseCode.OK == response_code
 
-        assert MockElectricFieldStrengthConfig.min <= resp[0]
-        assert resp[0] <= MockElectricFieldStrengthConfig.max
+        assert common.device.MockElectricFieldStrengthConfig.min <= resp[0]
+        assert resp[0] <= common.device.MockElectricFieldStrengthConfig.max
 
         if in_error_state:
             assert resp[1] == 1
@@ -286,23 +271,23 @@ class MockTestTools:
         assert name == device_name
         assert time > 0
         if in_error_state:
-            assert ResponseCode.DEVICE_READ_ERROR == response_code
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
-            assert ResponseCode.OK == response_code
+            assert common.ResponseCode.OK == response_code
         assert len(resp) == 3
         for i in range(0, 3):
             if i < missed_channels or in_error_state:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
-                    assert MockHumidityConfig.min <= resp[i]
-                    assert resp[i] <= MockHumidityConfig.max
+                    assert common.device.MockHumidityConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockHumidityConfig.max
                 elif i == 1:
-                    assert MockTemperatureConfig.min <= resp[i]
-                    assert resp[i] <= MockTemperatureConfig.max
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
                 else:
-                    assert MockDewPointConfig.min <= resp[i]
-                    assert resp[i] <= MockDewPointConfig.max
+                    assert common.device.MockDewPointConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockDewPointConfig.max
 
     def check_hx85ba_reply(
         self,
@@ -322,9 +307,9 @@ class MockTestTools:
         assert name == device_name
         assert time > 0
         if in_error_state:
-            assert ResponseCode.DEVICE_READ_ERROR == response_code
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
-            assert ResponseCode.OK == response_code
+            assert common.ResponseCode.OK == response_code
         assert len(resp) == 4
 
         # Skip the fourth value since it is derived from the first two and it
@@ -334,21 +319,21 @@ class MockTestTools:
                 assert math.isnan(resp[i])
             else:
                 if i == 0:
-                    assert MockHumidityConfig.min <= resp[i]
-                    assert resp[i] <= MockHumidityConfig.max
+                    assert common.device.MockHumidityConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockHumidityConfig.max
                 elif i == 1:
-                    assert MockTemperatureConfig.min <= resp[i]
-                    assert resp[i] <= MockTemperatureConfig.max
+                    assert common.device.MockTemperatureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockTemperatureConfig.max
                 else:
-                    assert MockPressureConfig.min <= resp[i]
-                    assert resp[i] <= MockPressureConfig.max
+                    assert common.device.MockPressureConfig.min <= resp[i]
+                    assert resp[i] <= common.device.MockPressureConfig.max
 
         if missed_channels > 0 or in_error_state:
             assert math.isnan(resp[3])
         else:
             # Check dew point computed with 2 digits of precision,
             # since that is all the sensor reports.
-            dew_point = compute_dew_point_magnus(
+            dew_point = common.sensor.compute_dew_point_magnus(
                 relative_humidity=round(resp[0], ndigits=2),
                 temperature=round(resp[1], ndigits=2),
             )
@@ -374,9 +359,9 @@ class MockTestTools:
         assert name == device_name
         assert time > 0
         if in_error_state:
-            assert ResponseCode.DEVICE_READ_ERROR == response_code
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
-            assert ResponseCode.OK == response_code
+            assert common.ResponseCode.OK == response_code
         assert len(resp) == num_channels
         for i in range(0, num_channels):
             if i < missed_channels or in_error_state:
@@ -384,8 +369,8 @@ class MockTestTools:
             elif i == disconnected_channel:
                 assert math.isnan(resp[i])
             else:
-                assert MockTemperatureConfig.min <= resp[i]
-                assert resp[i] <= MockTemperatureConfig.max
+                assert common.device.MockTemperatureConfig.min <= resp[i]
+                assert resp[i] <= common.device.MockTemperatureConfig.max
 
     def check_windsonic_reply(
         self,
@@ -409,10 +394,10 @@ class MockTestTools:
         assert name == device_name
         assert time > 0
         if in_error_state:
-            assert ResponseCode.DEVICE_READ_ERROR == response_code
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
         else:
-            assert ResponseCode.OK == response_code
-        assert MockWindSpeedConfig.min <= resp[0]
-        assert resp[0] <= MockWindSpeedConfig.max
-        assert MockDirectionConfig.min <= resp[1]
-        assert resp[1] <= MockDirectionConfig.max
+            assert common.ResponseCode.OK == response_code
+        assert common.device.MockWindSpeedConfig.min <= resp[0]
+        assert resp[0] <= common.device.MockWindSpeedConfig.max
+        assert common.device.MockDirectionConfig.min <= resp[1]
+        assert resp[1] <= common.device.MockDirectionConfig.max

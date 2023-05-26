@@ -25,7 +25,7 @@ import types
 import typing
 import unittest
 
-from lsst.ts.ess.common.data_client import TestReadLoopDataClient
+from lsst.ts.ess import common
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
@@ -37,7 +37,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.log = logging.getLogger()
         self.topics = types.SimpleNamespace()
         self.config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
-        self.data_client = TestReadLoopDataClient(
+        self.data_client = common.TestReadLoopDataClient(
             config=self.config, topics=self.topics, log=self.log
         )
 

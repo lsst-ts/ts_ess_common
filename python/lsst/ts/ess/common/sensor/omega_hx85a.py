@@ -24,9 +24,9 @@ __all__ = ["Hx85aSensor"]
 import numpy as np
 
 from ..constants import SensorType, TelemetryDataType
-from ..utils import add_missing_telemetry
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
+from .utils import add_missing_telemetry
 
 """The number of output values for this sensor is 3."""
 NUM_VALUES = 3

@@ -46,12 +46,8 @@ class SocketServer(tcpip.OneClientReadLoopServer):
         If `None` then bind to all network interfaces.
     port : `int`
         IP port for this server. If 0 then use a random port.
-    log : `logging.Logger`
-        Logger.
     simulation_mode : `int`, optional
         Simulation mode. The default is 0: do not simulate.
-    connect_callback : `None` | `tcpip.ConnectCallbackType`
-        Optional connect callback.
     """
 
     valid_simulation_modes = (0, 1)
@@ -72,13 +68,14 @@ class SocketServer(tcpip.OneClientReadLoopServer):
                 f"not in valid_simulation_modes={self.valid_simulation_modes}"
             )
 
+        self.log = logging.getLogger(type(self).__name__)
         self.simulation_mode = simulation_mode
         self.command_handler: None | AbstractCommandHandler = None
 
         super().__init__(
             port=port,
             host=host,
-            log=log,
+            log=self.log,
             connect_callback=connect_callback,
             name=self.name,
         )
@@ -105,11 +102,7 @@ class SocketServer(tcpip.OneClientReadLoopServer):
             await self.close_client()
         else:
             if self.command_handler is not None:
-                try:
-                    await self.command_handler.handle_command(cmd, **kwargs)
-                except Exception as e:
-                    print(f"command handler {self.command_handler} failed: {e!r}")
-                    raise
+                await self.command_handler.handle_command(cmd, **kwargs)
 
     async def close_client(self, **kwargs: typing.Any) -> None:
         """Stop sending telemetry and close the client."""
