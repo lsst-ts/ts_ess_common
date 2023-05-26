@@ -6,6 +6,5 @@ ts_ess_common
 
 `Documentation <https://ts-ess-common.lsst.io>`_
 
-Common code used by all Environmental Sensors Suite packages is collected in this package, including code
-to read most supported sensors (a few that require hard-to-install libraries are in other packages,
-such as ts_ess_labjack). This package also includes documentation for all sensors the ESS reads.
+Common code used by all Environmental Sensors Suite packages is collected in this package.
+This package also includes documentation for all sensors the ESS reads.
