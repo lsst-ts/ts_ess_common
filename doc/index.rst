@@ -25,7 +25,9 @@ Terminology
   One "sensor" includes all the different channels of data reported by the device that serves the data.
   For example, multi-channel thermal sensors have multiple temperature probes, and the Omega HX85BA sensor measures relative humidity, air temperature, and barometric pressure.
 
-* Data client: software (subclasses of `data_client.BaseDataClient`) that connects to a data server, reads the data, and reports it using SAL.
+* Data client: software (subclasses of `BaseDataClient`) that connects to a data server, reads the data, and reports it using SAL.
+  Most data clients live in `ts_ess_csc`_ but a few live in packages such as `ts_ess_labjack`_.
+  (They do not live in ts_ess_common because they depend on ts_salobj, and that package cannot.)
   Each ESS CSC instance is a collection of data clients that are specified and configured by the CSC's configuration.
 
 Sensors
@@ -35,12 +37,12 @@ Most sensors serve their own data (directly or by being plugged into an electron
 Protocols include RS-232, RS-485, TCP/IP, USB, and FTDI.
 
 * Sensors that serve their data via TCP/IP are be directly read by an ESS instance running on Kubernetes.
-  These sensors are read by a subclass of `data_client.BaseDataClient`.
+  These sensors are read by a subclass of `BaseDataClient`.
 
 * Sensors that serve their data via USB or FTDI cannot be directly read by an ESS instance, because software running on Kubernetes cannot read these protocols.
   In this case we run custom software (in `ts_ess_controller`_) on RPis to read the data and transmit it via TCP/IP.
   For this one case, we represent sensors using a subclass of `sensor.BaseSensor`.
-  The data is read by `data_client.RpiDataClient` or a specialized variant.
+  The data is read by ``RpiDataClient`` in `ts_ess_csc`_, or a specialized variant.
   
 * Sensors that serve their data via RS-232 or RS-485 serial are served in two different ways:
 
@@ -89,9 +91,6 @@ Python API reference
 ====================
 
 .. automodapi:: lsst.ts.ess.common
-   :no-main-docstr:
-
-.. automodapi:: lsst.ts.ess.common.data_client
    :no-main-docstr:
 
 .. automodapi:: lsst.ts.ess.common.device
