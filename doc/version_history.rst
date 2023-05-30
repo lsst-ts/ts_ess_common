@@ -6,10 +6,9 @@
 Version History
 ###############
 
-v0.17.0
+v0.16.1
 =======
 
-* Move data clients here from ts_ess_csc, as well as code they rely on.
 * Move sensor documentation here from ts_ess_common and expand and update the documentation.
 * Sensors: in doc strings replace detailed explanations of the interface with links to the documentation.
 
