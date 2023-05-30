@@ -24,9 +24,9 @@ __all__ = ["TemperatureSensor"]
 import numpy as np
 
 from ..constants import DISCONNECTED_VALUE, SensorType, TelemetryDataType
-from ..utils import add_missing_telemetry
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
+from .utils import add_missing_telemetry
 
 
 class TemperatureSensor(BaseSensor):

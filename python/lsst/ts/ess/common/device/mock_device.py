@@ -51,10 +51,6 @@ from .mock_windsonic_formatter import MockWindsonicFormatter
 
 
 class MockDevice(BaseDevice):
-    # The wait time between sending telemetry (second). This can be adjusted by
-    # unit tests to mock connection timeouts.
-    telemetry_interval = 1
-
     """Mock Sensor Device.
 
     Parameters
@@ -70,6 +66,10 @@ class MockDevice(BaseDevice):
     log : `logging.Logger`
         The logger to create a child logger for.
     """
+
+    # The wait time between sending telemetry (second). This can be adjusted by
+    # unit tests to mock connection timeouts.
+    telemetry_interval = 1
 
     def __init__(
         self,

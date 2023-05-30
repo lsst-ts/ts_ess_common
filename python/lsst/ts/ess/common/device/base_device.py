@@ -21,10 +21,10 @@
 
 from __future__ import annotations
 
-import abc
 import asyncio
 import logging
 import types
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Type
 
@@ -36,7 +36,7 @@ from ..sensor import BaseSensor
 __all__ = ["BaseDevice"]
 
 
-class BaseDevice(abc.ABC):
+class BaseDevice(ABC):
     """Base class for the different types of Sensor Devices.
 
     This class holds all common code for the hardware devices. Device specific
@@ -122,7 +122,7 @@ class BaseDevice(abc.ABC):
         self.log.debug(f"Starting read loop for {self.name!r} sensor.")
         self._telemetry_loop = asyncio.create_task(self._run())
 
-    @abc.abstractmethod
+    @abstractmethod
     async def basic_open(self) -> None:
         """Open the Sensor Device."""
         raise NotImplementedError()
@@ -157,7 +157,7 @@ class BaseDevice(abc.ABC):
             }
             await self._callback_func(reply)
 
-    @abc.abstractmethod
+    @abstractmethod
     async def readline(self) -> str:
         """Read a line of telemetry from the device.
 
@@ -185,7 +185,7 @@ class BaseDevice(abc.ABC):
         self.is_open = False
         await self.basic_close()
 
-    @abc.abstractmethod
+    @abstractmethod
     async def basic_close(self) -> None:
         """Close the Sensor Device."""
         raise NotImplementedError()

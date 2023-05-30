@@ -35,10 +35,8 @@ from .device import BaseDevice
 
 
 class AbstractCommandHandler(ABC):
-    """Base class for SocketServer command handlers.
-
-    Handle incoming commands and send replies for a SocketServer.
-    Apply configuration and read sensor data.
+    """Handle incoming commands and send replies. Apply configuration and read
+    sensor data.
 
     Parameters
     ----------
@@ -51,17 +49,18 @@ class AbstractCommandHandler(ABC):
 
     The commands that can be handled are:
 
-    * configure: Load the configuration that is passed on with the command
+        configure: Load the configuration that is passed on with the command
         and connect to the devices specified in that configuration. This
         command can be sent multiple times before a start is received and only
         the last configuration is kept.
-    * start: Start reading the sensor data of the connected devices and send
+        start: Start reading the sensor data of the connected devices and send
         it as plain text via the socket. If no configuration was sent then the
         start command is ignored. Once started no configuration changes can be
         done anymore.
-    * stop: Stop sending sensor data and disconnect from all devices. Once
+        stop: Stop sending sensor data and disconnect from all devices. Once
         stopped, configuration changes can be done again and/or reading of
         sensor data can be started again.
+
     """
 
     valid_simulation_modes = (0, 1)
@@ -96,6 +95,7 @@ class AbstractCommandHandler(ABC):
         kwargs:
             The parameters to the command.
         """
+        self.log.info(f"Handling command {command} with kwargs {kwargs}")
         func = self.dispatch_dict[command]
         try:
             await func(**kwargs)
@@ -106,11 +106,7 @@ class AbstractCommandHandler(ABC):
         except Exception:
             self.log.exception(f"Command {command}({kwargs}) failed")
             raise
-        try:
-            await self._callback(response)
-        except Exception as e:
-            self.log.exception(f"Callback {self._callback}({response}) failed: {e!r}")
-            raise
+        await self._callback(response)
 
     def _validate_configuration(self, configuration: dict[str, Any]) -> None:
         """Validate the configuration.
