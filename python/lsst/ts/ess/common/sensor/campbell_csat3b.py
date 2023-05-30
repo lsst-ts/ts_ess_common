@@ -44,8 +44,8 @@ _NANS_OUTPUT: TelemetryDataType = [np.nan, np.nan, np.nan, np.nan, 0, 0, 0]
 def compute_signature(input_str: str, delimiter: str) -> int:
     """Compute the signature of the sensor telemetry.
 
-    The computation is based on the C function that can be found on page
-    55 of csat3b.pdf in the doc directory.
+    The computation is based on the C function that can be found on page 55
+    of CSAT3B 3-D anemometer.pdf
 
     Parameters
     ----------
@@ -93,26 +93,11 @@ def compute_signature(input_str: str, delimiter: str) -> int:
 
 
 class Csat3bSensor(BaseSensor):
-    """CSAT3B Sensor.
+    """Cambpell Scientific CSAT3B 3-D Anemometer Sensor.
 
-    Perform protocol conversion for Campbell Scientific CSAT3B Anemometer
-    instruments. Serial data is output by the anemometer once per 100 ms with
-    the following format:
-
-        'X,Y,Z,T,D,C,S<CR>'
-
-    where:
-
-        X         x-axis wind speed (m/s). Decimal value.
-        Y         y-axis wind speed (m/s). Decimal value.
-        Z         z-axis wind speed (m/s). Decimal value.
-        T         Sonic temperature (degrees C). Decimal value.
-        D         Diagnostic word. Single digit decimal.
-        C         Record counter. One or two digit value (0-63).
-        S         Signature. Four character lower case hexadecimal value
-                  without the leading '0x'. See page 55 of csat3b.pdf in the
-                  doc directory for examples.
-        <CR>      1-character terminator ('\r').
+    Perform protocol conversion for the
+    :ref:`Cambpell Scientific CSAT3B 3-D Anemometer
+    <lsst.ts.ess.common.campbell_scientific_CSAT3B_sensor>`.
 
     Parameters
     ----------

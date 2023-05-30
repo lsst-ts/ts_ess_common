@@ -47,58 +47,14 @@ STRIKE_PATTERN = re.compile(
 class Ld250Sensor(BaseSensor):
     """Boltek LD-250 Lightning Detector.
 
-    Perform protocol conversion for Boltek LD-250 Lightning Detector
-    instruments.
+    Perform protocol conversion for the
+    :ref:`Boltek LD-250 Lightning Detector
+    <lsst.ts.ess.common.boltek_LD-250_sensor>`.
 
-    Status data is output by the instrument once per second with
-    the following format:
-
-        '$WIMST,<ccc>,<sss>,<ca>,<sa>,<hhh.h>*<cs><\r><\n>'
-
-    where:
-
-        $           Start of telemetry indicator.
-        WIMST       Telemetry prefix.
-        ccc         Close strike rate (Range 0 to 999 strikes per minute).
-        sss         Total strike rate (Range 0 to 999 strikes per minute).
-        ca          Close alarm status (0: not active, 1: active).
-        sa          Severe alarm status (0: not active, 1: active).
-        hhh.h       Current GPS heading (Range 000.0 to 359.9 deg azimuth).
-        cs          Hex checksum (Range 00 to FF).
-        <\r><\n>    2-character terminator.
-
-    Noise data is output by the instrument if the noise threshold is exceeded.
-    The threshold can be configured in the detector and is set such that the
-    noise data never, or at least as little as possible, is emitted. Still, it
-    is possible that such a message is emitted so this sensor class needs to be
-    able to process it. The format is:
-
-        '$WIMLN*<cs><\r><\n>'
-
-    where:
-
-        $           Start of telemetry indicator.
-        WIMLN       Telemetry prefix.
-        cs          Hex checksum (Range 00 to FF).
-        <\r><\n>    2-character terminator.
-
-    Strike data is output by the instrument once per minute in case one or more
-    strikes are detected. The format is:
-
-        '$WIMLI,<ddd>,<uuu>,<bbb.b>*<cs><\r><\n>'
-
-    where:
-
-        $           Start of telemetry indicator.
-        WIMLI       Telemetry prefix.
-        ddd         Corrected strike distance (Range 0 to 300 miles).
-        uuu         Uncorrected strike distance (Range 0 to 300 miles).
-        bbb.b       Bearing to the strike (Range 000.0 to 359.9 deg azimuth).
-        cs          Hex checksum (Range 00 to FF).
-        <\r><\n>    2-character terminator.
-
-    The placeholders shown for the values are displaying a non-zero-padded
-    value for int and a zero-padded value for float values.
+    Parameters
+    ----------
+    log : `logger`
+        The logger for which to create a child logger.
     """
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:

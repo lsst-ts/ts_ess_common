@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.16.1
+=======
+
+* Move sensor documentation here from ts_ess_common and expand and update the documentation.
+* Sensors: in doc strings replace detailed explanations of the interface with links to the documentation.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.0
 =======
 
