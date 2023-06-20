@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.16.2
+=======
+
+* Stop using pytest in library code.
+  This makes it safe to import the test_utils module even in production code.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.1
 =======
 
