@@ -27,15 +27,6 @@ import logging
 import math
 from typing import TypedDict
 
-try:
-    import pytest
-except ImportError:
-    raise ImportError(
-        "Failed to import pytest. test_utils is only available for testing purposes. To use it "
-        "install pytest manually with 'conda install pytest' or install the full build suite with "
-        "'conda install -c lsstts ts-conda-build'"
-    )
-
 from lsst.ts.ess import common
 
 
@@ -337,7 +328,8 @@ class MockTestTools:
                 relative_humidity=round(resp[0], ndigits=2),
                 temperature=round(resp[1], ndigits=2),
             )
-            assert resp[3] == pytest.approx(dew_point, nan_ok=True)
+            # The tolerances match pytest.approx.
+            assert math.isclose(resp[3], dew_point, rel_tol=1e-6, abs_tol=1e-12)
 
     def check_temperature_reply(
         self,
