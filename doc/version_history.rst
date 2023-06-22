@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.16.0
+=======
+
+* Add class `MockEssWriteTopic` and async context manager `make_mock_ess_topics`.
+  These are designed to support testing data clients.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.2
 =======
 
