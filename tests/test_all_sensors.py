@@ -129,19 +129,19 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
         """Add an LD250 sensor plus its data to the sensors to be tested."""
         sensor = common.sensor.Ld250Sensor(self.log)
         data = {
-            f"${common.LD250TelemetryPrefix.STATUS_PREFIX},0,0,0,0,000.0*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.STATUS_PREFIX,
+            f"${common.LD250TelemetryPrefix.STATUS_PREFIX.value},0,0,0,0,000.0*42{sensor.terminator}": [
+                common.LD250TelemetryPrefix.STATUS_PREFIX.value,
                 0,
                 0,
                 0,
                 0,
                 0.0,
             ],
-            f"${common.LD250TelemetryPrefix.NOISE_PREFIX}*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.NOISE_PREFIX
+            f"${common.LD250TelemetryPrefix.NOISE_PREFIX.value}*42{sensor.terminator}": [
+                common.LD250TelemetryPrefix.NOISE_PREFIX.value
             ],
-            f"${common.LD250TelemetryPrefix.STRIKE_PREFIX},0,1,010.0*42{sensor.terminator}": [
-                common.LD250TelemetryPrefix.STRIKE_PREFIX,
+            f"${common.LD250TelemetryPrefix.STRIKE_PREFIX.value},0,1,010.0*42{sensor.terminator}": [
+                common.LD250TelemetryPrefix.STRIKE_PREFIX.value,
                 0,
                 1,
                 10.0,

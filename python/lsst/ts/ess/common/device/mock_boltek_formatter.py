@@ -67,7 +67,7 @@ class MockLD250NoiseFormatter(MockFormatter):
         disconnected_channel: int = 0,
         missed_channels: int = 0,
     ) -> list[str]:
-        return [f"${LD250TelemetryPrefix.NOISE_PREFIX}*{random_checksum()}"]
+        return [f"${LD250TelemetryPrefix.NOISE_PREFIX.value}*{random_checksum()}"]
 
 
 class MockLD250StatusFormatter(MockFormatter):
@@ -87,7 +87,7 @@ class MockLD250StatusFormatter(MockFormatter):
         severe_alarm_status = random.randint(0, 1)
         gps_heading = random.uniform(MockAzimuthConfig.min, MockAzimuthConfig.max)
         return [
-            f"${LD250TelemetryPrefix.STATUS_PREFIX}",
+            f"${LD250TelemetryPrefix.STATUS_PREFIX.value}",
             f"{close_strike_rate:03d}",
             f"{severe_strike_rate:03d}",
             f"{close_alarm_status:1d}",
@@ -111,7 +111,7 @@ class MockLD250StrikeFormatter(MockFormatter):
         )
         bearing = random.uniform(MockAzimuthConfig.min, MockAzimuthConfig.max)
         return [
-            f"${LD250TelemetryPrefix.STRIKE_PREFIX}",
+            f"${LD250TelemetryPrefix.STRIKE_PREFIX.value}",
             f"{corrested_strike_distance:03d}",
             f"{uncorrested_strike_distance:03d}",
             f"{bearing:05.1f}*{random_checksum()}",

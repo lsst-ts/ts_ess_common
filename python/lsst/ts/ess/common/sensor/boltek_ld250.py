@@ -29,18 +29,19 @@ from .sensor_registry import register_sensor
 
 """A regex pattern for a noise telemetry line."""
 NOISE_PATTERN = re.compile(
-    rf"^\$({LD250TelemetryPrefix.NOISE_PREFIX})\*[0-9A-F]{{2}}\r\n$"
+    rf"^\$({LD250TelemetryPrefix.NOISE_PREFIX.value})\*[0-9A-F]{{2}}\r\n$"
 )
 
 """A regex pattern for a status telemetry line."""
 STATUS_PATTERN = re.compile(
-    rf"^\$({LD250TelemetryPrefix.STATUS_PREFIX}),"
+    rf"^\$({LD250TelemetryPrefix.STATUS_PREFIX.value}),"
     r"(\d{1,3}),(\d{1,3}),(\d{1,2}),(\d{1,2}),(\d\d\d\.\d)\*[0-9A-F]{2}\r\n$"
 )
 
 """A regex pattern for a strike telemetry line."""
 STRIKE_PATTERN = re.compile(
-    rf"^\$({LD250TelemetryPrefix.STRIKE_PREFIX}),(\d{{1,3}}),(\d{{1,3}}),(\d\d\d\.\d)\*[0-9A-F]{{2}}\r\n$"
+    rf"^\$({LD250TelemetryPrefix.STRIKE_PREFIX.value}),"
+    r"(\d{1,3}),(\d{1,3}),(\d\d\d\.\d)\*[0-9A-F]{2}\r\n$"
 )
 
 
