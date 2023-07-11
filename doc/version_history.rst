@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.16.3
+=======
+
+* Explicitly use the value of string enums.
+  This apparently is necessary for Python 3.11.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.2
 =======
 
