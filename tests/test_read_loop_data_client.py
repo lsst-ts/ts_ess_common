@@ -24,6 +24,7 @@ import logging
 import types
 import typing
 import unittest
+from unittest.mock import AsyncMock
 
 from lsst.ts.ess import common
 
@@ -33,12 +34,12 @@ logging.basicConfig(
 
 
 class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self) -> None:
-        self.log = logging.getLogger()
-        self.topics = types.SimpleNamespace()
-        self.config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
+    async def create_data_client(self, auto_reconnect: bool = False) -> None:
+        log = logging.getLogger()
+        topics = types.SimpleNamespace()
+        config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
         self.data_client = common.TestReadLoopDataClient(
-            config=self.config, topics=self.topics, log=self.log
+            config=config, topics=topics, log=log, auto_reconnect=auto_reconnect
         )
 
     async def validate_data_client(
@@ -58,23 +59,52 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert self.data_client.num_read_data == (0 if expect_error else 1)
 
     async def test_nominal_read_data(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(self.data_client.read_data, expect_error=False)
 
     async def test_error_read_data(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(self.data_client.read_data, expect_error=True)
 
     async def test_nominal_run_loop(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(
             task=self.data_client.read_loop, expect_error=False
         )
 
     async def test_error_run_loop(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(
             task=self.data_client.read_loop, expect_error=True
         )
 
     async def test_nominal_run(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(task=self.data_client.run, expect_error=False)
 
     async def test_error_run(self) -> None:
+        await self.create_data_client()
         await self.validate_data_client(task=self.data_client.run, expect_error=True)
+
+    async def test_reconnect(self) -> None:
+        await self.create_data_client(auto_reconnect=True)
+
+        # Mock these two coroutines so we can assert they were called.
+        self.data_client.connect = AsyncMock()
+        self.data_client.disconnect = AsyncMock()
+
+        # First test without auto-reconnecting.
+        self.data_client.do_timeout = False
+        await self.data_client.read_data_once()
+
+        # Assert that the two mocked coroutines were NOT called.
+        self.data_client.connect.assert_not_called()
+        self.data_client.disconnect.assert_not_called()
+
+        # Then test with auto-reconnecting.
+        self.data_client.do_timeout = True
+        await self.data_client.read_data_once()
+
+        # Assert that the two mocked coroutines were called.
+        self.data_client.connect.assert_called()
+        self.data_client.disconnect.assert_called()
