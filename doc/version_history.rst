@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.16.4
+=======
+
+* Make ReadLoopDataClient automatically reconnect if configured to do so.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.3
 =======
 
