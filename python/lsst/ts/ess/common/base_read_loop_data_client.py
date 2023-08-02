@@ -55,6 +55,9 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         Logger.
     simulation_mode : `int`, optional
         Simulation mode; 0 for normal operation.
+    auto_reconnect : `bool`
+        Automatically disconnect and reconnect in case of a read error
+        (default: False)?
 
     Notes
     -----
@@ -68,6 +71,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
+        auto_reconnect: bool = False,
     ) -> None:
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
@@ -75,6 +79,8 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         if "max_read_timeouts" not in vars(config):
             raise RuntimeError("'max_read_timeouts' is required in 'config'.")
 
+        self.num_consecutive_read_timeouts = 0
+        self.auto_reconnect = auto_reconnect
         self._connected = False
 
     @property
@@ -102,28 +108,40 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         """
         await self.setup_reading()
         # Number of consecutive read timeouts encountered.
-        num_consecutive_read_timeouts = 0
+        self.num_consecutive_read_timeouts = 0
         while self.connected:
-            try:
-                await self.read_data()
-                num_consecutive_read_timeouts = 0
-            except asyncio.TimeoutError:
-                num_consecutive_read_timeouts += 1
-                self.log.warning(
-                    f"Read timed out. This is timeout #{num_consecutive_read_timeouts} "
-                    f"of {self.config.max_read_timeouts} allowed."
+            await self.read_data_once()
+
+    async def read_data_once(self) -> None:
+        try:
+            await self.read_data()
+            self.num_consecutive_read_timeouts = 0
+        except asyncio.TimeoutError:
+            self.num_consecutive_read_timeouts += 1
+
+            if self.num_consecutive_read_timeouts >= self.config.max_read_timeouts:
+                self.log.error(
+                    f"Read timed out {self.num_consecutive_read_timeouts} times "
+                    f">= {self.config.max_read_timeouts=}; giving up."
                 )
-                if num_consecutive_read_timeouts >= self.config.max_read_timeouts:
-                    self.log.error(
-                        f"Read timed out {num_consecutive_read_timeouts} times "
-                        f">= {self.config.max_read_timeouts=}; giving up"
-                    )
-                    raise
-            except StopIteration:
-                self.log.info("read loop ends: out of simulated raw data")
-            except Exception as e:
-                self.log.exception(f"read loop failed: {e!r}")
                 raise
+
+            message = (
+                f"Read timed out. This is timeout #{self.num_consecutive_read_timeouts} "
+                f"of {self.config.max_read_timeouts} allowed."
+            )
+            if self.auto_reconnect:
+                message += " Attempting to disconnect and reconnect now."
+            self.log.warning(message)
+
+            if self.auto_reconnect:
+                await self.stop()
+                await self.start()
+        except StopIteration:
+            self.log.info("read loop ends: out of simulated raw data")
+        except Exception as e:
+            self.log.exception(f"read loop failed: {e!r}")
+            raise
 
     async def setup_reading(self) -> None:
         """Perform any tasks before starting the read loop."""
