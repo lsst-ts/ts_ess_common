@@ -33,6 +33,43 @@ In the configuration we use:
 * no flow control
 * ASCII data format
 
+Scale and offset
+================
+
+The Young serial interface outputs counts which need to be converted to the telemetry values in the correct units.
+Section 3.2 on page 1 of the serial interface manual explains how the counts from VIN1, VIN2, VIN3 and VIN4 need to be converted.
+Page 4 of the serial interface manual contains the ASCII format of the serial data.
+The manuals of the respective instruments contain the conversion scales and offsets to use.
+Combining all of that we see that:
+
+* Wind speed needs a scale of 0.0834 and an offset of 0 to get values in m/s.
+* Wind direction needs a scale of 0.1 and an offset of 0 to get values in º.
+* Temperature (VIN1) counts need to be divided by 4 to convert them to mV values.
+  The temperature range is from -50 ºC to 50 ºC (meaning a range of 100 ºC) for values from 0 to 1000 mV.
+  This means that the scale needs to be::
+
+    100 / 1000 / 4 = 0.025
+
+  and the offset -50.
+* Humidity (VIN2) counts need to be divided by 4 to convert them to mV values.
+  The humidity range is from 0 % to 100 % for values from 0 to 1000 mV.
+  This means that the scale needs to be::
+
+    100 / 1000 / 4 = 0.025
+
+  and the offset 0.
+* Barometric pressure (VIN3) counts need to be divided by 4 and then multiplied by 5 to convert them to mV values.
+  Applying the conversion from section 4.1 of the the barometric pressure sensor manual::
+
+    hPa = 0.12 * mV + 500
+
+  means that the counts values can be directly converted with::
+
+    hPa = 0.15 * counts + 500
+
+  resulting in a scale of 0.15 and an offset of 500.
+* No rain sensor is used yet so those values always are 0.
+
 Manuals
 =======
 
