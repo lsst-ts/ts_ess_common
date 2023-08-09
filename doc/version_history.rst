@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.16.5
+=======
+
+* Add explanation for scale and offset to the Young weather station documentation.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.4
 =======
 
