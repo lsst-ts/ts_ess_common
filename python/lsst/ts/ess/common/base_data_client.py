@@ -163,6 +163,13 @@ class BaseDataClient(abc.ABC):
         raise NotImplementedError()
 
     async def start(self) -> None:
+        """Delegate handling of start tasks to the start_tasks method.
+
+        This allows implementing classes to customize start behavior.
+        """
+        await self.start_tasks()
+
+    async def start_tasks(self) -> None:
         """Call disconnect, connect, and start the run task.
 
         Raises the same exceptions as `connect`.
@@ -199,6 +206,13 @@ class BaseDataClient(abc.ABC):
         raise NotImplementedError()
 
     async def stop(self) -> None:
+        """Delegate handling of stop tasks to the stop_tasks method.
+
+        This allows implementing classes to customize stop behavior.
+        """
+        await self.stop_tasks()
+
+    async def stop_tasks(self) -> None:
         """Stop reading and publishing data.
 
         This is alway safe to call, whether connected or not.
@@ -209,7 +223,7 @@ class BaseDataClient(abc.ABC):
         try:
             await self.disconnect()
         except Exception:
-            self.log.exception("Could not disconnect in stop. Continuing.")
+            self.log.exception("Could not disconnect in stop_tasks. Continuing.")
 
     def __repr__(self) -> str:
         """Return a repr of this data client.
