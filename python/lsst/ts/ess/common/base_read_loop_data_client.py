@@ -80,6 +80,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
             raise RuntimeError("'max_read_timeouts' is required in 'config'.")
 
         self.num_consecutive_read_timeouts = 0
+        self.num_reconnects = 0
         self.auto_reconnect = auto_reconnect
         self._connected = False
 
@@ -92,6 +93,16 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
 
     async def disconnect(self) -> None:
         self._connected = False
+
+    async def start(self) -> None:
+        """Override start method to handle auto reconnecting if necessary."""
+        self.num_reconnects = 0
+        await self.start_tasks()
+        if self.auto_reconnect:
+            while self.num_reconnects < 5:
+                self.num_reconnects += 1
+                await self.stop_tasks()
+                await self.start_tasks()
 
     async def run(self) -> None:
         try:
@@ -135,8 +146,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
             self.log.warning(message)
 
             if self.auto_reconnect:
-                await self.stop()
-                await self.start()
+                await self.disconnect()
         except StopIteration:
             self.log.info("read loop ends: out of simulated raw data")
         except Exception as e:

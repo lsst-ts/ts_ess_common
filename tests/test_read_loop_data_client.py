@@ -95,16 +95,21 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
         # First test without auto-reconnecting.
         self.data_client.do_timeout = False
-        await self.data_client.read_data_once()
 
         # Assert that the two mocked coroutines were NOT called.
         self.data_client.connect.assert_not_called()
         self.data_client.disconnect.assert_not_called()
 
+        # Assert that num_reconnects has not been incremented.
+        assert self.data_client.num_reconnects == 0
+
         # Then test with auto-reconnecting.
+        await self.data_client.start()
         self.data_client.do_timeout = True
-        await self.data_client.read_data_once()
 
         # Assert that the two mocked coroutines were called.
         self.data_client.connect.assert_called()
         self.data_client.disconnect.assert_called()
+
+        # Assert that num_reconnects has been incremented.
+        assert self.data_client.num_reconnects == 5
