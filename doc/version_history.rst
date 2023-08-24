@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.16.6
+=======
+
+* Fix reconnection issue in BaseReadLoopDataClient.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.5
 =======
 
@@ -19,7 +29,7 @@ Requires:
 v0.16.4
 =======
 
-* Make ReadLoopDataClient automatically reconnect if configured to do so.
+* Make BaseReadLoopDataClient automatically reconnect if configured to do so.
 
 Requires:
 
