@@ -71,6 +71,16 @@ class DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         assert not data_client.connected
         assert data_client.run_task.done()
 
+    async def test_context_manager(self) -> None:
+        async with common.TestDataClient(
+            config=self.config, topics=self.topics, log=self.log
+        ) as data_client:
+            assert data_client.connected
+            assert not data_client.run_task.done()
+
+        assert not data_client.connected
+        assert data_client.run_task.done()
+
     async def test_exceptions(self) -> None:
         data_client = common.TestDataClient(
             config=self.config, topics=self.topics, log=self.log
