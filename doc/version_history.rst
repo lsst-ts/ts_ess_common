@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.16.7
+=======
+
+* Make BaseDataClient an async context manager.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.6
 =======
 

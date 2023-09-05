@@ -32,9 +32,9 @@ import importlib
 import inspect
 import logging
 import types
-from typing import TYPE_CHECKING, Any, Type
+import typing
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from lsst.ts import salobj
 
 from lsst.ts import utils
@@ -42,7 +42,7 @@ from lsst.ts import utils
 # Dict of data client class name: data client class.
 # Access via the `get_data_client_class functions`.
 # BaseDataClient automatically registers concrete subclasses.
-_DataClientClassRegistry: dict[str, Type[BaseDataClient]] = dict()
+_DataClientClassRegistry: dict[str, typing.Type[BaseDataClient]] = dict()
 
 # Dict of data client class name: name of module in which it is defined.
 # You may omit data clients found in ts_ess_common and ts_ess_csc,
@@ -53,7 +53,7 @@ ExternalDataClientModules = dict(
 )
 
 
-def get_data_client_class(class_name: str) -> Type[BaseDataClient]:
+def get_data_client_class(class_name: str) -> typing.Type[BaseDataClient]:
     """Get a data client class by class name.
 
     Parameters
@@ -118,7 +118,7 @@ class BaseDataClient(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def get_config_schema(cls) -> dict[str, Any]:
+    def get_config_schema(cls) -> dict[str, typing.Any]:
         """Get the config schema as jsonschema dict."""
         raise NotImplementedError()
 
@@ -253,3 +253,15 @@ class BaseDataClient(abc.ABC):
             )
             return
         _DataClientClassRegistry[name] = cls
+
+    async def __aenter__(self) -> BaseDataClient:
+        await self.start()
+        return self
+
+    async def __aexit__(
+        self,
+        type: typing.Type[BaseException] | None,
+        value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None:
+        await self.stop()
