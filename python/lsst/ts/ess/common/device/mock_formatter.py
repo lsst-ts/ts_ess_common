@@ -55,7 +55,7 @@ MockElectricFieldStrengthConfig = types.SimpleNamespace(min=-20.0, max=20.0)
 MockHumidityConfig = types.SimpleNamespace(min=5.0, max=95.0)
 
 # The minimum and maximum air pressure values [mbar].
-MockPressureConfig = types.SimpleNamespace(min=10.0, max=1100.0)
+MockPressureConfig = types.SimpleNamespace(min=700.0, max=1000.0)
 
 # The minimum and maximum strike rates (strikes/min).
 MockStrikeRateConfig = types.SimpleNamespace(min=0, max=999)
