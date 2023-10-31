@@ -67,7 +67,11 @@ Combining all of that we see that:
 
     hPa = 0.15 * counts + 500
 
-  resulting in a scale of 0.15 and an offset of 500.
+  or for values in Pa instead of hPa::
+
+    Pa = 15.0 * counts + 500
+
+  resulting in a scale of 15.0 and an offset of 500.
 * No rain sensor is used yet so those values always are 0.
 
 Manuals

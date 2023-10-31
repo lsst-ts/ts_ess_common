@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.16.8
+=======
+
+* Set barometric pressure values to a more realistic range.
+* Improve the description of the conversion of the weather station barometric pressure.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.7
 =======
 
