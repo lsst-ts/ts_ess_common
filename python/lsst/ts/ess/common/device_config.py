@@ -61,9 +61,9 @@ class DeviceConfig:
     """
 
     name: str
-    dev_type: DeviceType | int
+    dev_type: DeviceType
     dev_id: str
-    sens_type: SensorType | int
+    sens_type: SensorType
     baud_rate: int
     location: str
     num_channels: int = 0

@@ -21,5 +21,8 @@
 
 from .base_data_client import *
 from .base_read_loop_data_client import *
+from .controller_data_client import *
+from .lightning_data_client import *
+from .rpi_data_client import *
 from .test_data_client import *
 from .test_read_loop_data_client import *
