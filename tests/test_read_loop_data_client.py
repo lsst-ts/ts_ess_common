@@ -38,7 +38,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         log = logging.getLogger()
         topics = types.SimpleNamespace()
         config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
-        self.data_client = common.TestReadLoopDataClient(
+        self.data_client = common.data_client.TestReadLoopDataClient(
             config=config, topics=topics, log=log, auto_reconnect=auto_reconnect
         )
 

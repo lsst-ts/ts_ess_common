@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.17.0
+=======
+
+* Move data client classes to submodule.
+* Add common code from ts_ess_csc.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.16.8
 =======
 

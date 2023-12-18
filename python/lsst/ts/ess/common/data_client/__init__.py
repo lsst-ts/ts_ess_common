@@ -19,24 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
-
-# For an explanation why these next lines are so complicated, see
-# https://confluence.lsstcorp.org/pages/viewpage.action?spaceKey=LTS&title=Enabling+Mypy+in+Pytest
-if typing.TYPE_CHECKING:
-    __version__ = "?"
-else:
-    try:
-        from .version import *
-    except ImportError:
-        __version__ = "?"
-
-# Import sub modules
-from . import accumulator, data_client, device, processor, sensor
-from .abstract_command_handler import *
-from .command_error import *
-from .config_schema import *
-from .constants import *
-from .device_config import *
-from .mock_command_handler import *
-from .socket_server import SocketServer
+from .base_data_client import *
+from .base_read_loop_data_client import *
+from .controller_data_client import *
+from .lightning_data_client import *
+from .rpi_data_client import *
+from .test_data_client import *
+from .test_read_loop_data_client import *

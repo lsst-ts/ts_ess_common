@@ -19,24 +19,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
+__all__ = ["mbar_to_pa"]
 
-# For an explanation why these next lines are so complicated, see
-# https://confluence.lsstcorp.org/pages/viewpage.action?spaceKey=LTS&title=Enabling+Mypy+in+Pytest
-if typing.TYPE_CHECKING:
-    __version__ = "?"
-else:
-    try:
-        from .version import *
-    except ImportError:
-        __version__ = "?"
+import astropy.units as u
+from astropy.units import misc
 
-# Import sub modules
-from . import accumulator, data_client, device, processor, sensor
-from .abstract_command_handler import *
-from .command_error import *
-from .config_schema import *
-from .constants import *
-from .device_config import *
-from .mock_command_handler import *
-from .socket_server import SocketServer
+
+def mbar_to_pa(value: float) -> float:
+    """Convert a value in millibar to a value in Pa.
+
+    Parameters
+    ----------
+    value: `float`
+        The value in millibar.
+
+    Returns
+    -------
+    float
+        The value in Pa.
+
+    Notes
+    -----
+    All astropy S.I. units support prefixes like 'milli-'. Since 'bar' is a
+    'misc' unit, it doesn't support prefixes. For millibar an exception was
+    made and 'mbar' was added. See
+
+    https://github.com/astropy/astropy/pull/7863
+
+    This is not documented in the astropy documentation!
+    """
+    quantity_in_mbar = value * misc.mbar
+    quantity_in_pa = quantity_in_mbar.to(u.Pa)
+    return quantity_in_pa.value
