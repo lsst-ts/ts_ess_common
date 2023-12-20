@@ -65,8 +65,9 @@ class AirTurbulenceProcessor(BaseProcessor):
             The timestamp of the data.
         response_code : `int`
             The ResponseCode.
-        sensor_data : each of type `float`
-            A Sequence of float representing the sensor telemetry data.
+        sensor_data : each of type `float` or `int`
+            A Sequence of float and/or int representing the sensor telemetry
+            data.
         """
         if self.device_configuration.name not in self.air_turbulence_cache:
             self.air_turbulence_cache[
@@ -75,12 +76,17 @@ class AirTurbulenceProcessor(BaseProcessor):
                 log=self.log, num_samples=self.device_configuration.num_samples
             )
 
+        isok = response_code == 0
+        sensor_status = response_code
+        if len(sensor_data) >= 5:
+            isok = sensor_data[4] == 0 and response_code == 0
+            sensor_status = int(sensor_data[4])
         accumulator = self.air_turbulence_cache[self.device_configuration.name]
         accumulator.add_sample(
             timestamp=timestamp,
             speed=sensor_data[0:3],  # type: ignore
             sonic_temperature=float(sensor_data[3]),
-            isok=sensor_data[4] == 0 and response_code == 0,
+            isok=isok,
         )
         topic_kwargs = accumulator.get_topic_kwargs()
         if not topic_kwargs:
@@ -96,6 +102,6 @@ class AirTurbulenceProcessor(BaseProcessor):
         )
         await self.topics.evt_sensorStatus.set_write(
             sensorName=self.device_configuration.name,
-            sensorStatus=sensor_data[4],
+            sensorStatus=sensor_status,
             serverStatus=response_code,
         )
