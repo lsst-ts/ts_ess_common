@@ -6,6 +6,19 @@
 Version History
 ###############
 
+v0.18.0
+=======
+
+* Add AuxTelCameraCoolantPressureProcessor class.
+* Make AirTurbulenceProcessor more generic.
+* Consolidate Lightning and RPi data clients into one class.
+* Add unit tests for new data client and processor classes.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.17.0
 =======
 
