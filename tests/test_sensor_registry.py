@@ -24,10 +24,6 @@ import unittest
 
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 TIMEOUT = 5
 """Standard timeout in seconds."""
 

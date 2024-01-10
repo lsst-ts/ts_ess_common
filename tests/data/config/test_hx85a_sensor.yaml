@@ -1,0 +1,11 @@
+host: 127.0.0.1
+port: 5000
+max_read_timeouts: 2
+devices:
+  - name: EssHX85A
+    channels: 4
+    device_type: FTDI
+    baud_rate: 9600
+    ftdi_id: ABC
+    sensor_type: HX85A
+    location: Test1

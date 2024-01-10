@@ -28,10 +28,6 @@ from unittest.mock import AsyncMock
 
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 
 class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def create_data_client(self, auto_reconnect: bool = False) -> None:

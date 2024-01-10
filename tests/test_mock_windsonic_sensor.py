@@ -19,15 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
 import unittest
 
 from lsst.ts.ess import common
 from lsst.ts.ess.common.test_utils import MockTestTools
-
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
 
 
 class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
