@@ -27,10 +27,6 @@ from typing import Any
 from lsst.ts.ess import common
 from lsst.ts.ess.common.test_utils import MockTestTools
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 TIMEOUT = 5
 """Standard timeout in seconds."""
 

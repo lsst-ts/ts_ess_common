@@ -28,10 +28,6 @@ import numpy as np
 import pytest
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 # Data for the Campbell CSAT3B sensor from page 55 of csat3b.pdf.
 CSAT3B_DATA = [
     "0.08945,0.06552,0.05726,19.69336,0,5,c3a6",

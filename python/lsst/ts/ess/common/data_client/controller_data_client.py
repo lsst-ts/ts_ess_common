@@ -23,7 +23,6 @@ from __future__ import annotations
 
 __all__ = ["ControllerDataClient"]
 
-import abc
 import asyncio
 import json
 import logging
@@ -33,6 +32,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Type
 
 import jsonschema
+import yaml
 from lsst.ts import tcpip
 
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
@@ -126,10 +126,112 @@ class ControllerDataClient(BaseReadLoopDataClient):
         self.processors: dict[str, BaseProcessor] = dict()
 
     @classmethod
-    @abc.abstractmethod
     def get_config_schema(cls) -> dict[str, Any]:
-        """Get the config schema as jsonschema dict."""
-        raise NotImplementedError()
+        return yaml.safe_load(
+            """
+$schema: http://json-schema.org/draft-07/schema#
+description: Schema for ControllerDataClient
+type: object
+properties:
+  host:
+    description: IP address of the TCP/IP interface.
+    type: string
+    format: hostname
+  port:
+    description: Port number of the TCP/IP interface.
+    type: integer
+    default: 5000
+  max_read_timeouts:
+    description: Maximum number of read timeouts before an exception is raised.
+    type: integer
+    default: 5
+  devices:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      properties:
+        name:
+          description: Name of the sensor.
+          type: string
+        sensor_type:
+          description: Type of the sensor.
+          type: string
+          enum:
+          - CSAT3B
+          - EFM100C
+          - HX85A
+          - HX85BA
+          - LD250
+          - Temperature
+          - Windsonic
+        channels:
+          description: Number of channels.
+          type: integer
+        device_type:
+          description: Type of the device.
+          type: string
+          enum:
+          - FTDI
+          - Serial
+        baud_rate:
+          description: Baud rate of the sensor.
+          type: integer
+          default: 19200
+        location:
+          description: >-
+            The location of the device. In case of a multi-channel device with
+            probes that can be far away from the sensor, a comma separated line
+            can be used to give the location of each probe. In that case the
+            locations should be given in the order of the channels.
+          type: string
+        safe_interval:
+          description: >-
+            The amount of time [s] after which an event is sent informing that
+            no lightning strikes or high electric field have been detected
+            anymore.
+          type: integer
+          default: 10
+        num_samples:
+          description: >-
+            Number of samples per telemetry sample. Only relevant for
+            certain kinds of data, such as wind speed and direction and
+            electric field strength data Ignored for other kinds of data.
+          type: integer
+          minimum: 2
+      anyOf:
+      - if:
+          properties:
+            device_type:
+              const: FTDI
+        then:
+          properties:
+            ftdi_id:
+              description: FTDI Serial ID to connect to.
+              type: string
+      - if:
+          properties:
+            device_type:
+              const: Serial
+        then:
+          properties:
+            serial_port:
+              description: Serial port to connect to.
+              type: string
+      required:
+        - name
+        - sensor_type
+        - device_type
+        - baud_rate
+        - location
+required:
+  - host
+  - port
+  - max_read_timeouts
+  - devices
+additionalProperties: false
+"""
+        )
 
     @classmethod
     def get_telemetry_schema(cls) -> dict[str, Any]:
