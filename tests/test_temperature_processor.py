@@ -26,10 +26,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 
 class TemperatureProcessorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_processor(self) -> None:

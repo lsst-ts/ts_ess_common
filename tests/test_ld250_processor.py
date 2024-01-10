@@ -26,10 +26,6 @@ from unittest.mock import AsyncMock
 
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 
 class Ld250ProcessorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_processor(self) -> None:

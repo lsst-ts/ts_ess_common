@@ -27,10 +27,6 @@ from unittest.mock import AsyncMock
 import numpy as np
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 
 class Efm100cProcessorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_processor(self) -> None:

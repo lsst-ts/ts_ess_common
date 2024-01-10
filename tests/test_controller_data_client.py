@@ -29,10 +29,6 @@ from unittest.mock import ANY, AsyncMock, MagicMock
 import yaml
 from lsst.ts.ess import common
 
-logging.basicConfig(
-    format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG
-)
-
 CONFIG_PATH = pathlib.Path(__file__).parent / "data" / "config"
 
 
