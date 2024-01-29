@@ -171,6 +171,17 @@ class AllSensorsTestCase(unittest.IsolatedAsyncioTestCase):
                 0,
                 0,
             ],
+            # Test with a line with incorrect data. These are occasionally seen
+            # coming from the 3D anemometer.
+            f"\x00-0.0116,0.00972,0.01091,28.53760,0,100,ff21{sensor.terminator}": [
+                math.nan,
+                math.nan,
+                math.nan,
+                math.nan,
+                0,
+                0,
+                0,
+            ],
         }
         sensor_and_data = SensorAndData(sensor=sensor, data=data)
         self.sensor_and_data_list.append(sensor_and_data)

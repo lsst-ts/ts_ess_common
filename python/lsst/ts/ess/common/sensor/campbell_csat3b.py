@@ -21,7 +21,7 @@
 
 __all__ = ["compute_signature", "Csat3bSensor"]
 
-import numpy as np
+import math
 
 from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
@@ -38,7 +38,7 @@ _WORD_RANGE = 0x10000
 
 # Default output of NaN values in case of an error reading the sensor. Note
 # that the final three values are int values and therefore cannot be NaN.
-_NANS_OUTPUT: TelemetryDataType = [np.nan, np.nan, np.nan, np.nan, 0, 0, 0]
+_NANS_OUTPUT: TelemetryDataType = [math.nan, math.nan, math.nan, math.nan, 0, 0, 0]
 
 
 def compute_signature(input_str: str, delimiter: str) -> int:
@@ -127,18 +127,19 @@ class Csat3bSensor(BaseSensor):
         """
         stripped_line: str = line.strip(self.terminator)
         line_items = stripped_line.split(self.delimiter)
-        output: TelemetryDataType = []
-        if len(line_items) == _NUM_VALUES:
-            x = float(line_items[0])
-            y = float(line_items[1])
-            z = float(line_items[2])
-            t = float(line_items[3])
-            d = int(line_items[4])
-            c = int(line_items[5])
-            s = int(line_items[6], 16)
-            output = [x, y, z, t, d, c, s]
-        else:
-            output = _NANS_OUTPUT
+        output: TelemetryDataType = _NANS_OUTPUT
+        try:
+            if len(line_items) == _NUM_VALUES:
+                x = float(line_items[0])
+                y = float(line_items[1])
+                z = float(line_items[2])
+                t = float(line_items[3])
+                d = int(line_items[4])
+                c = int(line_items[5])
+                s = int(line_items[6], 16)
+                output = [x, y, z, t, d, c, s]
+        except ValueError:
+            self.log.exception(f"Exception converting {line=}.")
         return output
 
 
