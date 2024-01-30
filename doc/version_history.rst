@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.18.1
+=======
+
+* Handle telemetry formatting exceptions for the Campbell Scientific CSAT3B 3-D anemometer.
+* Correct terminator of the Campbell Scientific CSAT3B 3-D anemometer.
+
+Requires:
+
+* ts_tcpip 1.1
+* ts_utils 1.0
+
 v0.18.0
 =======
 
