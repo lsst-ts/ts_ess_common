@@ -106,8 +106,6 @@ class Csat3bSensor(BaseSensor):
     """
 
     # Override default value.
-    terminator = "\r"
-    # Override default value.
     charset = "ISO-8859-1"
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
