@@ -79,10 +79,10 @@ class Efm100cProcessor(BaseProcessor):
             A Sequence of float representing the sensor telemetry data.
         """
         if self.device_configuration.name not in self.electric_field_strength_cache:
-            self.electric_field_strength_cache[
-                self.device_configuration.name
-            ] = ElectricFieldStrengthAccumulator(
-                num_samples=self.device_configuration.num_samples
+            self.electric_field_strength_cache[self.device_configuration.name] = (
+                ElectricFieldStrengthAccumulator(
+                    num_samples=self.device_configuration.num_samples
+                )
             )
         accumulator = self.electric_field_strength_cache[self.device_configuration.name]
 
