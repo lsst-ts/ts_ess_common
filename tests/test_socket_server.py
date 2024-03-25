@@ -132,9 +132,9 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
 
             # Make sure that the mock sensor outputs data for a disconnected
             # channel.
-            server.command_handler.devices[
-                0
-            ].disconnected_channel = disconnected_channel
+            server.command_handler.devices[0].disconnected_channel = (
+                disconnected_channel
+            )
 
             # Make sure that the mock sensor outputs truncated data.
             server.command_handler.devices[0].missed_channels = missed_channels

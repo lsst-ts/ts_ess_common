@@ -70,10 +70,10 @@ class AirTurbulenceProcessor(BaseProcessor):
             data.
         """
         if self.device_configuration.name not in self.air_turbulence_cache:
-            self.air_turbulence_cache[
-                self.device_configuration.name
-            ] = AirTurbulenceAccumulator(
-                log=self.log, num_samples=self.device_configuration.num_samples
+            self.air_turbulence_cache[self.device_configuration.name] = (
+                AirTurbulenceAccumulator(
+                    log=self.log, num_samples=self.device_configuration.num_samples
+                )
             )
 
         isok = response_code == 0
