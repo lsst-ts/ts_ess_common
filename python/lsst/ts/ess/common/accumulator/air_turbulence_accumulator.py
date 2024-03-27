@@ -156,17 +156,22 @@ class AirTurbulenceAccumulator:
         dict_to_return: dict[str, Any] = dict()
         try:
             if len(self.speed) >= self.num_samples:
-                # Return good data
+                # Return good data.
                 speed_arr = np.column_stack(self.speed)
                 speed_median_arr, speed_std_arr = get_median_and_std_dev(
                     data=speed_arr, axis=1
                 )
-                magnitude_arr = np.linalg.norm(speed_arr, axis=1)
+
+                # Use axis=0 to make sure that the norm of each [x, y, z]
+                # triplet is calculated instead of axis=1 which calculates the
+                # norms of all x values, of all y values and of all z values.
+                magnitude_arr = np.linalg.norm(speed_arr, axis=0)
                 magnitude_median_arr = np.median(magnitude_arr)
                 (
                     sonic_temperature_median,
                     sonic_temperature_std,
                 ) = get_median_and_std_dev(self.sonic_temperature)
+
                 dict_to_return = dict(
                     timestamp=timestamp,
                     speed=speed_median_arr,
@@ -178,7 +183,7 @@ class AirTurbulenceAccumulator:
                 )
                 self.clear()
             elif self.num_bad_samples >= self.num_samples:
-                # Return bad data
+                # Return bad data.
                 dict_to_return = dict(
                     timestamp=timestamp,
                     speed=[np.nan] * 3,
