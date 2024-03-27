@@ -10,6 +10,7 @@ v0.18.3
 =======
 
 * Fix air turbulence speed magnitude calculation.
+* Update Jira URL.
 
 Requires:
 
