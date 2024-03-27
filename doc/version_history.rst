@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.18.3
+=======
+
+* Fix air turbulence speed magnitude calculation.
+* Update Jira URL.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.18.2
 =======
 

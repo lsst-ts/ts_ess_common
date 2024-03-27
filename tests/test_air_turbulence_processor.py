@@ -69,8 +69,8 @@ class AirTurbulenceProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             sonicTemperature=2.0,
             sonicTemperatureStdDev=0.0,
             speed=ANY,
-            speedMagnitude=2.0,
-            speedMaxMagnitude=2.0,
+            speedMagnitude=1.7320508075688772,
+            speedMaxMagnitude=1.7320508075688772,
             speedStdDev=ANY,
             location=device_configuration.location,
         )

@@ -43,7 +43,7 @@ Protocols include RS-232, RS-485, TCP/IP, USB, and FTDI.
   In this case we run custom software (in `ts_ess_controller`_) on RPis to read the data and transmit it via TCP/IP.
   For this one case, we represent sensors using a subclass of `sensor.BaseSensor`.
   The data is read by ``RpiDataClient`` in `ts_ess_csc`_, or a specialized variant.
-  
+
 * Sensors that serve their data via RS-232 or RS-485 serial are served in two different ways:
 
   * Some sensors are read by a Raspberry Pi running custom software, as per the "USB or FTDI" case above.
@@ -103,7 +103,7 @@ Contributing
 ============
 
 ``lsst.ts.ess.common`` is developed at https://github.com/lsst-ts/ts_ess_common.
-You can find Jira issues for this module using `labels=ts_ess_common <https://jira.lsstcorp.org/issues/?jql=project%3DDM%20AND%20labels%3Dts_ess_common>`_.
+You can find Jira issues for this module using `labels=ts_ess_common <https://rubinobs.atlassian.net/issues/?jql=project%3DDM%20AND%20labels%3Dts_ess_common>`_.
 
 Version History
 ===============
