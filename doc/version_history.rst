@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.18.4
+=======
+
+* Fix the conda recipe.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.18.3
 =======
 
