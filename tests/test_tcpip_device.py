@@ -19,11 +19,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import platform
+import logging
+import unittest
 
-from .base_device import *
-from .mock_device import *
-from .mock_formatter import *
-from .mock_temperature_formatter import *
-from .mock_windsonic_formatter import *
-from .tcpip_device import *
+from lsst.ts.ess import common
+
+
+class TcpipDeviceTestCase(unittest.IsolatedAsyncioTestCase):
+    async def test_tcp_ip_device(self) -> None:
+        log = logging.Logger(type(self).__name__)
+        num_channels = 4
+        sensor = common.sensor.TemperatureSensor(log=log, num_channels=num_channels)
+        tcpip_device = common.device.TcpipDevice(
+            name="Test",
+            host="",
+            port=0,
+            sensor=sensor,
+            baud_rate=19200,
+            callback_func=None,
+            log=log,
+            simulation_mode=1,
+        )
+        await tcpip_device.open()
+        line = await tcpip_device.readline()
+        line = line.decode().strip()
+        line_items = line.split(",")
+        assert len(line_items) == num_channels
+        await tcpip_device.close()
