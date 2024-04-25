@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.19.0
+=======
+
+* Rename classes and files for more clarity.
+* Add TcpipDevice class.
+* Add TcpipDataClient class.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.18.4
 =======
 
