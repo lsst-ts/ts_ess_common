@@ -42,7 +42,7 @@ class TcpipDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         )
         await tcpip_device.open()
         line = await tcpip_device.readline()
-        line = line.decode().strip()
+        line = line.strip()
         line_items = line.split(",")
         assert len(line_items) == num_channels
         await tcpip_device.close()

@@ -29,7 +29,6 @@ import logging
 import types
 import typing
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Type
 
 import jsonschema
 import yaml
@@ -39,19 +38,11 @@ from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
 from ..device_config import DeviceConfig
 from ..mock_command_handler import MockCommandHandler
 from ..mock_controller import MockController
-from ..processor import (
-    AirTurbulenceProcessor,
-    BaseProcessor,
-    Efm100cProcessor,
-    Hx85aProcessor,
-    Hx85baProcessor,
-    Ld250Processor,
-    TemperatureProcessor,
-    WindsonicProcessor,
-)
+from ..processor import BaseProcessor
 from .base_read_loop_data_client import BaseReadLoopDataClient
+from .data_client_constants import telemetry_processor_dict
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from lsst.ts import salobj
 
 # Time limit for connecting to the ESS Controller (seconds).
@@ -100,17 +91,6 @@ class ControllerDataClient(BaseReadLoopDataClient):
         # to connect to the server. Ignored if not simulating.
         self.enable_mock_controller = True
 
-        # Dict of SensorType: BaseProcessor type.
-        self.telemetry_processor_dict: dict[str, Type[BaseProcessor]] = {
-            SensorType.TEMPERATURE: TemperatureProcessor,
-            SensorType.HX85A: Hx85aProcessor,
-            SensorType.HX85BA: Hx85baProcessor,
-            SensorType.CSAT3B: AirTurbulenceProcessor,
-            SensorType.WINDSONIC: WindsonicProcessor,
-            SensorType.EFM100C: Efm100cProcessor,
-            SensorType.LD250: Ld250Processor,
-        }
-
         # Mock controller for simulation mode.
         self.mock_controller: MockController | None = None
 
@@ -126,7 +106,7 @@ class ControllerDataClient(BaseReadLoopDataClient):
         self.processors: dict[str, BaseProcessor] = dict()
 
     @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
+    def get_config_schema(cls) -> dict[str, typing.Any]:
         return yaml.safe_load(
             """
 $schema: http://json-schema.org/draft-07/schema#
@@ -234,7 +214,7 @@ additionalProperties: false
         )
 
     @classmethod
-    def get_telemetry_schema(cls) -> dict[str, Any]:
+    def get_telemetry_schema(cls) -> dict[str, typing.Any]:
         return json.loads(
             """
 {
@@ -402,7 +382,7 @@ additionalProperties: false
         else:
             self.log.warning(f"Ignoring unparsable {data}.")
 
-    async def run_command(self, command: str, **parameters: Any) -> None:
+    async def run_command(self, command: str, **parameters: typing.Any) -> None:
         """Write a command. Time out if it takes too long.
 
         Parameters
@@ -501,7 +481,7 @@ additionalProperties: false
                 )
             if response_code == ResponseCode.OK:
                 if sensor_name not in self.processors:
-                    processor_type = self.telemetry_processor_dict[
+                    processor_type = telemetry_processor_dict[
                         device_configuration.sens_type
                     ]
                     self.processors[sensor_name] = processor_type(

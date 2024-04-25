@@ -123,10 +123,12 @@ class TcpipDevice(BaseDevice):
         """
         line: str = ""
         async with self.stream_lock:
-            assert self.client is not None  # keep mypy happy.
-            line = await asyncio.wait_for(
-                self.client.readline(), timeout=COMMUNICATE_TIMEOUT
-            )
+            assert self.client is not None
+            line = (
+                await asyncio.wait_for(
+                    self.client.readline(), timeout=COMMUNICATE_TIMEOUT
+                )
+            ).decode()
         return line
 
     async def basic_close(self) -> None:
