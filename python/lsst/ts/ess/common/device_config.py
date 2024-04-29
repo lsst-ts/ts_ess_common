@@ -34,16 +34,16 @@ class DeviceConfig:
     ----------
     name : `str`
         The name of the device.
-    dev_type : `DeviceType`
-        The type of device.
-    dev_id : `str`
-        The ID of the device.
     sens_type : `SensorType`
         The type of sensor.
     baud_rate : `int`
         The baud rate of the sensor.
     location: `str`
         The location of the device.
+    dev_type : `DeviceType`, optional
+        The type of device, or None in case of a TCP/IP device.
+    dev_id : `str`
+        The ID of the device, or None in case of a TCP/IP device.
     num_channels : `int`, optional
         The number of channels the output data, or 0 indicating that the number
         of channels is not configurable for this type of device. Defaults to 0.
@@ -58,24 +58,45 @@ class DeviceConfig:
     threshold : `float`, optional
         A threshold value that can be used to, for instance, determine if an
         event needs to be sent. Defaults to 0.0.
+    host : `str`, optional
+        The host to connect to in case of a device that provides telemetry via
+        a TCP/IP connection, or None in case of a local device.
+    port : `int`, optional
+        The port to connect to in case of a device that provides telemetry via
+        a TCP/IP connection, or None in case of a local device.
+
+    Notes
+    -----
+    In case dev_type and dev_id are None then host and port cannot be None.
     """
 
     name: str
-    dev_type: DeviceType
-    dev_id: str
     sens_type: SensorType
     baud_rate: int
     location: str
+    dev_id: str | None = None
+    dev_type: DeviceType | None = None
     num_channels: int = 0
     num_samples: int = 0
     safe_interval: int = 0
     threshold: float = 0.0
+    host: str | None = None
+    port: int | None = None
 
     def __post_init(self) -> None:
-        self.dev_type = DeviceType(self.dev_type)
+        if (
+            self.dev_id is None
+            and self.dev_type is None
+            and self.host is None
+            and self.port is None
+        ):
+            raise ValueError(
+                "Either dev_id and dev_type or host and port should not be None."
+            )
+        self.dev_type = DeviceType(self.dev_type) if self.dev_type is not None else None
         self.sens_type = SensorType(self.sens_type)
 
-    def as_dict(self) -> dict[str, str | int]:
+    def as_dict(self) -> dict[str, str | int | float | None]:
         """Return a dict with the instance attributes and their values as
         key-value pairs.
 
@@ -85,12 +106,18 @@ class DeviceConfig:
             A dictionary of key-value pairs representing the instance
             attributes and their values.
         """
-        device_config_as_dict: dict[str, str | int] = {
+        device_config_as_dict: dict[str, str | int | float | None] = {
             Key.NAME: self.name,
             Key.DEVICE_TYPE: self.dev_type,
             Key.SENSOR_TYPE: self.sens_type,
             Key.BAUD_RATE: self.baud_rate,
             Key.LOCATION: self.location,
+            Key.CHANNELS: self.num_channels,
+            Key.NUM_SAMPLES: self.num_samples,
+            Key.SAFE_INTERVAL: self.safe_interval,
+            Key.THRESHOLD: self.threshold,
+            Key.HOST: self.host,
+            Key.PORT: self.port,
         }
 
         # FTDI devices have an FTDI ID and Serial devices have a serial port.
@@ -101,7 +128,4 @@ class DeviceConfig:
         else:
             raise ValueError(f"Received unknown DeviceType {self.dev_type}")
 
-        # Only temperature sensors have a configurable number of channels.
-        if self.sens_type == SensorType.TEMPERATURE:
-            device_config_as_dict[Key.CHANNELS] = self.num_channels
         return device_config_as_dict
