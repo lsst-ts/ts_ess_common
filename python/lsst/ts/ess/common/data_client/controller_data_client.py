@@ -29,7 +29,6 @@ import logging
 import types
 import typing
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Type
 
 import jsonschema
 import yaml
@@ -38,20 +37,12 @@ from lsst.ts import tcpip
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
 from ..device_config import DeviceConfig
 from ..mock_command_handler import MockCommandHandler
-from ..processor import (
-    AirTurbulenceProcessor,
-    BaseProcessor,
-    Efm100cProcessor,
-    Hx85aProcessor,
-    Hx85baProcessor,
-    Ld250Processor,
-    TemperatureProcessor,
-    WindsonicProcessor,
-)
-from ..socket_server import SocketServer
+from ..mock_controller import MockController
+from ..processor import BaseProcessor
 from .base_read_loop_data_client import BaseReadLoopDataClient
+from .data_client_constants import telemetry_processor_dict
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from lsst.ts import salobj
 
 # Time limit for connecting to the ESS Controller (seconds).
@@ -87,32 +78,21 @@ class ControllerDataClient(BaseReadLoopDataClient):
         log: logging.Logger,
         simulation_mode: int = 0,
     ) -> None:
-        # Dict of sensor_name: device configuration
+        # Dict of sensor_name: device configuration.
         self.device_configurations: dict[str, DeviceConfig] = dict()
 
-        # Lock for TCP/IP communication
+        # Lock for TCP/IP communication.
         self.stream_lock = asyncio.Lock()
 
-        # TCP/IP Client
+        # TCP/IP Client.
         self.client: tcpip.Client | None = None
 
         # Set this attribute false before calling `start` to test failure
         # to connect to the server. Ignored if not simulating.
-        self.enable_mock_server = True
+        self.enable_mock_controller = True
 
-        # Dict of SensorType: BaseProcessor type.
-        self.telemetry_processor_dict: dict[str, Type[BaseProcessor]] = {
-            SensorType.TEMPERATURE: TemperatureProcessor,
-            SensorType.HX85A: Hx85aProcessor,
-            SensorType.HX85BA: Hx85baProcessor,
-            SensorType.CSAT3B: AirTurbulenceProcessor,
-            SensorType.WINDSONIC: WindsonicProcessor,
-            SensorType.EFM100C: Efm100cProcessor,
-            SensorType.LD250: Ld250Processor,
-        }
-
-        # Mock server for simulation mode
-        self.mock_server: SocketServer | None = None
+        # Mock controller for simulation mode.
+        self.mock_controller: MockController | None = None
 
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
@@ -126,7 +106,7 @@ class ControllerDataClient(BaseReadLoopDataClient):
         self.processors: dict[str, BaseProcessor] = dict()
 
     @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
+    def get_config_schema(cls) -> dict[str, typing.Any]:
         return yaml.safe_load(
             """
 $schema: http://json-schema.org/draft-07/schema#
@@ -234,7 +214,7 @@ additionalProperties: false
         )
 
     @classmethod
-    def get_telemetry_schema(cls) -> dict[str, Any]:
+    def get_telemetry_schema(cls) -> dict[str, typing.Any]:
         return json.loads(
             """
 {
@@ -323,28 +303,30 @@ additionalProperties: false
             raise RuntimeError("Already connected.")
 
         if self.simulation_mode != 0:
-            if self.enable_mock_server:
-                self.mock_server = SocketServer(
-                    name="MockDataServer",
+            if self.enable_mock_controller:
+                self.mock_controller = MockController(
+                    name="MockController",
                     host=tcpip.DEFAULT_LOCALHOST,
                     port=0,
                     log=self.log,
                     simulation_mode=1,
                 )
-                assert self.mock_server is not None  # make mypy happy
+                assert self.mock_controller is not None  # make mypy happy
                 mock_command_handler = MockCommandHandler(
-                    callback=self.mock_server.write_json,
+                    callback=self.mock_controller.write_json,
                     simulation_mode=1,
                 )
-                self.mock_server.set_command_handler(mock_command_handler)
+                self.mock_controller.set_command_handler(mock_command_handler)
                 await asyncio.wait_for(
-                    self.mock_server.start_task, timeout=CONNECT_TIMEOUT
+                    self.mock_controller.start_task, timeout=CONNECT_TIMEOUT
                 )
                 # Change self.config instead of using a local variable
                 # so descr and __repr__ show the correct host and port
-                port = self.mock_server.port
+                port = self.mock_controller.port
             else:
-                self.log.info(f"{self}.enable_mock_server false; connection will fail.")
+                self.log.info(
+                    f"{self}.enable_mock_controller false; connection will fail."
+                )
                 port = 0
             # Change self.config so descr and __repr__ show the actual
             # host and port.
@@ -372,13 +354,13 @@ additionalProperties: false
             assert self.client is not None  # make mypy happy
             await self.client.close()
             self.client = None
-        if self.mock_server is not None:
-            await self.mock_server.close()
+        if self.mock_controller is not None:
+            await self.mock_controller.close()
 
     async def read_data(self) -> None:
         """Read and process data from the ESS Controller."""
         async with self.stream_lock:
-            assert self.client is not None  # keep mypy happy.
+            assert self.client is not None
             data = await asyncio.wait_for(
                 self.client.read_json(), timeout=COMMUNICATE_TIMEOUT
             )
@@ -400,7 +382,7 @@ additionalProperties: false
         else:
             self.log.warning(f"Ignoring unparsable {data}.")
 
-    async def run_command(self, command: str, **parameters: Any) -> None:
+    async def run_command(self, command: str, **parameters: typing.Any) -> None:
         """Write a command. Time out if it takes too long.
 
         Parameters
@@ -449,7 +431,7 @@ additionalProperties: false
         async with self.stream_lock:
             if not self.connected:
                 raise ConnectionError("Not connected; cannot send the command.")
-            assert self.client is not None  # keep mypy happy.
+            assert self.client is not None
             await self.client.write_json(data)
             while True:
                 if not self.connected:
@@ -499,7 +481,7 @@ additionalProperties: false
                 )
             if response_code == ResponseCode.OK:
                 if sensor_name not in self.processors:
-                    processor_type = self.telemetry_processor_dict[
+                    processor_type = telemetry_processor_dict[
                         device_configuration.sens_type
                     ]
                     self.processors[sensor_name] = processor_type(

@@ -30,13 +30,13 @@ from lsst.ts.ess.common.test_utils import MockTestTools
 TIMEOUT = 60
 
 
-class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
-    server_class = common.SocketServer
+class MockControllerTestCase(tcpip.BaseOneClientServerTestCase):
+    server_class = common.MockController
 
     @contextlib.asynccontextmanager
     async def create_server_with_command_handler(
         self,
-    ) -> typing.AsyncGenerator[common.SocketServer, None]:
+    ) -> typing.AsyncGenerator[common.MockController, None]:
         async with self.create_server(
             name="EssSensorsServer",
             host=tcpip.DEFAULT_LOCALHOST,
@@ -112,7 +112,7 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
         missed_channels: int = 0,
         in_error_state: bool = False,
     ) -> None:
-        """Test a full command sequence of the SocketServer.
+        """Test a full command sequence of the MockController.
 
         The sequence is
             - configure
@@ -176,27 +176,27 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             )
 
     async def test_full_command_sequence(self) -> None:
-        """Test the SocketServer with a nominal configuration, i.e. no
+        """Test the MockController with a nominal configuration, i.e. no
         disconnected channels and no truncated data.
         """
         await self.check_server_test(name="Test1", num_channels=1)
 
     async def test_full_command_sequence_with_disconnected_channel(self) -> None:
-        """Test the SocketServer with one disconnected channel and no truncated
-        data.
+        """Test the MockController with one disconnected channel and no
+        truncated data.
         """
         await self.check_server_test(
             name="Test1", num_channels=4, disconnected_channel=1
         )
 
     async def test_full_command_sequence_with_truncated_output(self) -> None:
-        """Test the SocketServer with no disconnected channels and truncated
+        """Test the MockController with no disconnected channels and truncated
         data for two channels.
         """
         await self.check_server_test(name="Test1", num_channels=4, missed_channels=2)
 
     async def test_full_command_sequence_in_error_state(self) -> None:
-        """Test the SocketServer with a sensor in error state, meaning it will
-        only output empty strings.
+        """Test the MockController with a sensor in error state, meaning it
+        will only output empty strings.
         """
         await self.check_server_test(name="Test1", num_channels=4, in_error_state=True)
