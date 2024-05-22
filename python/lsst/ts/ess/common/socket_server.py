@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-__all__ = ["MockController"]
+__all__ = ["SocketServer"]
 
 import logging
 import typing
@@ -32,8 +32,8 @@ from .abstract_command_handler import AbstractCommandHandler
 from .constants import Command, Key
 
 
-class MockController(tcpip.OneClientReadLoopServer):
-    """A mock controller for exchanging JSON messages via TCP/IP.
+class SocketServer(tcpip.OneClientReadLoopServer):
+    """A socket server for exchanging JSON messages via TCP/IP.
 
     See ``tcpip.OneClientReadLoopServer`` for the inner workings.
 
@@ -82,7 +82,7 @@ class MockController(tcpip.OneClientReadLoopServer):
 
     def set_command_handler(self, command_handler: AbstractCommandHandler) -> None:
         """Set the command handler instance to use. All code using
-        this MockController class must call this at least once before
+        this SocketServer class must call this at least once before
         sending commands.
 
         Parameters
