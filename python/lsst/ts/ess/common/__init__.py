@@ -39,4 +39,4 @@ from .config_schema import *
 from .constants import *
 from .device_config import *
 from .mock_command_handler import *
-from .mock_controller import *
+from .socket_server import *

@@ -37,8 +37,8 @@ from lsst.ts import tcpip
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
 from ..device_config import DeviceConfig
 from ..mock_command_handler import MockCommandHandler
-from ..mock_controller import MockController
 from ..processor import BaseProcessor
+from ..socket_server import SocketServer
 from .base_read_loop_data_client import BaseReadLoopDataClient
 from .data_client_constants import telemetry_processor_dict
 
@@ -89,10 +89,10 @@ class ControllerDataClient(BaseReadLoopDataClient):
 
         # Set this attribute false before calling `start` to test failure
         # to connect to the server. Ignored if not simulating.
-        self.enable_mock_controller = True
+        self.enable_socket_server = True
 
-        # Mock controller for simulation mode.
-        self.mock_controller: MockController | None = None
+        # Socket server for simulation mode.
+        self.socket_server: SocketServer | None = None
 
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
@@ -303,29 +303,29 @@ additionalProperties: false
             raise RuntimeError("Already connected.")
 
         if self.simulation_mode != 0:
-            if self.enable_mock_controller:
-                self.mock_controller = MockController(
-                    name="MockController",
+            if self.enable_socket_server:
+                self.socket_server = SocketServer(
+                    name="SocketServer",
                     host=tcpip.DEFAULT_LOCALHOST,
                     port=0,
                     log=self.log,
                     simulation_mode=1,
                 )
-                assert self.mock_controller is not None  # make mypy happy
+                assert self.socket_server is not None  # make mypy happy
                 mock_command_handler = MockCommandHandler(
-                    callback=self.mock_controller.write_json,
+                    callback=self.socket_server.write_json,
                     simulation_mode=1,
                 )
-                self.mock_controller.set_command_handler(mock_command_handler)
+                self.socket_server.set_command_handler(mock_command_handler)
                 await asyncio.wait_for(
-                    self.mock_controller.start_task, timeout=CONNECT_TIMEOUT
+                    self.socket_server.start_task, timeout=CONNECT_TIMEOUT
                 )
                 # Change self.config instead of using a local variable
                 # so descr and __repr__ show the correct host and port
-                port = self.mock_controller.port
+                port = self.socket_server.port
             else:
                 self.log.info(
-                    f"{self}.enable_mock_controller false; connection will fail."
+                    f"{self}.enable_socket_server false; connection will fail."
                 )
                 port = 0
             # Change self.config so descr and __repr__ show the actual
@@ -354,8 +354,8 @@ additionalProperties: false
             assert self.client is not None  # make mypy happy
             await self.client.close()
             self.client = None
-        if self.mock_controller is not None:
-            await self.mock_controller.close()
+        if self.socket_server is not None:
+            await self.socket_server.close()
 
     async def read_data(self) -> None:
         """Read and process data from the ESS Controller."""

@@ -18,7 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+import asyncio
 import contextlib
 import typing
 
@@ -30,13 +30,13 @@ from lsst.ts.ess.common.test_utils import MockTestTools
 TIMEOUT = 60
 
 
-class MockControllerTestCase(tcpip.BaseOneClientServerTestCase):
-    server_class = common.MockController
+class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
+    server_class = common.SocketServer
 
     @contextlib.asynccontextmanager
     async def create_server_with_command_handler(
         self,
-    ) -> typing.AsyncGenerator[common.MockController, None]:
+    ) -> typing.AsyncGenerator[common.SocketServer, None]:
         async with self.create_server(
             name="EssSensorsServer",
             host=tcpip.DEFAULT_LOCALHOST,
@@ -89,6 +89,7 @@ class MockControllerTestCase(tcpip.BaseOneClientServerTestCase):
         assert common.ResponseCode.OK == data[common.Key.RESPONSE]
 
     async def test_close_client(self) -> None:
+        client: tcpip.Client
         async with self.create_server_with_command_handler() as server, self.create_client(
             server
         ) as client:
@@ -102,6 +103,7 @@ class MockControllerTestCase(tcpip.BaseOneClientServerTestCase):
             )
             await self.assert_next_connected(False)
             assert not server.connected
+            await asyncio.sleep(0.1)
             assert not client.connected
 
     async def check_server_test(
