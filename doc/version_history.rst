@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.19.1
+=======
+
+* Revert renaming classes and files.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.19.0
 =======
 
