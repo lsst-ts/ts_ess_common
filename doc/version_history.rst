@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.19.2
+=======
+
+* Make sure that the TcpipDataClient connects to the configured host and port.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.19.1
 =======
 

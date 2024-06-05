@@ -33,6 +33,7 @@ import yaml
 from ..constants import Key
 from ..device import TcpipDevice
 from ..device_config import DeviceConfig
+from ..processor import BaseProcessor
 from .base_read_loop_data_client import BaseReadLoopDataClient
 from .data_client_constants import sensor_dict, telemetry_processor_dict
 
@@ -65,6 +66,7 @@ class TcpipDataClient(BaseReadLoopDataClient):
         simulation_mode: int = 0,
     ) -> None:
         self.device_configuration: DeviceConfig | None = None
+        self.processor: BaseProcessor | None = None
 
         super().__init__(
             config=config, topics=topics, log=log, simulation_mode=simulation_mode
@@ -162,6 +164,10 @@ additionalProperties: false
             baud_rate=self.config.baud_rate,
             location=self.config.location,
         )
+        processor_type = telemetry_processor_dict[self.device_configuration.sens_type]
+        self.processor = processor_type(
+            self.device_configuration, self.topics, self.log
+        )
 
     def descr(self) -> str:
         assert self.tcpip_device is not None
@@ -175,17 +181,19 @@ additionalProperties: false
         await self.disconnect()
 
         assert self.device_configuration is not None
+        assert self.device_configuration.host is not None
+        assert self.device_configuration.port is not None
         sensor_type = sensor_dict[self.device_configuration.sens_type]
         sensor = sensor_type(log=self.log, num_channels=self.config.channels)
         tcpip_device = TcpipDevice(
             name=self.config.name,
-            host="",
-            port=0,
+            host=self.device_configuration.host,
+            port=self.device_configuration.port,
             sensor=sensor,
             baud_rate=0,
             callback_func=self.process_telemetry,
             log=self.log,
-            simulation_mode=1,
+            simulation_mode=self.simulation_mode,
         )
         await tcpip_device.open()
 
@@ -200,14 +208,12 @@ additionalProperties: false
 
     async def process_telemetry(self, data: typing.Any) -> None:
         self.log.debug(f"Received {data=}")
-        assert self.device_configuration is not None
-        processor_type = telemetry_processor_dict[self.device_configuration.sens_type]
-        processor = processor_type(self.device_configuration, self.topics, self.log)
+        assert self.processor is not None
         telemetry_data = data[Key.TELEMETRY]
         timestamp = telemetry_data[Key.TIMESTAMP]
         response_code = telemetry_data[Key.RESPONSE_CODE]
         sensor_data = telemetry_data[Key.SENSOR_TELEMETRY]
-        await processor.process_telemetry(timestamp, response_code, sensor_data)
+        await self.processor.process_telemetry(timestamp, response_code, sensor_data)
 
     async def read_data(self) -> None:
         raise NotImplementedError
