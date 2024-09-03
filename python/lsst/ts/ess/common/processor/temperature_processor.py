@@ -53,6 +53,17 @@ class TemperatureProcessor(BaseProcessor):
         isok = response_code == 0
         if isok:
             temperature[: self.device_configuration.num_channels] = sensor_data  # type: ignore
+
+        # Make sure that all "unused" locations are set to NaN.
+        location_items = self.device_configuration.location.split(",")
+        location_item: str
+        for index, location_item in enumerate(location_items):
+            if location_item.strip().lower() == "unused":
+                temperature[index] = np.nan
+
+        # Replace any None value with NaN.
+        temperature = [np.nan if t is None else t for t in temperature]
+
         await self.topics.tel_temperature.set_write(
             sensorName=self.device_configuration.name,
             timestamp=timestamp,

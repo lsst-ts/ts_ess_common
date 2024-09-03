@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.19.4
+=======
+
+* Improve temperature simulator and processor.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.19.3
 =======
 
