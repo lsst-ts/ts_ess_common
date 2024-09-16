@@ -1,5 +1,6 @@
 setupRequired(ts_tcpip)
 setupRequired(ts_utils)
+setupRequired(ts_xml)
 setupOptional(ts_salobj)  # for type checking
 
 envPrepend(PATH, ${PRODUCT_DIR}/bin)
