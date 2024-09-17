@@ -32,9 +32,9 @@ from .utils import MibTreeElement, MibTreeElementType
 MODULE_IDENTITY = r"^(\w+) +MODULE-IDENTITY$"
 OBJECT_IDENTIFIER = r"^(\w+) +OBJECT IDENTIFIER +::= \{ ?(\w+) +(\d+) ?\}$"
 OBJECT_TYPE = r"^(\w+) OBJECT-TYPE$"
-MIB_OID = r"^::= ?{ ?(\w+) +(\d+) ?}$"
+MIB_OID = r"^::= ?{ ?(\w+) +(\d+) ? ?}$"
 DESCRIPTION = "DESCRIPTION"
-INDEX = r"INDEX +\{ ?(\w+) ?\}"
+INDEX = r"INDEX +\{ ?([\w, ]+) ?\}"
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
