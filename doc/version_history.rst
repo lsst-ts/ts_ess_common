@@ -6,6 +6,16 @@
 Version History
 ###############
 
+v0.20.0
+=======
+
+* Incorporate code for electrical power management and other SNMP operations.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.19.4
 =======
 
