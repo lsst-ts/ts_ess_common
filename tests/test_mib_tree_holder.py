@@ -39,13 +39,16 @@ class MibTreeTestCase(unittest.IsolatedAsyncioTestCase):
             }
         )
         assert len(enterprises_children) == 4
-        assert "schneiderPm5xxx" == enterprises_children.pop()
-        assert "raritan" == enterprises_children.pop()
-        assert "pdu" == enterprises_children.pop()
+        assert common.DeviceName.schneiderPm5xxx.value == enterprises_children.pop()
+        assert common.DeviceName.raritan.value == enterprises_children.pop()
+        assert common.DeviceName.netbooter.value == enterprises_children.pop()
         assert "eaton" == enterprises_children.pop()
         assert len(enterprises_children) == 0
 
-        assert "xups" in mib_tree_holder.mib_tree
-        assert mib_tree_holder.mib_tree["xups"].parent.name == "eaton"
+        assert common.DeviceName.xups.value in mib_tree_holder.mib_tree
+        assert (
+            mib_tree_holder.mib_tree[common.DeviceName.xups.value].parent.name
+            == "eaton"
+        )
 
         assert len(mib_tree_holder.pending_modules) == 0
