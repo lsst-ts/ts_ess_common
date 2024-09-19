@@ -10,6 +10,9 @@ v0.20.0
 =======
 
 * Incorporate code for electrical power management and other SNMP operations.
+* Add support for Raritan PDUs.
+* Pin conda dependency versions.
+* Set `upload_dev` in the conda Jenkinsfile to true.
 * Add documentation describing the SNMP infrastructure.
 
 Requires:
