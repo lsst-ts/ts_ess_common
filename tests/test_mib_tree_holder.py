@@ -30,18 +30,25 @@ class MibTreeTestCase(unittest.IsolatedAsyncioTestCase):
         assert str(mib_tree_holder.mib_tree["sysDescr"]) == "1.3.6.1.2.1.1.1"
         assert mib_tree_holder.mib_tree["sysDescr"].oid == "1.3.6.1.2.1.1.1"
 
-        enterprises_children = [
-            branch
-            for branch in mib_tree_holder.mib_tree
-            if mib_tree_holder.mib_tree[branch].parent is not None
-            and mib_tree_holder.mib_tree[branch].parent.name == "enterprises"
-        ]
-        assert len(enterprises_children) == 3
-        assert "eaton" in enterprises_children
-        assert "pdu" in enterprises_children
-        assert "schneiderPm5xxx" in enterprises_children
+        enterprises_children = sorted(
+            {
+                branch
+                for branch in mib_tree_holder.mib_tree
+                if mib_tree_holder.mib_tree[branch].parent is not None
+                and mib_tree_holder.mib_tree[branch].parent.name == "enterprises"
+            }
+        )
+        assert len(enterprises_children) == 4
+        assert common.DeviceName.schneiderPm5xxx.value == enterprises_children.pop()
+        assert common.DeviceName.raritan.value == enterprises_children.pop()
+        assert common.DeviceName.netbooter.value == enterprises_children.pop()
+        assert "eaton" == enterprises_children.pop()
+        assert len(enterprises_children) == 0
 
-        assert "xups" in mib_tree_holder.mib_tree
-        assert mib_tree_holder.mib_tree["xups"].parent.name == "eaton"
+        assert common.DeviceName.xups.value in mib_tree_holder.mib_tree
+        assert (
+            mib_tree_holder.mib_tree[common.DeviceName.xups.value].parent.name
+            == "eaton"
+        )
 
         assert len(mib_tree_holder.pending_modules) == 0

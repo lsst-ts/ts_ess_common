@@ -26,15 +26,15 @@ import pathlib
 import re
 import typing
 
-from .utils import MibTreeElement, MibTreeElementType
+from .utils import DeviceName, MibTreeElement, MibTreeElementType
 
 # SNMP-related constants.
 MODULE_IDENTITY = r"^(\w+) +MODULE-IDENTITY$"
 OBJECT_IDENTIFIER = r"^(\w+) +OBJECT IDENTIFIER +::= \{ ?(\w+) +(\d+) ?\}$"
 OBJECT_TYPE = r"^(\w+) OBJECT-TYPE$"
-MIB_OID = r"^::= ?{ ?(\w+) +(\d+) ?}$"
+MIB_OID = r"^::= ?{ ?(\w+) +(\d+) ? ?}$"
 DESCRIPTION = "DESCRIPTION"
-INDEX = r"INDEX +\{ ?(\w+) ?\}"
+INDEX = r"INDEX +\{ ?([\w, ]+) ?\}"
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -238,11 +238,11 @@ class MibTreeHolder:
         """
         name_replacement = name
         if name == "schneiderElectric":
-            name_replacement = "schneiderPm5xxx"
+            name_replacement = DeviceName.schneiderPm5xxx.value
         elif name == "synaccess":
-            name_replacement = "pdu"
+            name_replacement = DeviceName.netbooter.value
         elif name == "xupsMIB":
-            name_replacement = "xups"
+            name_replacement = DeviceName.xups.value
         return name_replacement
 
     def _process_obj_type(

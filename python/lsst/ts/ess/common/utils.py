@@ -24,9 +24,13 @@ from __future__ import annotations
 __all__ = [
     "FREQUENCY_OID_LIST",
     "PDU_HEX_OID_LIST",
+    "RARITAN_EXT_SENS_DEC_DIGITS_IDS",
     "SCHNEIDER_FLOAT_AS_STRING_OID_LIST",
+    "DeviceName",
     "MibTreeElement",
     "MibTreeElementType",
+    "RaritanItemId",
+    "RaritanOid",
     "TelemetryItemName",
     "TelemetryItemType",
     "TelemetryItemUnit",
@@ -91,6 +95,15 @@ SCHNEIDER_FLOAT_AS_STRING_OID_LIST = [
 ]
 
 
+class DeviceName(enum.StrEnum):
+    """Device names."""
+
+    netbooter = "netbooter"
+    raritan = "raritan"
+    schneiderPm5xxx = "schneiderPm5xxx"
+    xups = "xups"
+
+
 @dataclass
 class MibTreeElement:
     """MIB Tree Element.
@@ -114,6 +127,78 @@ class MibTreeElementType(enum.StrEnum):
 
     BRANCH = "BRANCH"
     LEAF = "LEAF"
+
+
+# Raritan external sensor IDs for decimal digits telemetry. The Raritan MIB
+# file defines the item types but the external sensor telemetry is not numbered
+# in the same way. Hence the need for an this dict.
+RARITAN_EXT_SENS_DEC_DIGITS_IDS = {
+    "1": "temperature",
+    "2": "humidity",
+    "3": "temperature",
+    "4": "humidity",
+    "5": "onOff",
+    "6": "onOff",
+    "7": "onOff",
+}
+
+
+class RaritanItemId(enum.IntEnum):
+    """Raritan item IDs.
+
+    The Raritan MIB file is very generic and allows for devices to report which
+    items they publish telemetry for. With this enum that can be bypassed. In
+    the future support for querying the device for its capabilities may be
+    added.
+
+    Notes
+    -----
+    The values in the MIB file are bit indices starting counting at 0 for
+    inlets and outlets but at 1 for external sensors. The real telemetry always
+    starts counting at 1 and not at 0. Therefore the telemetry values have been
+    taken for this enum.
+    """
+
+    rmsCurrent = 1
+    peakCurrent = 2
+    unbalancedCurrent = 3
+    rmsVoltage = 4
+    activePower = 5
+    apparentPower = 6
+    powerFactor = 7
+    activeEnergy = 8
+    apparentEnergy = 9
+    temperature = 10
+    humidity = 11
+    onOff = 14
+    surgeProtectorStatus = 22
+    frequency = 23
+    phaseAngle = 24
+    residualCurrent = 26
+    rcmState = 27
+    reactivePower = 29
+    powerQuality = 32
+    displacementPowerFactor = 35
+    residualDcCurrent = 36
+    crestFactor = 51
+    activePowerDemand = 54
+    residualAcCurrent = 55
+    voltageThd = 57
+    currentThd = 58
+    unbalancedVoltage = 60
+    unbalancedLineLineCurrent = 61
+    unbalancedLineLineVoltage = 62
+
+
+class RaritanOid(enum.StrEnum):
+    """Raritan OIDs."""
+
+    InletDecimalDigits = "1.3.6.1.4.1.13742.6.3.3.4.1.7"
+    OutletDecimalDigits = "1.3.6.1.4.1.13742.6.3.5.4.1.7"
+    ExternalSensorDecimalDigits = "1.3.6.1.4.1.13742.6.3.6.3.1.17"
+    InletTelemetry = "1.3.6.1.4.1.13742.6.5.2.3.1.4"
+    OutletTelemetry = "1.3.6.1.4.1.13742.6.5.4.3.1.4"
+    ExternalSensorTelemetry = "1.3.6.1.4.1.13742.6.5.5.3.1.4"
 
 
 class TelemetryItemName(enum.StrEnum):
@@ -191,6 +276,9 @@ class TelemetryItemType(enum.StrEnum):
     lcIa = "float"
     lcIb = "float"
     lcIn = "float"
+    measurementsExternalSensorValue = "float"
+    measurementsInletSensorValue = "float"
+    measurementsOutletSensorValue = "float"
     midSerialNumber = "string"
     outletStatus = "int"
     pActivePa = "float"
@@ -283,7 +371,7 @@ class TelemetryItemUnit(enum.StrEnum):
     vVbn = "V"
     vVca = "V"
     vVcn = "V"
-    xupsBatCapacity = "unitless"
+    xupsBatCapacity = "%"
     xupsBatCurrent = "A"
     xupsBatTimeRemaining = "s"
     xupsBatVoltage = "V"

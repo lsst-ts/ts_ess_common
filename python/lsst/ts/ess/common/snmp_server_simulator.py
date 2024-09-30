@@ -43,6 +43,9 @@ from .utils import (
     FREQUENCY_OID_LIST,
     PDU_HEX_OID_LIST,
     SCHNEIDER_FLOAT_AS_STRING_OID_LIST,
+    DeviceName,
+    RaritanItemId,
+    RaritanOid,
     TelemetryItemType,
 )
 
@@ -57,6 +60,41 @@ MISC_LIST_START_OID = 1
 
 FIFTY_HZ_IN_TENS = 500
 
+# Templates for the default values for the various Digital Digits Raritan OIDs.
+RARITAN_INLET_DECIMAL_DIGITS = {
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.1": 3,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.3": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.4": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.5": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.6": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.7": 2,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.8": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.23": 1,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.60": 0,
+    "1.3.6.1.4.1.13742.6.3.3.4.1.7.1.{item_id}.62": 0,
+}
+RARITAN_OUTLET_DECIMAL_DIGITS = {
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.1": 3,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.4": 0,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.5": 0,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.6": 0,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.7": 2,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.8": 0,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.14": 0,
+    "1.3.6.1.4.1.13742.6.3.5.4.1.7.1.{item_id}.23": 1,
+}
+RARITAN_EXT_SENS_DECIMAL_DIGITS = {
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.1": 1,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.2": 0,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.3": 1,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.4": 0,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.5": 0,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.6": 0,
+    "1.3.6.1.4.1.13742.6.3.6.3.1.17.{item_id}.7": 0,
+}
+
+SNMP_ITEMS_TYPE = list[tuple[None, Integer, Integer, list[tuple[ObjectName, Integer]]]]
+
 
 class SnmpServerSimulator:
     """SNMP server simulator."""
@@ -64,7 +102,7 @@ class SnmpServerSimulator:
     def __init__(self, log: logging.Logger) -> None:
         self.log = log.getChild(type(self).__name__)
         self.mib_tree_holder = MibTreeHolder()
-        self.snmp_items: list[list] = []
+        self.snmp_items: SNMP_ITEMS_TYPE = []
         self.SYS_DESCR = [
             (
                 ObjectName(value=self.mib_tree_holder.mib_tree["sysDescr"].oid + ".0"),
@@ -151,16 +189,22 @@ class SnmpServerSimulator:
         """
         oid = self.mib_tree_holder.mib_tree[elt].oid
 
-        if oid.startswith(self.mib_tree_holder.mib_tree["pdu"].oid):
+        if oid.startswith(
+            self.mib_tree_holder.mib_tree[DeviceName.netbooter.value].oid
+        ):
             # Handle PDU indexed items.
             for i in range(PDU_LIST_START_OID, PDU_LIST_START_OID + PDU_LIST_NUM_OIDS):
                 self._append_random_value(oid + f".{i}", elt)
-        elif oid.startswith(self.mib_tree_holder.mib_tree["xups"].oid):
+        elif oid.startswith(self.mib_tree_holder.mib_tree[DeviceName.xups.value].oid):
             # Handle XUPS indexed items.
             for i in range(
                 XUPS_LIST_START_OID, XUPS_LIST_START_OID + XUPS_LIST_NUM_OIDS
             ):
                 self._append_random_value(oid + f".{i}", elt)
+        elif oid.startswith(
+            self.mib_tree_holder.mib_tree[DeviceName.raritan.value].oid
+        ):
+            self._handle_raritan_indexed_item(elt)
         else:
             self.log.warning(f"Unexpected list item for {oid=!r}.")
             # Handle all other indexed items.
@@ -180,38 +224,57 @@ class SnmpServerSimulator:
         elt : `str`
             The item name which is used for looking up the data type.
         """
+        value: Integer | OctetString
         match TelemetryItemType[elt]:
             case "int":
-                value = self.generate_integer(oid)
+                value = self._generate_integer(oid, 0, 100)
             case "float":
-                value = self.generate_float(oid)
+                value = self._generate_float(oid)
             case "string":
-                value = self.generate_string(oid)
+                value = self._generate_string(oid)
             case _:
                 value = Integer(0)
                 self.log.error(
                     f"Unknown telemetry item type {TelemetryItemType[elt]} for {elt=}"
                 )
-        self.snmp_items.append(
-            [None, Integer(0), Integer(0), [(ObjectName(value=oid), value)]]
-        )
+        self._append_value(oid, value)
 
-    def generate_integer(self, oid: str) -> Integer:
-        """Generate an integer value.
+    def _append_value(self, oid: str, value: Integer | OctetString) -> None:
+        """Helper method to append the provided value to the existing list of
+        SNMP values.
 
         Parameters
         ----------
         oid : `str`
-            The OID to generate an integer value for.
+            The OID to append the value for.
+        value : `Integer` | `OctetString`
+            The value to append.
+        """
+        self.snmp_items.append(
+            (None, Integer(0), Integer(0), [(ObjectName(value=oid), value)])
+        )
+
+    def _generate_integer(self, oid: str, start: int, stop: int) -> Integer:
+        """Generate an Integer value in the specified range.
+
+        Parameters
+        ----------
+        oid : `str`
+            The OID to generate a float value for. Not used except when mocking
+            this method.
+        start : `int`
+            The start of the range to generate an Integer for.
+        stop : `int`
+            The stop of the range to generate an Integer for.
 
         Returns
         -------
         Integer
             An SNMP Integer object.
         """
-        return Integer(random.randrange(0, 100, 1))
+        return Integer(random.randrange(start, stop))
 
-    def generate_float(self, oid: str) -> Integer | OctetString:
+    def _generate_float(self, oid: str) -> Integer | OctetString:
         """Generate a float value.
 
         Parameters
@@ -224,17 +287,21 @@ class SnmpServerSimulator:
         Integer | OctetString
             An SNMP Integer or OctetString object.
         """
-        if oid.startswith(self.mib_tree_holder.mib_tree["pdu"].oid):
-            value = self._generate_pdu_float(oid)
+        if oid.startswith(
+            self.mib_tree_holder.mib_tree[DeviceName.netbooter.value].oid
+        ):
+            value = self._generate_netbooter_float(oid)
         elif oid in FREQUENCY_OID_LIST:
             value = Integer(FIFTY_HZ_IN_TENS)
         elif oid in SCHNEIDER_FLOAT_AS_STRING_OID_LIST:
             value = self._generate_schneider_float_string()
         else:
-            value = self._generate_random_float()
+            # SNMP doesn't have floats. Instead an int is used which needs to
+            # be cast to a float by the reader.
+            value = self._generate_integer(oid, 100, 1000)
         return value
 
-    def generate_string(self, oid: str) -> OctetString:
+    def _generate_string(self, oid: str) -> OctetString:
         """Generate a string value.
 
         Parameters
@@ -251,9 +318,9 @@ class SnmpServerSimulator:
             value="".join(random.choices(string.ascii_uppercase + string.digits, k=20))
         )
 
-    def _generate_pdu_float(self, oid: str) -> Integer | OctetString:
-        # Certain PDU values are floats encoded as hexadecimal strings of the
-        # format "0x<hex value>00".
+    def _generate_netbooter_float(self, oid: str) -> Integer | OctetString:
+        # Certain Netbooter values are floats encoded as hexadecimal strings of
+        # the format "0x<hex value>00".
         if oid in PDU_HEX_OID_LIST:
             float_value = round(random.uniform(0.0, 10.0), 2)
             hex_string = (
@@ -263,14 +330,125 @@ class SnmpServerSimulator:
             )
             return OctetString(value=hex_string)
         else:
-            return Integer(random.randrange(100, 1000, 1))
+            return self._generate_integer(oid, 100, 1000)
 
     def _generate_schneider_float_string(self) -> OctetString:
         # Certain Schneider UPS values are strings that represent float values.
         float_value = random.uniform(0.0, 250.0)
         return OctetString(value=f"{float_value}")
 
-    def _generate_random_float(self) -> Integer:
-        # SNMP doesn't have floats. Instead an int is used which needs to be
-        # cast to a float by the reader.
-        return Integer(random.randrange(100, 1000, 1))
+    def _handle_raritan_indexed_item(self, elt: str) -> None:
+        """Helper method to handle Raritan indexed items.
+
+        Indexed items represent list items and for each index in the list an
+        SNMP value needs to be created.
+
+        Parameters
+        ----------
+        elt : `str`
+            The name of the indexed item.
+        """
+        oid = RaritanOid(self.mib_tree_holder.mib_tree[elt].oid)
+        match oid:
+            case RaritanOid.InletDecimalDigits:
+                self._generate_raritan_decimal_digits(RARITAN_INLET_DECIMAL_DIGITS, 1)
+            case RaritanOid.OutletDecimalDigits:
+                self._generate_raritan_decimal_digits(RARITAN_OUTLET_DECIMAL_DIGITS, 48)
+            case RaritanOid.ExternalSensorDecimalDigits:
+                self._generate_raritan_decimal_digits(
+                    RARITAN_EXT_SENS_DECIMAL_DIGITS, 1
+                )
+            case RaritanOid.InletTelemetry:
+                self._generate_raritan_inlet_telemetry()
+            case RaritanOid.OutletTelemetry:
+                self._generate_raritan_outlet_telemetry()
+            case RaritanOid.ExternalSensorTelemetry:
+                self._generate_raritan_external_sensor_telemetry()
+            case _:
+                self.log.warning(f"Unknown Raritan {oid=!r}. Ignoring.")
+
+    def _generate_raritan_decimal_digits(
+        self, digits_template: dict[str, int], num_items: int
+    ) -> None:
+        """Generic method to generate Raritan decimal digits replies.
+
+        For the outlet decimal digits reply, the same values need to be
+        repeated 48 times because that's how many outlets each device has. To
+        avoid clutter of repeating code, a general method was created with a
+        small overhead for the need of defining all decimal digit info as
+        templates.
+
+        Parameters
+        ----------
+        digits_template : `dict[str, int]`
+            The decimal digits template to use.
+        num_items : `int`
+            How often to repeat the info in the template.
+        """
+        for num_item in range(1, num_items + 1):
+            for iid in digits_template:
+                self._append_value(
+                    f"{iid.format(item_id=num_item)}", Integer(digits_template[iid])
+                )
+
+    def _generate_raritan_inlet_telemetry(self) -> None:
+        """Helper method to generate Raritan inlet telemetry."""
+        prefix = f"{RaritanOid.InletTelemetry.value}.1.1."
+        oid = f"{prefix}{RaritanItemId.rmsCurrent.value}"
+        self._append_value(oid, self._generate_integer(oid, 3775, 4001))
+        oid = f"{prefix}{RaritanItemId.unbalancedCurrent.value}"
+        self._append_value(oid, self._generate_integer(oid, 60, 70))
+        oid = f"{prefix}{RaritanItemId.rmsVoltage.value}"
+        self._append_value(oid, self._generate_integer(oid, 395, 405))
+        oid = f"{prefix}{RaritanItemId.activePower.value}"
+        self._append_value(oid, self._generate_integer(oid, 1250, 1750))
+        oid = f"{prefix}{RaritanItemId.apparentPower.value}"
+        self._append_value(oid, self._generate_integer(oid, 1700, 1800))
+        oid = f"{prefix}{RaritanItemId.powerFactor.value}"
+        self._append_value(oid, self._generate_integer(oid, 0, 100))
+        oid = f"{prefix}{RaritanItemId.activeEnergy.value}"
+        self._append_value(oid, self._generate_integer(oid, 10000, 15000))
+        oid = f"{prefix}{RaritanItemId.frequency.value}"
+        self._append_value(oid, self._generate_integer(oid, 495, 505))
+        oid = f"{prefix}{RaritanItemId.unbalancedVoltage.value}"
+        self._append_value(oid, self._generate_integer(oid, 1, 2))
+        oid = f"{prefix}{RaritanItemId.unbalancedLineLineVoltage.value}"
+        self._append_value(oid, self._generate_integer(oid, 0, 1))
+
+    def _generate_raritan_outlet_telemetry(self) -> None:
+        """Helper method to generate Raritan outlet telemetry."""
+        prefix = f"{RaritanOid.OutletTelemetry.value}.1."
+        for i in range(1, 49):
+            oid = f"{prefix}{i}.{RaritanItemId.rmsCurrent.value}"
+            self._append_value(oid, self._generate_integer(oid, 0, 250))
+            oid = f"{prefix}{i}.{RaritanItemId.rmsVoltage.value}"
+            self._append_value(oid, self._generate_integer(oid, 229, 230))
+            oid = f"{prefix}{i}.{RaritanItemId.activePower.value}"
+            self._append_value(oid, self._generate_integer(oid, 0, 100))
+            oid = f"{prefix}{i}.{RaritanItemId.apparentPower.value}"
+            self._append_value(oid, self._generate_integer(oid, 0, 100))
+            oid = f"{prefix}{i}.{RaritanItemId.powerFactor.value}"
+            self._append_value(oid, self._generate_integer(oid, 0, 100))
+            oid = f"{prefix}{i}.{RaritanItemId.activeEnergy.value}"
+            self._append_value(oid, self._generate_integer(oid, 10000, 15000))
+            oid = f"{prefix}{i}.{RaritanItemId.onOff.value}"
+            self._append_value(oid, self._generate_integer(oid, 0, 2))
+            oid = f"{prefix}{i}.{RaritanItemId.frequency.value}"
+            self._append_value(oid, self._generate_integer(oid, 495, 505))
+
+    def _generate_raritan_external_sensor_telemetry(self) -> None:
+        """Helper method to generate Raritan external sensor telemetry."""
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.1"
+        self._append_value(oid, self._generate_integer(oid, 100, 250))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.2"
+        self._append_value(oid, self._generate_integer(oid, 10, 70))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.3"
+        self._append_value(oid, self._generate_integer(oid, 100, 250))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.4"
+        self._append_value(oid, self._generate_integer(oid, 10, 70))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.5"
+        self._append_value(oid, self._generate_integer(oid, 0, 1))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.6"
+        self._append_value(oid, self._generate_integer(oid, 0, 1))
+        oid = f"{RaritanOid.ExternalSensorTelemetry.value}.1.7"
+        self._append_value(oid, self._generate_integer(oid, 0, 1))
