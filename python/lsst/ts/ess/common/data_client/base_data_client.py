@@ -48,6 +48,7 @@ _DataClientClassRegistry: dict[str, typing.Type[BaseDataClient]] = dict()
 # You may omit data clients found in ts_ess_common and ts_ess_csc,
 # because the ESS CSC already imports those two modules.
 ExternalDataClientModules = dict(
+    EarthquakeDataClient="lsst.ts.ess.earthquake",
     LabJackDataClient="lsst.ts.ess.labjack",
     LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
 )

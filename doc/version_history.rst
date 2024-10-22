@@ -14,6 +14,7 @@ v0.20.0
 * Pin conda dependency versions.
 * Set `upload_dev` in the conda Jenkinsfile to true.
 * Add documentation describing the SNMP infrastructure.
+* Add registration for the EarthquakeDataClient.
 
 Requires:
 
