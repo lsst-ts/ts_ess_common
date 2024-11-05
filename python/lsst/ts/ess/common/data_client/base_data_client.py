@@ -48,6 +48,7 @@ _DataClientClassRegistry: dict[str, typing.Type[BaseDataClient]] = dict()
 # You may omit data clients found in ts_ess_common and ts_ess_csc,
 # because the ESS CSC already imports those two modules.
 ExternalDataClientModules = dict(
+    EarthquakeDataClient="lsst.ts.ess.earthquake",
     LabJackDataClient="lsst.ts.ess.labjack",
     LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
 )
@@ -242,16 +243,9 @@ class BaseDataClient(abc.ABC):
         """Register concrete subclasses."""
         global _DataClientClassRegistry
         if inspect.isabstract(cls):
+            # Will not add abstract classes.
             pass
         name = cls.__name__
-        if name in _DataClientClassRegistry:
-            log = logging.getLogger()
-            log.warning(
-                f"A DataClient class with name={name} is already registered. "
-                f"Keeping the registered class {_DataClientClassRegistry[name]!r}, "
-                f"instead of the new class {cls!r}."
-            )
-            return
         _DataClientClassRegistry[name] = cls
 
     async def __aenter__(self) -> BaseDataClient:
@@ -260,7 +254,7 @@ class BaseDataClient(abc.ABC):
 
     async def __aexit__(
         self,
-        type: typing.Type[BaseException] | None,
+        exc_type: typing.Type[BaseException] | None,
         value: BaseException | None,
         traceback: types.TracebackType | None,
     ) -> None:

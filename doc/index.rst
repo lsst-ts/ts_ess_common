@@ -87,6 +87,15 @@ Computing Dew Point
 Sensor that detect relative humidity, air temperature, and barometric pressure should compute and report dew point.
 Our standard equation for computing dew point is the :download:`Magnus formula <dewpoint_magnus_formula.pdf>`, as encoded in `compute_dew_point_magnus`.
 
+SNMP Support
+============
+
+Documentation for SNMP support:
+
+.. toctree::
+   snmp
+   :maxdepth: 1
+
 Python API reference
 ====================
 

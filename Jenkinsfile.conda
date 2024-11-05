@@ -1,2 +1,8 @@
 @Library('JenkinsShared')_
-CondaPipeline([], "ts-ess-common", "lsst.ts.ess.common", "noarch")
+CondaPipeline(
+    config_repo=[],
+    name="ts-ess-common",
+    module_name="lsst.ts.ess.common",
+    arch="noarch",
+    upload_dev=true
+)

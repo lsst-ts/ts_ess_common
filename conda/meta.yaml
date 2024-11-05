@@ -15,8 +15,12 @@ test:
     - ts-conda-build =0.4
     - ts-tcpip
     - ts-utils
+    - ts-xml
     - aioserial
     - jsonschema
+    - pysnmp
+    - pyasn1
+    - pyasn1-modules
   source_files:
     - python
     - tests
@@ -40,5 +44,9 @@ requirements:
     - setuptools_scm
     - ts-tcpip
     - ts-utils
+    - ts-xml
     - aioserial
     - jsonschema
+    - pysnmp =4.4.12
+    - pyasn1 =0.6.0
+    - pyasn1-modules =0.4.0

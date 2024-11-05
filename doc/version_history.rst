@@ -6,6 +6,21 @@
 Version History
 ###############
 
+v0.20.0
+=======
+
+* Incorporate code for electrical power management and other SNMP operations.
+* Add support for Raritan PDUs.
+* Pin conda dependency versions.
+* Set `upload_dev` in the conda Jenkinsfile to true.
+* Add documentation describing the SNMP infrastructure.
+* Add registration for the EarthquakeDataClient.
+
+Requires:
+
+* ts_tcpip 2.0
+* ts_utils 1.2
+
 v0.19.4
 =======
 
