@@ -108,6 +108,7 @@ class SensorType(str, enum.Enum):
 
     CSAT3B = "CSAT3B"
     EFM100C = "EFM100C"
+    GECTHERMALSCANNER = "GECThermalScanner"
     HX85A = "HX85A"
     HX85BA = "HX85BA"
     LD250 = "LD250"

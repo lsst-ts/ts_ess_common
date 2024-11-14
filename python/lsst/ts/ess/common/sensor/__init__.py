@@ -23,6 +23,7 @@ from .base_sensor import *
 from .boltek_efm100c import *
 from .boltek_ld250 import *
 from .campbell_csat3b import *
+from .gec_thermalscanner import *
 from .gill_windsonic import *
 from .omega_hx85a import *
 from .omega_hx85ba import *

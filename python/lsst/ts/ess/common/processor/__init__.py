@@ -24,6 +24,7 @@ from .auxtel_camera_coolant_pressure_processor import *
 from .base_hx85_processor import *
 from .base_processor import *
 from .efm100c_processor import *
+from .gec_thermalscanner_processor import *
 from .hx85a_processor import *
 from .hx85ba_processor import *
 from .ld250_processor import *
