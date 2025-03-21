@@ -129,9 +129,8 @@ All low level SNMP infrastrucuture is provided by the pysnmp_ project.
 That project uses pyasn1_ for its data types.
 Due to code reorganizations in both projects after SNMP support was added to ts_ess_common, both dependencies have been pinned to avoid pulling in the latest versions.
 
-SNMP supports getting telemetry via several commands which are all implemented in the `nextCmd` method of pysnmp.
-The `nextCmd` method takes several parameters, representing the host and port to connect to, the community data and the OID to query.
-Since the `nextCmd` method is synchronous, it needs to be wrapped in an asyncio `run_in_executor` call to not be blocking.
+SNMP supports getting telemetry via several commands which are all implemented in the `next_cmd` method of pysnmp.
+The `next_cmd` method takes several parameters, representing the host and port to connect to, the community data and the OID to query.
 
 The community data is a configurable string that is required and depends on the configuration of the SNMP device.
 By default it is set to `public` and for many SNMP devices at the summit it has been modified.

@@ -25,23 +25,40 @@ __all__ = ["SnmpDataClient"]
 
 import asyncio
 import concurrent
+import inspect
 import logging
 import math
 import re
 import types
 import typing
 
+# TODO: DM-49666 After phase-out of Python3.11, remove the
+# conditional and the "else" block.
+import pysnmp
 import yaml
 from lsst.ts import utils
-from pysnmp.hlapi import (
-    CommunityData,
-    ContextData,
-    ObjectIdentity,
-    ObjectType,
-    SnmpEngine,
-    UdpTransportTarget,
-    nextCmd,
-)
+from packaging import version
+
+if version.parse(pysnmp.__version__) >= version.parse("5.0.0"):
+    from pysnmp.hlapi.v3arch.asyncio import (
+        CommunityData,
+        ContextData,
+        ObjectIdentity,
+        ObjectType,
+        SnmpEngine,
+        UdpTransportTarget,
+    )
+    from pysnmp.hlapi.v3arch.asyncio import walk_cmd as next_or_walk_cmd
+else:
+    from pysnmp.hlapi import (
+        CommunityData,
+        ContextData,
+        ObjectIdentity,
+        ObjectType,
+        SnmpEngine,
+        UdpTransportTarget,
+        nextCmd as next_or_walk_cmd,
+    )
 
 from ..mib_tree_holder import MibTreeHolder
 from ..snmp_server_simulator import SnmpServerSimulator
@@ -118,7 +135,11 @@ class SnmpDataClient(BaseReadLoopDataClient):
         # Attributes for the SNMP requests.
         self.snmp_engine = SnmpEngine()
         self.community_data = CommunityData(self.config.snmp_community, mpModel=0)
-        self.transport_target = UdpTransportTarget((self.config.host, self.config.port))
+        self.transport_target = (
+            None
+            if hasattr(UdpTransportTarget, "create")
+            else UdpTransportTarget((self.config.host, self.config.port))
+        )
         self.context_data = ContextData()
 
         # Some SNMP devices emit a LOT of telemetry. Therefore the code loops
@@ -130,7 +151,7 @@ class SnmpDataClient(BaseReadLoopDataClient):
 
         # Keep track of the nextCmd function so we can override it when in
         # simulation mode.
-        self.next_cmd = nextCmd
+        self.next_cmd = next_or_walk_cmd
 
         # Attributes for telemetry processing.
         self.snmp_result: dict[str, str] = {}
@@ -642,15 +663,26 @@ additionalProperties: false
         """Call the blocking `execute_next_cmd` method from within the async
         loop."""
         self.snmp_result = {}
-        loop = asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            await loop.run_in_executor(pool, self.execute_next_cmd)
+
+        if self.transport_target is None:
+            self.transport_target = await UdpTransportTarget.create(
+                (self.config.host, self.config.port)
+            )
+
+        if inspect.isasyncgenfunction(self.next_cmd):
+            await self.execute_walk_cmd()
+        else:
+            loop = asyncio.get_running_loop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                await loop.run_in_executor(pool, self.execute_next_cmd)
 
     def execute_next_cmd(self) -> None:
         """Execute the SNMP nextCmd command.
 
         This is a **blocking** method that needs to be called with the asyncio
         `run_in_executor` method.
+
+        TODO: DM-49666 After phase-out of Python3.11, remove this method.
 
         Raises
         ------
@@ -670,6 +702,49 @@ additionalProperties: false
             )
 
             for error_indication, error_status, error_index, var_binds in iterator:
+                if error_indication:
+                    self.log.warning(
+                        f"Exception contacting SNMP server with {error_indication=}. Ignoring."
+                    )
+                elif error_status:
+                    self.log.exception(
+                        "Exception contacting SNMP server with "
+                        f"{error_status.prettyPrint()} at "
+                        f"{error_index and var_binds[int(error_index) - 1][0] or '?'}. Ignoring."
+                    )
+                else:
+                    for var_bind in var_binds:
+                        self.snmp_result[var_bind[0].prettyPrint()] = var_bind[
+                            1
+                        ].prettyPrint()
+
+    async def execute_walk_cmd(self) -> None:
+        """Execute the SNMP walk_cmd command.
+
+        This is an async generator but otherwise works like getNext from
+        older versions of pysnmp.
+
+        Raises
+        ------
+        RuntimeError
+            In case an SNMP error happens, for instance the server cannot be
+            reached.
+        """
+        for object_type in self.object_types:
+            async for (
+                error_indication,
+                error_status,
+                error_index,
+                var_binds,
+            ) in self.next_cmd(
+                self.snmp_engine,
+                self.community_data,
+                self.transport_target,
+                self.context_data,
+                object_type,
+                lookupMib=False,
+                lexicographicMode=False,
+            ):
                 if error_indication:
                     self.log.warning(
                         f"Exception contacting SNMP server with {error_indication=}. Ignoring."
