@@ -26,17 +26,31 @@ import random
 import string
 import typing
 
-from pysnmp.hlapi import (
-    CommunityData,
-    ContextData,
-    Integer,
-    ObjectIdentity,
-    ObjectType,
-    SnmpEngine,
-    UdpTransportTarget,
-)
+# TODO: DM-49666 After phase-out of Python3.11, remove the
+# conditional and the "else" block.
+import pysnmp
+from packaging import version
+
+if version.parse(pysnmp.__version__) >= version.parse("5.0.0"):
+    from pysnmp.hlapi.v3arch.asyncio import (
+        CommunityData,
+        ContextData,
+        ObjectIdentity,
+        ObjectType,
+        SnmpEngine,
+        UdpTransportTarget,
+    )
+else:
+    from pysnmp.hlapi import (
+        CommunityData,
+        ContextData,
+        ObjectIdentity,
+        ObjectType,
+        SnmpEngine,
+        UdpTransportTarget,
+    )
 from pysnmp.proto.rfc1155 import ObjectName
-from pysnmp.proto.rfc1902 import OctetString
+from pysnmp.proto.rfc1902 import Integer, OctetString
 
 from .mib_tree_holder import MibTreeHolder
 from .utils import (
