@@ -6,6 +6,11 @@
 Version History
 ###############
 
+v0.21.0
+=======
+
+* Update to pysnmp v7 which removes the synchronous API and adds an asynchronous API.
+
 v0.20.0
 =======
 

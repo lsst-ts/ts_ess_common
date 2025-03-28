@@ -26,7 +26,7 @@ import random
 import string
 import typing
 
-from pysnmp.hlapi import (
+from pysnmp.hlapi.v3arch.asyncio import (
     CommunityData,
     ContextData,
     Integer,

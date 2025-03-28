@@ -24,7 +24,6 @@ from __future__ import annotations
 __all__ = ["SnmpDataClient"]
 
 import asyncio
-import concurrent
 import logging
 import math
 import re
@@ -33,14 +32,14 @@ import typing
 
 import yaml
 from lsst.ts import utils
-from pysnmp.hlapi import (
+from pysnmp.hlapi.v3arch.asyncio import (
     CommunityData,
     ContextData,
     ObjectIdentity,
     ObjectType,
     SnmpEngine,
     UdpTransportTarget,
-    nextCmd,
+    next_cmd,
 )
 
 from ..mib_tree_holder import MibTreeHolder
@@ -118,7 +117,9 @@ class SnmpDataClient(BaseReadLoopDataClient):
         # Attributes for the SNMP requests.
         self.snmp_engine = SnmpEngine()
         self.community_data = CommunityData(self.config.snmp_community, mpModel=0)
-        self.transport_target = UdpTransportTarget((self.config.host, self.config.port))
+        self.transport_target = UdpTransportTarget.create(
+            (self.config.host, self.config.port)
+        )
         self.context_data = ContextData()
 
         # Some SNMP devices emit a LOT of telemetry. Therefore the code loops
@@ -130,7 +131,7 @@ class SnmpDataClient(BaseReadLoopDataClient):
 
         # Keep track of the nextCmd function so we can override it when in
         # simulation mode.
-        self.next_cmd = nextCmd
+        self.next_cmd = next_cmd
 
         # Attributes for telemetry processing.
         self.snmp_result: dict[str, str] = {}
@@ -205,6 +206,7 @@ additionalProperties: false
         if self.simulation_mode == 1:
             snmp_server_simulator = SnmpServerSimulator(log=self.log)
             self.next_cmd = snmp_server_simulator.snmp_cmd
+        await self.transport_target
 
         await self.execute_next_cmd_non_blocking()
 
@@ -642,11 +644,9 @@ additionalProperties: false
         """Call the blocking `execute_next_cmd` method from within the async
         loop."""
         self.snmp_result = {}
-        loop = asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            await loop.run_in_executor(pool, self.execute_next_cmd)
+        await self.execute_next_cmd()
 
-    def execute_next_cmd(self) -> None:
+    async def execute_next_cmd(self) -> None:
         """Execute the SNMP nextCmd command.
 
         This is a **blocking** method that needs to be called with the asyncio
