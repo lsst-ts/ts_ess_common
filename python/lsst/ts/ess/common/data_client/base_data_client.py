@@ -51,6 +51,8 @@ ExternalDataClientModules = dict(
     EarthquakeDataClient="lsst.ts.ess.earthquake",
     LabJackDataClient="lsst.ts.ess.labjack",
     LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
+    RingssDataClient="lsst.ts.ess.ringss",
+    ModbusDataClient="lsst.ts.ess.epm",
 )
 
 

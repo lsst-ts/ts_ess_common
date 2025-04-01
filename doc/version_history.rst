@@ -6,6 +6,11 @@
 Version History
 ###############
 
+v0.20.1
+=======
+
+ * Fixed compatibility with pysnmp >= 5.0.0 for Python3.12.
+
 v0.20.0
 =======
 
