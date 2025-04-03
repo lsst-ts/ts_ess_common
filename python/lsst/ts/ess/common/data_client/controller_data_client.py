@@ -138,6 +138,7 @@ properties:
           description: Type of the sensor.
           type: string
           enum:
+          - Aurora
           - CSAT3B
           - EFM100C
           - HX85A

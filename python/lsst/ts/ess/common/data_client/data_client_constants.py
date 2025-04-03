@@ -26,6 +26,7 @@ import typing
 from ..constants import SensorType
 from ..processor import (
     AirTurbulenceProcessor,
+    AuroraProcessor,
     BaseProcessor,
     Efm100cProcessor,
     Hx85aProcessor,
@@ -65,4 +66,5 @@ telemetry_processor_dict: dict[str, typing.Type[BaseProcessor]] = {
     SensorType.LD250: Ld250Processor,
     SensorType.TEMPERATURE: TemperatureProcessor,
     SensorType.WINDSONIC: WindsonicProcessor,
+    SensorType.AURORA: AuroraProcessor,
 }

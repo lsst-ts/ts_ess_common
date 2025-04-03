@@ -53,7 +53,8 @@ CONFIG_SCHEMA = json.loads(
                 "HX85BA",
                 "LD250",
                 "Temperature",
-                "Windsonic"
+                "Windsonic",
+                "Aurora"
               ]
             },
             "baud_rate": {
