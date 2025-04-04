@@ -29,9 +29,10 @@ from lsst.ts.ess import common
 
 class AuroraProcessorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_processor(self) -> None:
+        location = "DIMM"
         device_config = common.DeviceConfig(
             name="TestDevice",
-            location="DIMM",
+            location=location,
             dev_type=common.DeviceType.SERIAL,
             sens_type=common.SensorType.AURORA,
             baud_rate=9600,
@@ -74,11 +75,6 @@ class AuroraProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             sensor_data.sky_temperature,
             sensor_data.clarity,
         ]
-        temperature_names = [
-            "ambient_temperature",
-            "sky_temperature",
-            "clarity",
-        ]
 
         sensor_output = await sensor.extract_telemetry(sensor_line)
         await processor.process_telemetry(
@@ -94,10 +90,10 @@ class AuroraProcessorTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(kwargs["sensorName"], device_config.name)
         self.assertAlmostEqual(kwargs["timestamp"], timestamp, places=3)
-        self.assertEqual(kwargs["numChannels"], len(temperature_names))
+        self.assertEqual(kwargs["numChannels"], len(expected_temperatures))
         for expected, actual in zip(expected_temperatures, kwargs["temperatureItem"]):
             self.assertAlmostEqual(expected, actual, places=3)
-        self.assertEqual(kwargs["location"], temperature_names)
+        self.assertEqual(kwargs["location"], location)
 
         self.assertEqual(len(args), 0)
         self.assertEqual(len(kwargs), 5)
