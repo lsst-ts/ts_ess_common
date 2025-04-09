@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from .aurora_sensor import *
 from .base_sensor import *
 from .boltek_efm100c import *
 from .boltek_ld250 import *
