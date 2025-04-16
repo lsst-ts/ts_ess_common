@@ -18,7 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import asyncio
+
 import contextlib
 import typing
 
@@ -94,6 +94,8 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             server
         ) as client:
             await self.assert_next_connected(True)
+            assert server.connected
+
             await self.assert_configure(client=client, name="TEST_DISCONNECT")
             await client.write_json(
                 data={
@@ -103,8 +105,6 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             )
             await self.assert_next_connected(False)
             assert not server.connected
-            await asyncio.sleep(0.1)
-            assert not client.connected
 
     async def check_server_test(
         self,
@@ -144,6 +144,9 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             # Make sure that the mock sensor is in error state.
             server.command_handler.devices[0].in_error_state = in_error_state
 
+            await self.assert_next_connected(True)
+            assert server.connected
+
             reply = await client.read_json()
             reply_to_check = reply[common.Key.TELEMETRY]
             mtt.check_temperature_reply(
@@ -176,6 +179,8 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
                     common.Key.PARAMETERS: {},
                 }
             )
+            await self.assert_next_connected(False)
+            assert not server.connected
 
     async def test_full_command_sequence(self) -> None:
         """Test the MockController with a nominal configuration, i.e. no

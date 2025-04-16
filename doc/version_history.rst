@@ -6,10 +6,16 @@
 Version History
 ###############
 
+v0.20.2
+=======
+
+* Avoid `asyncio_default_fixture_loop_scope` pytest warning.
+* Improve error handling and loop control.
+
 v0.20.1
 =======
 
- * Fixed compatibility with pysnmp >= 5.0.0 for Python3.12.
+* Fix compatibility with pysnmp >= 5.0.0 for Python3.12.
 
 v0.20.0
 =======
