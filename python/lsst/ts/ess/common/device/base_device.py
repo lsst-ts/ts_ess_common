@@ -35,6 +35,9 @@ from ..sensor import BaseSensor
 
 __all__ = ["BaseDevice"]
 
+# Telemetry loop finish timeout [s].
+TELEMETRY_LOOP_FINISH_TIMEOUT = 5.0
+
 
 class BaseDevice(ABC):
     """Base class for the different types of Sensor Devices.
@@ -133,7 +136,7 @@ class BaseDevice(ABC):
         If enabled, loop and read the sensor and pass result to callback_func.
         """
         self.log.debug("Starting sensor.")
-        while not self._telemetry_loop.done():
+        while self.is_open:
             curr_tai = utils.current_tai()
             response = ResponseCode.OK
             try:
@@ -177,13 +180,20 @@ class BaseDevice(ABC):
         call basic_close.
         """
         self.log.debug(f"Stopping read loop for {self.name!r} sensor.")
-        self._telemetry_loop.cancel()
-        self._telemetry_loop = utils.make_done_future()
-
-        if not self.is_open:
-            return
         self.is_open = False
-        await self.basic_close()
+
+        try:
+            async with asyncio.timeout(TELEMETRY_LOOP_FINISH_TIMEOUT):
+                await self._telemetry_loop
+        except TimeoutError:
+            self.log.exception("Failed to close telemetry loop in time alloted.")
+        except Exception:
+            self.log.exception("Something went wrong closing telemetry loop")
+        finally:
+            notyet_cancelled = self._telemetry_loop.cancel()
+            if notyet_cancelled:
+                await self._telemetry_loop
+            await self.basic_close()
 
     @abstractmethod
     async def basic_close(self) -> None:
