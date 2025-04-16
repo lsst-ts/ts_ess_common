@@ -20,6 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .air_turbulence_processor import *
+from .aurora_processor import *
 from .auxtel_camera_coolant_pressure_processor import *
 from .base_hx85_processor import *
 from .base_processor import *
