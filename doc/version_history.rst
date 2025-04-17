@@ -8,6 +8,17 @@ Version History
 
 .. towncrier release notes start
 
+v0.21.1 (2025-04-17)
+====================
+
+Bug Fixes
+---------
+
+- Improve error handling and loop control. (`DM-49805 <https://rubinobs.atlassian.net//browse/DM-49805>`_)
+- Fix package version file generation. (`DM-49805 <https://rubinobs.atlassian.net//browse/DM-49805>`_)
+- Avoid `asyncio_default_fixture_loop_scope` pytest warning. (`DM-49805 <https://rubinobs.atlassian.net//browse/DM-49805>`_)
+
+
 v0.21.0
 =======
 
