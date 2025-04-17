@@ -6,13 +6,9 @@
 Version History
 ###############
 
-v0.20.2
-=======
+.. towncrier release notes start
 
-* Avoid `asyncio_default_fixture_loop_scope` pytest warning.
-* Improve error handling and loop control.
-
-v0.20.1
+v0.21.0
 =======
 
 * Fix compatibility with pysnmp >= 5.0.0 for Python3.12.
