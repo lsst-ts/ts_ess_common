@@ -1,0 +1,1 @@
+Limited telemetry rate to prevent excessive amounts of error messages.

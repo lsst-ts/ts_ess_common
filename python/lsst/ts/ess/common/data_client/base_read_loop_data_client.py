@@ -35,6 +35,10 @@ if TYPE_CHECKING:
     from lsst.ts import salobj
 
 
+# Telemetry rate limit [s] to prevent excessive error messages.
+RATE_LIMIT = 1.0
+
+
 class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
     """Base class to read environmental data from a server and publish it
     as ESS telemetry.
@@ -121,7 +125,11 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         # Number of consecutive read timeouts encountered.
         self.num_consecutive_read_timeouts = 0
         while self.connected:
-            await self.read_data_once()
+            rate_limit_task = asyncio.create_task(asyncio.sleep(RATE_LIMIT))
+            try:
+                await self.read_data_once()
+            finally:
+                await rate_limit_task
 
     async def read_data_once(self) -> None:
         try:
