@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-__all__ = ["BaseReadLoopDataClient"]
+__all__ = ["DEFAULT_RATE_LIMIT", "BaseReadLoopDataClient"]
 
 import abc
 import asyncio
@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 DEFAULT_RATE_LIMIT = 1.0
 
 # The minimum telemetry rate limit [s] to prevent excessive error messages.
+# This value limits the error messages to 20 Hz.
 MIN_RATE_LIMIT = 0.05
 
 
@@ -91,13 +92,11 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         self.auto_reconnect = auto_reconnect
         self._connected = False
 
-        if hasattr(config, "rate_limit"):
-            # Set the configured rate limit if present and make sure it is not
-            # too small.
-            self.rate_limit = max(MIN_RATE_LIMIT, config.rate_limit)
-        else:
-            # Use the default rate limit if not present in the configuration.
-            self.rate_limit = DEFAULT_RATE_LIMIT
+        # Set the configured rate limit if present and make sure it is not
+        # too small. Use the default rate limit if not in the configuration.
+        self.rate_limit = max(
+            MIN_RATE_LIMIT, getattr(self.config, "rate_limit", DEFAULT_RATE_LIMIT)
+        )
 
     @property
     def connected(self) -> bool:
