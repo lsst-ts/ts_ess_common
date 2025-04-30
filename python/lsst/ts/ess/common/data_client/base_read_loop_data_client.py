@@ -36,7 +36,10 @@ if TYPE_CHECKING:
 
 
 # Telemetry rate limit [s] to prevent excessive error messages.
-RATE_LIMIT = 1.0
+DEFAULT_RATE_LIMIT = 1.0
+
+# The minimum telemetry rate limit [s] to prevent excessive error messages.
+MIN_RATE_LIMIT = 0.05
 
 
 class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
@@ -88,6 +91,14 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         self.auto_reconnect = auto_reconnect
         self._connected = False
 
+        if hasattr(config, "rate_limit"):
+            # Set the configured rate limit if present and make sure it is not
+            # too small.
+            self.rate_limit = max(MIN_RATE_LIMIT, config.rate_limit)
+        else:
+            # Use the default rate limit if not present in the configuration.
+            self.rate_limit = DEFAULT_RATE_LIMIT
+
     @property
     def connected(self) -> bool:
         return self._connected
@@ -125,7 +136,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         # Number of consecutive read timeouts encountered.
         self.num_consecutive_read_timeouts = 0
         while self.connected:
-            rate_limit_task = asyncio.create_task(asyncio.sleep(RATE_LIMIT))
+            rate_limit_task = asyncio.create_task(asyncio.sleep(self.rate_limit))
             try:
                 await self.read_data_once()
             finally:
