@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.21.2 (2025-05-07)
+====================
+
+Bug Fixes
+---------
+
+- Limited telemetry rate to prevent excessive amounts of error messages. (`DM-50598 <https://rubinobs.atlassian.net//browse/DM-50598>`_)
+
+
 v0.21.1 (2025-04-17)
 ====================
 
