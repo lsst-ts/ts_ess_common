@@ -21,6 +21,7 @@
 
 import asyncio
 import logging
+import math
 import types
 import typing
 import unittest
@@ -30,10 +31,13 @@ from lsst.ts.ess import common
 
 
 class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
-    async def create_data_client(self, auto_reconnect: bool = False) -> None:
+    async def create_data_client(
+        self, auto_reconnect: bool = False, config: types.SimpleNamespace | None = None
+    ) -> None:
         log = logging.getLogger()
         topics = types.SimpleNamespace()
-        config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
+        if not config:
+            config = types.SimpleNamespace(name="test_config", max_read_timeouts=5)
         self.data_client = common.data_client.TestReadLoopDataClient(
             config=config, topics=topics, log=log, auto_reconnect=auto_reconnect
         )
@@ -53,6 +57,19 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(asyncio.TimeoutError):
                 await running_task
         assert self.data_client.num_read_data == (0 if expect_error else 1)
+
+    async def test_rate_limit(self) -> None:
+        await self.create_data_client()
+        assert math.isclose(
+            self.data_client.rate_limit, common.data_client.DEFAULT_RATE_LIMIT
+        )
+
+        custom_rate_limit = 0.5
+        config = types.SimpleNamespace(
+            name="test_config", max_read_timeouts=5, rate_limit=custom_rate_limit
+        )
+        await self.create_data_client(config=config)
+        assert math.isclose(self.data_client.rate_limit, custom_rate_limit)
 
     async def test_nominal_read_data(self) -> None:
         await self.create_data_client()

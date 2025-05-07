@@ -92,9 +92,13 @@ properties:
   max_read_timeouts:
     type: int
     default: 5
+  rate_limit:
+    type: number
+    default: 0.5
 required:
   - name
   - max_read_timeouts
+  - rate_limit
 additionalProperties: false
 """
         )

@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-__all__ = ["BaseReadLoopDataClient"]
+__all__ = ["DEFAULT_RATE_LIMIT", "BaseReadLoopDataClient"]
 
 import abc
 import asyncio
@@ -33,6 +33,14 @@ from .base_data_client import BaseDataClient
 
 if TYPE_CHECKING:
     from lsst.ts import salobj
+
+
+# Telemetry rate limit [s] to prevent excessive error messages.
+DEFAULT_RATE_LIMIT = 1.0
+
+# The minimum telemetry rate limit [s] to prevent excessive error messages.
+# This value limits the error messages to 20 Hz.
+MIN_RATE_LIMIT = 0.05
 
 
 class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
@@ -84,6 +92,12 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         self.auto_reconnect = auto_reconnect
         self._connected = False
 
+        # Set the configured rate limit if present and make sure it is not
+        # too small. Use the default rate limit if not in the configuration.
+        self.rate_limit = max(
+            MIN_RATE_LIMIT, getattr(self.config, "rate_limit", DEFAULT_RATE_LIMIT)
+        )
+
     @property
     def connected(self) -> bool:
         return self._connected
@@ -121,7 +135,11 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         # Number of consecutive read timeouts encountered.
         self.num_consecutive_read_timeouts = 0
         while self.connected:
-            await self.read_data_once()
+            rate_limit_task = asyncio.create_task(asyncio.sleep(self.rate_limit))
+            try:
+                await self.read_data_once()
+            finally:
+                await rate_limit_task
 
     async def read_data_once(self) -> None:
         try:
