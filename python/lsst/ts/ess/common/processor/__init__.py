@@ -28,6 +28,7 @@ from .efm100c_processor import *
 from .hx85a_processor import *
 from .hx85ba_processor import *
 from .ld250_processor import *
+from .sps30_processor import *
 from .temperature_processor import *
 from .utils import *
 from .windsonic_processor import *
