@@ -49,7 +49,7 @@ class Ld250Processor(BaseProcessor):
     ) -> None:
         super().__init__(device_configuration, topics, log)
 
-        # Timer task to send a event when there have been no more lightning
+        # Timer task to send an event when there have been no more lightning
         # strikes for a configurable amount of time.
         self.strike_timer_task = utils.make_done_future()
 
