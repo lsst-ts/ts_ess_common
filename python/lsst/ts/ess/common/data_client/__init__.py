@@ -24,7 +24,6 @@ from .base_read_loop_data_client import *
 from .controller_data_client import *
 from .data_client_constants import *
 from .siglent_ssa3000x_spectrum_analyzer_data_client import *
-from .snmp_data_client import *
 from .tcpip_data_client import *
 from .test_data_client import *
 from .test_read_loop_data_client import *

@@ -53,6 +53,7 @@ ExternalDataClientModules = dict(
     LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
     RingssDataClient="lsst.ts.ess.ringss",
     ModbusDataClient="lsst.ts.ess.epm",
+    SnmpDataClient="lsst.ts.ess.epm",
 )
 
 
@@ -131,9 +132,6 @@ class BaseDataClient(abc.ABC):
 
         This should be just enough information to distinguish
         one instance of this client from another.
-        For example RPiDataClient should return something like::
-
-           f"host={self.config.host}, port={self.config.port}"
         """
         raise NotImplementedError()
 
