@@ -23,10 +23,11 @@ __all__ = ["GecThermalscannerDataClient"]
 
 import asyncio
 import logging
+import math
 import random
 import time
 import types
-from copy import deepcopy
+from copy import copy
 from math import ceil
 from typing import Any
 
@@ -64,7 +65,7 @@ class GecThermalscannerDataClient(BaseReadLoopDataClient):
 
         num_topics = ceil(NUM_THERMOCOUPLES / 16)
         for tn in range(num_topics):
-            topic = deepcopy(self.topics.tel_temperature)
+            topic = copy(self.topics.tel_temperature)
             num_channels = (
                 16 - (num_topics * 16 - NUM_THERMOCOUPLES)
                 if tn == (num_topics - 1)
@@ -190,9 +191,13 @@ required:
         timestamp = float(timestamp)
 
         for tn, topic in enumerate(self.write_topics):
+            temperatures_as_string = temperatures[tn * 16 : (tn + 1) * 16]
+            temperatures_as_floats = [float(t) for t in temperatures_as_string]
+            for _ in range(16 - len(temperatures_as_floats)):
+                temperatures_as_floats.append(math.nan)
             await topic.set_write(
                 timestamp=timestamp,
-                temperatureItem=temperatures[tn * 16 : (tn + 1) * 16],
+                temperatureItem=temperatures_as_floats,
             )
 
 
