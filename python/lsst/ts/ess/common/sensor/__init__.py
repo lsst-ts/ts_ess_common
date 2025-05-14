@@ -28,5 +28,6 @@ from .gill_windsonic import *
 from .omega_hx85a import *
 from .omega_hx85ba import *
 from .sensor_registry import *
+from .sps30_sensor import *
 from .temperature_sensor import *
 from .utils import *
