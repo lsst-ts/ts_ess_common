@@ -8,6 +8,28 @@ Version History
 
 .. towncrier release notes start
 
+v0.22.0 (2025-05-15)
+====================
+
+New Features
+------------
+
+- Moved all DataClients here from ts_ess_csc. (`DM-50822 <https://rubinobs.atlassian.net//browse/DM-50822>`_)
+- Added GecThermalscannerDataClient. (`DM-50822 <https://rubinobs.atlassian.net//browse/DM-50822>`_)
+
+
+Documentation
+-------------
+
+- Added Sensirion SPS30 particulate matter sensor support and documentation. (`DM-50330 <https://rubinobs.atlassian.net//browse/DM-50330>`_)
+
+
+API Removal or Deprecation
+--------------------------
+
+- Moved all SNMP code to ts_ess_epm. (`DM-50822 <https://rubinobs.atlassian.net//browse/DM-50822>`_)
+
+
 v0.21.2 (2025-05-07)
 ====================
 
@@ -15,6 +37,7 @@ Bug Fixes
 ---------
 
 - Limited telemetry rate to prevent excessive amounts of error messages. (`DM-50598 <https://rubinobs.atlassian.net//browse/DM-50598>`_)
+
 
 v0.21.1 (2025-04-17)
 ====================
