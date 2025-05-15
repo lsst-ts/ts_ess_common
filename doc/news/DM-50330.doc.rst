@@ -1,1 +1,0 @@
-Added Sensirion SPS30 particulate matter sensor support and documentation.
