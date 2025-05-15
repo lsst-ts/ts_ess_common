@@ -137,7 +137,7 @@ class AirFlowAccumulator:
         self.num_bad_samples = 0
 
     def get_topic_kwargs(self) -> dict[str, float | list[float] | bool]:
-        """Return data for the electricFieldStrength telemetry topic.
+        """Return data for the airFlow telemetry topic.
 
         Returns
         -------
