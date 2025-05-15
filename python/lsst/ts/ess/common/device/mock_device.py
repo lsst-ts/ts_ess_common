@@ -33,6 +33,7 @@ from ..sensor import (
     Hx85aSensor,
     Hx85baSensor,
     Ld250Sensor,
+    Sps30Sensor,
     TemperatureSensor,
     WindsonicSensor,
 )
@@ -46,6 +47,7 @@ from .mock_boltek_formatter import (
 from .mock_csat3b_formatter import MockCsat3bFormatter
 from .mock_formatter import MockFormatter
 from .mock_hx85_formatter import MockHx85aFormatter, MockHx85baFormatter
+from .mock_sps30_formatter import MockSps30Formatter
 from .mock_temperature_formatter import MockTemperatureFormatter
 from .mock_windsonic_formatter import MockWindsonicFormatter
 
@@ -119,6 +121,7 @@ class MockDevice(BaseDevice):
             Ld250Sensor: MockLD250StatusFormatter(),
             TemperatureSensor: MockTemperatureFormatter(),
             WindsonicSensor: MockWindsonicFormatter(),
+            Sps30Sensor: MockSps30Formatter(),
         }
 
         # Initialize the formatter.
