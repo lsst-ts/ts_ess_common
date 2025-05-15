@@ -114,3 +114,4 @@ class SensorType(str, enum.Enum):
     TEMPERATURE = "Temperature"
     WINDSONIC = "Windsonic"
     AURORA = "Aurora"
+    SPS30 = "Sps30"
