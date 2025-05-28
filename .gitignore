@@ -5,6 +5,7 @@ __pycache__
 .sconsign.dblite
 *.log
 version.py
+**/.DS_Store
 
 # pytest
 tests/.tests
@@ -18,9 +19,9 @@ pytest_session.txt
 .vscode
 
 # ts_pre_commit_conf
-.pre-commit-config.yaml
 .flake8
 .isort.cfg
 .mypy.ini
+.pre-commit-config.yaml
+.ruff.toml
 towncrier.toml
-**/.DS_Store
