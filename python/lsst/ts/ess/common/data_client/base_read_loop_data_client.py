@@ -145,7 +145,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         try:
             await self.read_data()
             self.num_consecutive_read_timeouts = 0
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.num_consecutive_read_timeouts += 1
 
             if self.num_consecutive_read_timeouts >= self.config.max_read_timeouts:
@@ -181,7 +181,7 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
 
         Notes
         -----
-        This method needs to raise an `asyncio.TimeoutError` when timing out,
+        This method needs to raise an `TimeoutError` when timing out,
         otherwise the `read_loop` method may hang forever.
         """
         raise NotImplementedError()

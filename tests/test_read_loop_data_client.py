@@ -54,7 +54,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         if not expect_error:
             await self.data_client.data_read_event.wait()
         else:
-            with self.assertRaises(asyncio.TimeoutError):
+            with self.assertRaises(TimeoutError):
                 await running_task
         assert self.data_client.num_read_data == (0 if expect_error else 1)
 

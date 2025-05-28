@@ -844,7 +844,7 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
         data: str | None = None
         try:
             if self.do_timeout:
-                raise asyncio.TimeoutError
+                raise TimeoutError
             for data in self.simulated_raw_data:
                 if not self.connected:
                     return

@@ -399,7 +399,7 @@ additionalProperties: false
         ------
         ConnectionError
             If not connected.
-        asyncio.TimeoutError
+        TimeoutError
             If it takes more than COMMUNICATE_TIMEOUT seconds
             to acquire the lock or write the data.
         """

@@ -114,9 +114,7 @@ class BaseDataClient(abc.ABC):
     ) -> None:
         self.config = config
         self.topics = topics
-        self.connect_task = utils.make_done_future()
         self.run_task = utils.make_done_future()
-        self.disconnect_task = utils.make_done_future()
         self.log = log.getChild(type(self).__name__)
         self.simulation_mode = simulation_mode
 
@@ -148,7 +146,7 @@ class BaseDataClient(abc.ABC):
             If the data server rejects the connection.
             This may happen if the data server is down
             or the configuration specified an invalid address.
-        asyncio.TimeoutError
+        TimeoutError
             If a connection cannot be made in reasonable time.
         Exception
             (or any subclass) if any other serious problem occurs.
@@ -176,8 +174,6 @@ class BaseDataClient(abc.ABC):
         Raises the same exceptions as `connect`.
         If `disconnect` raises, this logs the exception and continues.
         """
-        self.connect_task.cancel()
-        self.disconnect_task.cancel()
         try:
             await self.disconnect()
         except Exception:
@@ -199,7 +195,7 @@ class BaseDataClient(abc.ABC):
         ------
         ConnectionError
             If the connection to the data server is lost.
-        asyncio.TimeoutError
+        TimeoutError
             If data is not received in reasonable time.
         Exception
             (or any subclass) if any other serious problem occurs.

@@ -108,7 +108,7 @@ additionalProperties: false
 
     async def read_data(self) -> None:
         if self.do_timeout:
-            raise asyncio.TimeoutError
+            raise TimeoutError
         self.num_read_data += 1
         self.data_read_event.set()
         await asyncio.sleep(self.read_sleep_time)
