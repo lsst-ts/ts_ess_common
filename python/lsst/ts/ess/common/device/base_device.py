@@ -44,7 +44,7 @@ class BaseDevice(ABC):
 
     This class holds all common code for the hardware devices. Device specific
     code (for instance for a serial or an FTDI device) needs to be implemented
-    in a sub-class.
+    in a subclass.
 
     Parameters
     ----------
@@ -187,8 +187,8 @@ class BaseDevice(ABC):
                 await self._telemetry_loop
         except TimeoutError:
             self.log.exception("Failed to close telemetry loop in time alloted.")
-        except Exception:
-            self.log.exception("Something went wrong closing telemetry loop")
+        except (Exception, asyncio.CancelledError):
+            self.log.exception("Something went wrong so closing telemetry loop.")
         finally:
             notyet_cancelled = self._telemetry_loop.cancel()
             if notyet_cancelled:

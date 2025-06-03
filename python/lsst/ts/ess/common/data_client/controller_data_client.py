@@ -350,7 +350,6 @@ additionalProperties: false
         Always safe to call, though it may raise asyncio.CancelledError
         if the client is currently being closed.
         """
-        self.run_task.cancel()
         if self.connected:
             assert self.client is not None  # make mypy happy
             await self.client.close()
