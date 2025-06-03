@@ -19,13 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .base_data_client import *
 from .base_read_loop_data_client import *
 from .controller_data_client import *
 from .data_client_constants import *
 from .gec_thermalscanner_data_client import *
 from .siglent_ssa3000x_spectrum_analyzer_data_client import *
 from .tcpip_data_client import *
-from .test_data_client import *
 from .test_read_loop_data_client import *
 from .young_32400_weather_station_data_client import *

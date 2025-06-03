@@ -178,8 +178,6 @@ additionalProperties: false
         return self.tcpip_device is not None and self.tcpip_device.connected
 
     async def connect(self) -> None:
-        await self.disconnect()
-
         assert self.device_configuration is not None
         assert self.device_configuration.host is not None
         assert self.device_configuration.port is not None
@@ -198,7 +196,8 @@ additionalProperties: false
         await tcpip_device.open()
 
     async def disconnect(self) -> None:
-        self.run_task.cancel()
+        self.loop_should_end = True
+
         try:
             if self.connected:
                 assert self.tcpip_device is not None  # make mypy happy

@@ -482,7 +482,6 @@ additionalProperties: false
         return f"host={self.client.host}, port={self.client.port}"
 
     async def disconnect(self) -> None:
-        self.run_task.cancel()
         self.rain_stopped_timer_task.cancel()
         self.last_rain_tip_timestamp = 0.0
         self.air_flow_accumulator.clear()

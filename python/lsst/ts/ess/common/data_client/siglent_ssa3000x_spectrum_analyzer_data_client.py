@@ -229,8 +229,6 @@ additionalProperties: false
         return self.client is not None and self.client.connected
 
     async def connect(self) -> None:
-        await self.disconnect()
-
         # The first data read from the spectrum analyzer can be truncated, in
         # which case that data may be discarded. This boolean is used to keep
         # track of having read data for the first time.
@@ -255,7 +253,6 @@ additionalProperties: false
         await asyncio.wait_for(self.client.start_task, self.config.connect_timeout)
 
     async def disconnect(self) -> None:
-        self.run_task.cancel()
         try:
             if self.connected:
                 assert self.client is not None  # make mypy happy
