@@ -31,7 +31,7 @@ from lsst.ts.ess import common
 
 class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def create_data_client(
-        self, auto_reconnect: bool = False, config: types.SimpleNamespace | None = None
+        self, config: types.SimpleNamespace | None = None
     ) -> None:
         log = logging.getLogger()
         topics = types.SimpleNamespace()
@@ -40,7 +40,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 name="test_config", max_read_timeouts=5, connect_timeout=0.1
             )
         self.data_client = common.data_client.TestReadLoopDataClient(
-            config=config, topics=topics, log=log, auto_reconnect=auto_reconnect
+            config=config, topics=topics, log=log
         )
 
     async def validate_data_client(
@@ -69,7 +69,10 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
         custom_rate_limit = 0.5
         config = types.SimpleNamespace(
-            name="test_config", max_read_timeouts=5, rate_limit=custom_rate_limit
+            name="test_config",
+            max_read_timeouts=5,
+            rate_limit=custom_rate_limit,
+            connect_timeout=1,
         )
         await self.create_data_client(config=config)
         assert math.isclose(self.data_client.rate_limit, custom_rate_limit)
@@ -87,23 +90,22 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         await self.validate_data_client(task=self.data_client.run, expect_error=False)
 
     async def test_error_run(self) -> None:
-        await self.create_data_client(auto_reconnect=True)
+        await self.create_data_client()
         await self.validate_data_client(task=self.data_client.run, expect_error=True)
 
     async def test_reconnect(self) -> None:
-        for auto_reconnect in [False, True]:
-            expected_num_consecutive_read_timeouts = 5 if auto_reconnect else 1
-            await self.create_data_client(auto_reconnect=auto_reconnect)
+        expected_num_consecutive_read_timeouts = 5
+        await self.create_data_client()
 
-            # First test without auto-reconnecting.
-            self.data_client.do_timeout = True
-            await self.data_client.start()
-            await self.data_client.timeout_event.wait()
+        # First test without auto-reconnecting.
+        self.data_client.do_timeout = True
+        await self.data_client.start()
+        await self.data_client.timeout_event.wait()
 
-            # Assert that num_reconnects has not been incremented.
-            assert (
-                self.data_client.num_consecutive_read_timeouts
-                == expected_num_consecutive_read_timeouts
-            )
+        # Assert that num_reconnects has not been incremented.
+        assert (
+            self.data_client.num_consecutive_read_timeouts
+            == expected_num_consecutive_read_timeouts
+        )
 
-            await self.data_client.stop()
+        await self.data_client.stop()

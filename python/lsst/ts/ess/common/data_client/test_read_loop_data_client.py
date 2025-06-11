@@ -47,14 +47,12 @@ class TestReadLoopDataClient(BaseReadLoopDataClient):
         topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
-        auto_reconnect: bool = False,
     ) -> None:
         super().__init__(
             config=config,
             topics=topics,
             log=log,
             simulation_mode=simulation_mode,
-            auto_reconnect=auto_reconnect,
         )
 
         # Keep track of how often the read_data coro is called to mock reading
@@ -92,12 +90,16 @@ properties:
   max_read_timeouts:
     type: int
     default: 5
+  connect_timeout:
+    type: number
+    default: 60
   rate_limit:
     type: number
     default: 0.5
 required:
   - name
   - max_read_timeouts
+  - connect_timeout
   - rate_limit
 additionalProperties: false
 """

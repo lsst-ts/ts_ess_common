@@ -200,16 +200,11 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
                 f"{config.sensor_name_temperature=} are specified"
             )
 
-        # The MOXA serial-to-ethernet adapter connected to the Young weather
-        # station requires disconnecting and reconnecting again when the
-        # connection times out. This is achieved by setting the auto_reconnect
-        # constructor argument to True.
         super().__init__(
             config=config,
             topics=topics,
             log=log,
             simulation_mode=simulation_mode,
-            auto_reconnect=True,
         )
 
         self.topics.tel_airFlow.set(

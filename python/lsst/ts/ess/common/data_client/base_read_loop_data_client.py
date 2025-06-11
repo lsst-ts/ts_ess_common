@@ -49,9 +49,6 @@ DEFAULT_RATE_LIMIT = 1.0
 # This value limits the error messages to 20 Hz.
 MIN_RATE_LIMIT = 0.05
 
-# Connect timeout [s].
-DEFAULT_CONNECT_TIME_OUT = 60.0
-
 
 # Dict of data client class name: data client class.
 # Access via the `get_data_client_class functions`.
@@ -112,9 +109,6 @@ class BaseReadLoopDataClient(abc.ABC):
         Logger.
     simulation_mode : `int`, optional
         Simulation mode; 0 for normal operation.
-    auto_reconnect : `bool`
-        Automatically disconnect and reconnect in case of a read error
-        (default: False)?
 
     Notes
     -----
@@ -128,28 +122,24 @@ class BaseReadLoopDataClient(abc.ABC):
         topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
-        auto_reconnect: bool = False,
     ) -> None:
         self.config = config
         self.topics = topics
         self.log = log.getChild(type(self).__name__)
         self.simulation_mode = simulation_mode
-        self.auto_reconnect = auto_reconnect
 
         self.run_task = utils.make_done_future()
         self.loop_should_end = False
 
         if "max_read_timeouts" not in vars(config):
             raise RuntimeError("'max_read_timeouts' is required in 'config'.")
+        self.max_read_timeouts = self.config.max_read_timeouts
 
-        self.connect_timeout = DEFAULT_CONNECT_TIME_OUT
-        if hasattr(config, "connect_timeout"):
-            self.connect_timeout = config.connect_timeout
+        if "connect_timeout" not in vars(config):
+            raise RuntimeError("'connect_timeout' is required in 'config'.")
+        self.connect_timeout = self.config.connect_timeout
 
         self.num_consecutive_read_timeouts = 0
-        self.max_num_reconnects = (
-            self.config.max_read_timeouts if self.auto_reconnect else 0
-        )
         self._connected = False
         self.timeout_event = asyncio.Event()
 
@@ -220,10 +210,10 @@ class BaseReadLoopDataClient(abc.ABC):
                 self.loop_should_end = True
             except Exception as e:
                 self.num_consecutive_read_timeouts += 1
-                if self.num_consecutive_read_timeouts >= self.max_num_reconnects:
+                if self.num_consecutive_read_timeouts >= self.max_read_timeouts:
                     self.log.error(
                         f"Read timed out {self.num_consecutive_read_timeouts} times "
-                        f">= {self.max_num_reconnects=}; giving up. Raising {e!r}."
+                        f">= {self.max_read_timeouts=}; giving up. Raising {e!r}."
                     )
                     self.loop_should_end = True
                     self.timeout_event.set()
@@ -231,11 +221,10 @@ class BaseReadLoopDataClient(abc.ABC):
 
                 message = (
                     f"Read timed out. This is timeout #{self.num_consecutive_read_timeouts} "
-                    f"of {self.max_num_reconnects} allowed. Error was: {e!r}."
+                    f"of {self.max_read_timeouts} allowed. Error was: {e!r}."
+                    " Attempting to disconnect and reconnect now."
                 )
-                if self.auto_reconnect:
-                    message += " Attempting to disconnect and reconnect now."
-                    self.loop_should_end = False
+                self.loop_should_end = False
                 self.log.warning(message)
             finally:
                 await self.disconnect()
