@@ -8,6 +8,29 @@ Version History
 
 .. towncrier release notes start
 
+v0.23.0 (2025-06-12)
+====================
+
+New Features
+------------
+
+- Switched to ruff. (`DM-50895 <https://rubinobs.atlassian.net//browse/DM-50895>`_)
+
+
+Bug Fixes
+---------
+
+- Rewrote DataClient lifecycle. (`DM-50895 <https://rubinobs.atlassian.net//browse/DM-50895>`_)
+- Fixed TcpipDataClient connecting and disconnecting. (`DM-50895 <https://rubinobs.atlassian.net//browse/DM-50895>`_)
+- Avoided asyncio warnings in unit tests. (`DM-50895 <https://rubinobs.atlassian.net//browse/DM-50895>`_)
+
+
+Performance Enhancement
+-----------------------
+
+- Stopped using asyncio.TimeoutError. (`DM-50895 <https://rubinobs.atlassian.net//browse/DM-50895>`_)
+
+
 v0.22.0 (2025-05-15)
 ====================
 
