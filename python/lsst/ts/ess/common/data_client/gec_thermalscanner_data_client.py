@@ -55,7 +55,6 @@ class GecThermalscannerDataClient(BaseReadLoopDataClient):
             topics=topics,
             log=log,
             simulation_mode=simulation_mode,
-            auto_reconnect=True,
         )
 
         self.simulation_interval = 2

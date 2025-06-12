@@ -21,15 +21,22 @@
 
 from __future__ import annotations
 
-__all__ = ["DEFAULT_RATE_LIMIT", "BaseReadLoopDataClient"]
+__all__ = [
+    "DEFAULT_RATE_LIMIT",
+    "BaseReadLoopDataClient",
+    "get_data_client_class",
+]
 
 import abc
 import asyncio
+import importlib
+import inspect
 import logging
 import types
+import typing
 from typing import TYPE_CHECKING
 
-from .base_data_client import BaseDataClient
+from lsst.ts import utils
 
 if TYPE_CHECKING:
     from lsst.ts import salobj
@@ -43,7 +50,46 @@ DEFAULT_RATE_LIMIT = 1.0
 MIN_RATE_LIMIT = 0.05
 
 
-class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
+# Dict of data client class name: data client class.
+# Access via the `get_data_client_class functions`.
+# BaseDataClient automatically registers concrete subclasses.
+_DataClientClassRegistry: dict[str, typing.Type[BaseReadLoopDataClient]] = dict()
+
+# Dict of data client class name: name of module in which it is defined.
+# You may omit data clients found in ts_ess_common and ts_ess_csc,
+# because the ESS CSC already imports those two modules.
+ExternalDataClientModules = dict(
+    EarthquakeDataClient="lsst.ts.ess.earthquake",
+    LabJackDataClient="lsst.ts.ess.labjack",
+    LabJackAccelerometerDataClient="lsst.ts.ess.labjack",
+    RingssDataClient="lsst.ts.ess.ringss",
+    ModbusDataClient="lsst.ts.ess.epm",
+    SnmpDataClient="lsst.ts.ess.epm",
+)
+
+
+def get_data_client_class(class_name: str) -> typing.Type[BaseReadLoopDataClient]:
+    """Get a data client class by class name.
+
+    Parameters
+    ----------
+    class_name : `str`
+        Name of data client class, e.g. "MockDataClient".
+
+    Raises
+    ------
+    KeyError
+        If the specified class is not in the registry.
+    """
+    global _DataClientClassRegistry
+    global ExternalDataClientModules
+    module_name = ExternalDataClientModules.get(class_name)
+    if module_name is not None:
+        importlib.import_module(module_name)
+    return _DataClientClassRegistry[class_name]
+
+
+class BaseReadLoopDataClient(abc.ABC):
     """Base class to read environmental data from a server and publish it
     as ESS telemetry.
 
@@ -63,9 +109,6 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         Logger.
     simulation_mode : `int`, optional
         Simulation mode; 0 for normal operation.
-    auto_reconnect : `bool`
-        Automatically disconnect and reconnect in case of a read error
-        (default: False)?
 
     Notes
     -----
@@ -79,24 +122,47 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
-        auto_reconnect: bool = False,
     ) -> None:
-        super().__init__(
-            config=config, topics=topics, log=log, simulation_mode=simulation_mode
-        )
+        self.config = config
+        self.topics = topics
+        self.log = log.getChild(type(self).__name__)
+        self.simulation_mode = simulation_mode
+
+        self.run_task = utils.make_done_future()
+        self.loop_should_end = False
+
         if "max_read_timeouts" not in vars(config):
             raise RuntimeError("'max_read_timeouts' is required in 'config'.")
+        self.max_read_timeouts = self.config.max_read_timeouts
+
+        if "connect_timeout" not in vars(config):
+            raise RuntimeError("'connect_timeout' is required in 'config'.")
+        self.connect_timeout = self.config.connect_timeout
 
         self.num_consecutive_read_timeouts = 0
-        self.num_reconnects = 0
-        self.auto_reconnect = auto_reconnect
         self._connected = False
+        self.timeout_event = asyncio.Event()
 
         # Set the configured rate limit if present and make sure it is not
         # too small. Use the default rate limit if not in the configuration.
         self.rate_limit = max(
             MIN_RATE_LIMIT, getattr(self.config, "rate_limit", DEFAULT_RATE_LIMIT)
         )
+
+    @classmethod
+    @abc.abstractmethod
+    def get_config_schema(cls) -> dict[str, typing.Any]:
+        """Get the config schema as jsonschema dict."""
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def descr(self) -> str:
+        """Return a brief description, without the class name.
+
+        This should be just enough information to distinguish
+        one instance of this client from another.
+        """
+        raise NotImplementedError()
 
     @property
     def connected(self) -> bool:
@@ -109,67 +175,64 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
         self._connected = False
 
     async def start(self) -> None:
-        """Override start method to handle auto reconnecting if necessary."""
-        self.num_reconnects = 0
-        await self.start_tasks()
-        if self.auto_reconnect:
-            while self.num_reconnects < 5:
-                self.num_reconnects += 1
-                await self.stop_tasks()
-                await self.start_tasks()
+        """Start the run task."""
+        self.run_task = asyncio.create_task(self.run())
 
     async def run(self) -> None:
-        try:
-            await self.read_loop()
-        except asyncio.CancelledError:
-            self.log.warning("Task was canceled so not raising the exception.")
-        except asyncio.InvalidStateError:
-            self.log.warning("Task is still running so not raising the exception.")
+        """Perform the life cycle of a DtaClient in a loop.
 
-    async def read_loop(self) -> None:
-        """Call the read_data method in a loop.
+        The life cycle is:
 
-        Allow for max_timeouts timeouts before raising a TimeoutError.
+          - connect
+          - setup reading
+          - read data while connected
+          - handle exceptions
+          - disconnect
         """
-        await self.setup_reading()
-        # Number of consecutive read timeouts encountered.
         self.num_consecutive_read_timeouts = 0
-        while self.connected:
-            rate_limit_task = asyncio.create_task(asyncio.sleep(self.rate_limit))
+        self.timeout_event.clear()
+        while True:
             try:
-                await self.read_data_once()
-            finally:
-                await rate_limit_task
+                if not self.connected:
+                    await self.connect()
+                await self.setup_reading()
+                while self.connected:
+                    rate_limit_task = asyncio.create_task(
+                        asyncio.sleep(self.rate_limit)
+                    )
+                    try:
+                        await self.read_data()
+                        self.num_consecutive_read_timeouts = 0
+                        self.timeout_event.clear()
+                    finally:
+                        await rate_limit_task
+            except asyncio.CancelledError:
+                self.loop_should_end = True
+            except Exception as e:
+                self.num_consecutive_read_timeouts += 1
+                if self.num_consecutive_read_timeouts >= self.max_read_timeouts:
+                    self.log.error(
+                        f"Read timed out {self.num_consecutive_read_timeouts} times "
+                        f">= {self.max_read_timeouts=}; giving up. Raising {e!r}."
+                    )
+                    self.loop_should_end = True
+                    self.timeout_event.set()
+                    raise
 
-    async def read_data_once(self) -> None:
-        try:
-            await self.read_data()
-            self.num_consecutive_read_timeouts = 0
-        except asyncio.TimeoutError:
-            self.num_consecutive_read_timeouts += 1
-
-            if self.num_consecutive_read_timeouts >= self.config.max_read_timeouts:
-                self.log.error(
-                    f"Read timed out {self.num_consecutive_read_timeouts} times "
-                    f">= {self.config.max_read_timeouts=}; giving up."
+                message = (
+                    f"Read timed out. This is timeout #{self.num_consecutive_read_timeouts} "
+                    f"of {self.max_read_timeouts} allowed. Error was: {e!r}. Attempting to reconnect."
                 )
-                raise
-
-            message = (
-                f"Read timed out. This is timeout #{self.num_consecutive_read_timeouts} "
-                f"of {self.config.max_read_timeouts} allowed."
-            )
-            if self.auto_reconnect:
-                message += " Attempting to disconnect and reconnect now."
-            self.log.warning(message)
-
-            if self.auto_reconnect:
+                self.loop_should_end = False
+                self.log.warning(message)
+            finally:
                 await self.disconnect()
-        except StopIteration:
-            self.log.info("read loop ends: out of simulated raw data")
-        except Exception as e:
-            self.log.exception(f"read loop failed: {e!r}")
-            raise
+                if not self.loop_should_end:
+                    await asyncio.sleep(self.connect_timeout)
+
+            if self.loop_should_end:
+                self.log.info("End of DataClient life cycle. Goodbye.")
+                return
 
     async def setup_reading(self) -> None:
         """Perform any tasks before starting the read loop."""
@@ -181,7 +244,51 @@ class BaseReadLoopDataClient(BaseDataClient, abc.ABC):
 
         Notes
         -----
-        This method needs to raise an `asyncio.TimeoutError` when timing out,
+        This method needs to raise an `TimeoutError` when timing out,
         otherwise the `read_loop` method may hang forever.
         """
         raise NotImplementedError()
+
+    async def stop(self) -> None:
+        """Stop reading and publishing data.
+
+        This is alway safe to call, whether connected or not.
+        This should raise no exceptions except asyncio.CancelledError.
+        If `disconnect` raises, this logs the exception and continues.
+        """
+        self.log.debug("Stop called.")
+        self.run_task.cancel()
+
+    def __repr__(self) -> str:
+        """Return a repr of this data client.
+
+        Subclasses may wish to override to add more information,
+        such as host and port.
+        """
+        try:
+            descr = self.descr()
+        except Exception:
+            descr = "?"
+        return f"{type(self).__name__}({descr})"
+
+    @classmethod
+    def __init_subclass__(cls) -> None:
+        """Register concrete subclasses."""
+        global _DataClientClassRegistry
+        if inspect.isabstract(cls):
+            # Will not add abstract classes.
+            pass
+        name = cls.__name__
+        _DataClientClassRegistry[name] = cls
+
+    async def __aenter__(self) -> BaseReadLoopDataClient:
+        await self.start()
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: typing.Type[BaseException] | None,
+        value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None:
+        await self.stop()
