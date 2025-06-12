@@ -125,6 +125,10 @@ properties:
     description: Maximum number of read timeouts before an exception is raised.
     type: integer
     default: 5
+  connect_timeout:
+    description: Timeout for connecting to the TCP/IP interface (sec).
+    type: number
+    default: 60.0
   devices:
     type: array
     minItems: 1
@@ -350,7 +354,6 @@ additionalProperties: false
         Always safe to call, though it may raise asyncio.CancelledError
         if the client is currently being closed.
         """
-        self.run_task.cancel()
         if self.connected:
             assert self.client is not None  # make mypy happy
             await self.client.close()
@@ -399,7 +402,7 @@ additionalProperties: false
         ------
         ConnectionError
             If not connected.
-        asyncio.TimeoutError
+        TimeoutError
             If it takes more than COMMUNICATE_TIMEOUT seconds
             to acquire the lock or write the data.
         """

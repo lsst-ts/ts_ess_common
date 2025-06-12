@@ -24,7 +24,7 @@ import logging
 import types
 import typing
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
 import pytest
@@ -35,6 +35,7 @@ class SiglentSSA3000xDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_siglent_ssa3000x_spectrum_analyzer_data_client(self) -> None:
         log = logging.getLogger()
         tel_spectrum_analyzer = AsyncMock()
+        tel_spectrum_analyzer.set = MagicMock()
         tel_spectrum_analyzer.set_write = self.set_spectrum
         topics = types.SimpleNamespace(tel_spectrumAnalyzer=tel_spectrum_analyzer)
         config_dict = dict(

@@ -200,16 +200,11 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
                 f"{config.sensor_name_temperature=} are specified"
             )
 
-        # The MOXA serial-to-ethernet adapter connected to the Young weather
-        # station requires disconnecting and reconnecting again when the
-        # connection times out. This is achieved by setting the auto_reconnect
-        # constructor argument to True.
         super().__init__(
             config=config,
             topics=topics,
             log=log,
             simulation_mode=simulation_mode,
-            auto_reconnect=True,
         )
 
         self.topics.tel_airFlow.set(
@@ -482,7 +477,6 @@ additionalProperties: false
         return f"host={self.client.host}, port={self.client.port}"
 
     async def disconnect(self) -> None:
-        self.run_task.cancel()
         self.rain_stopped_timer_task.cancel()
         self.last_rain_tip_timestamp = 0.0
         self.air_flow_accumulator.clear()
@@ -844,7 +838,7 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
         data: str | None = None
         try:
             if self.do_timeout:
-                raise asyncio.TimeoutError
+                raise TimeoutError
             for data in self.simulated_raw_data:
                 if not self.connected:
                     return

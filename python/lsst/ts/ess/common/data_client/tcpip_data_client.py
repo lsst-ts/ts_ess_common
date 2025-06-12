@@ -77,6 +77,8 @@ class TcpipDataClient(BaseReadLoopDataClient):
         self.stream_lock = asyncio.Lock()
 
         self.tcpip_device: TcpipDevice | None = None
+        self.data: dict = {}
+        self.data_event = asyncio.Event()
 
     @classmethod
     def get_config_schema(cls) -> dict[str, typing.Any]:
@@ -178,14 +180,12 @@ additionalProperties: false
         return self.tcpip_device is not None and self.tcpip_device.connected
 
     async def connect(self) -> None:
-        await self.disconnect()
-
         assert self.device_configuration is not None
         assert self.device_configuration.host is not None
         assert self.device_configuration.port is not None
         sensor_type = sensor_dict[self.device_configuration.sens_type]
         sensor = sensor_type(log=self.log, num_channels=self.config.channels)
-        tcpip_device = TcpipDevice(
+        self.tcpip_device = TcpipDevice(
             name=self.config.name,
             host=self.device_configuration.host,
             port=self.device_configuration.port,
@@ -195,10 +195,9 @@ additionalProperties: false
             log=self.log,
             simulation_mode=self.simulation_mode,
         )
-        await tcpip_device.open()
+        await self.tcpip_device.open()
 
     async def disconnect(self) -> None:
-        self.run_task.cancel()
         try:
             if self.connected:
                 assert self.tcpip_device is not None  # make mypy happy
@@ -206,14 +205,29 @@ additionalProperties: false
         finally:
             self.tcpip_device = None
 
-    async def process_telemetry(self, data: typing.Any) -> None:
+    async def process_telemetry(self, data: dict) -> None:
         self.log.debug(f"Received {data=}")
+        self.data = data
+        self.log.debug("Setting data_event.")
+        self.data_event.set()
+
+    async def read_data(self) -> None:
+        """Read data.
+
+        Notes
+        -----
+        This method needs to raise an `TimeoutError` when timing out,
+        otherwise the `read_loop` method may hang forever.
+        """
+        self.log.debug("read_data")
         assert self.processor is not None
-        telemetry_data = data[Key.TELEMETRY]
+        async with asyncio.timeout(self.connect_timeout):
+            self.log.debug("Waiting for data_event to be set.")
+            await self.data_event.wait()
+        self.log.debug(f"Processing {self.data=}")
+        telemetry_data = self.data[Key.TELEMETRY]
         timestamp = telemetry_data[Key.TIMESTAMP]
         response_code = telemetry_data[Key.RESPONSE_CODE]
         sensor_data = telemetry_data[Key.SENSOR_TELEMETRY]
         await self.processor.process_telemetry(timestamp, response_code, sensor_data)
-
-    async def read_data(self) -> None:
-        raise NotImplementedError
+        self.data_event.clear()

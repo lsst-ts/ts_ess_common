@@ -1,6 +1,7 @@
 host: 127.0.0.1
 port: 5000
 max_read_timeouts: 2
+connect_timeout: 1
 devices:
   - name: EssHX85A
     channels: 4

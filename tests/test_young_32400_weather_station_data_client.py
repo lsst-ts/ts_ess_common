@@ -89,13 +89,13 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 maxSpeed=math.nan,
             )
         )
-        self.tel_air_flow.set = self.set_air_flow
+        self.tel_air_flow.set = MagicMock()
         self.tel_air_flow.set_write = self.set_air_flow
 
         self.tel_dew_point = types.SimpleNamespace(
             data=types.SimpleNamespace(dewPointItem=math.nan)
         )
-        self.tel_dew_point.set = self.set_dew_point
+        self.tel_dew_point.set = MagicMock()
         self.tel_dew_point.set_write = self.set_dew_point
 
         self.tel_pressure = types.SimpleNamespace(
@@ -108,19 +108,19 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 pressureItem=[math.nan, math.nan, math.nan, math.nan]
             )
         )
-        self.tel_pressure.set = self.set_pressure
+        self.tel_pressure.set = MagicMock()
         self.tel_pressure.set_write = self.set_pressure
 
         self.tel_rain_rate = types.SimpleNamespace(
             data=types.SimpleNamespace(rainRateItem=math.nan)
         )
-        self.tel_rain_rate.set = self.set_rain_rate
+        self.tel_rain_rate.set = MagicMock()
         self.tel_rain_rate.set_write = self.set_rain_rate
 
         self.tel_relative_humidity = types.SimpleNamespace(
             data=types.SimpleNamespace(relativeHumidityItem=math.nan)
         )
-        self.tel_relative_humidity.set = self.set_relative_humidity
+        self.tel_relative_humidity.set = MagicMock()
         self.tel_relative_humidity.set_write = self.set_relative_humidity
 
         self.tel_temperature = types.SimpleNamespace(
@@ -133,11 +133,11 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 temperatureItem=[math.nan, math.nan, math.nan, math.nan]
             )
         )
-        self.tel_temperature.set = self.set_temperature
+        self.tel_temperature.set = MagicMock()
         self.tel_temperature.set_write = self.set_temperature
 
         self.evt_precipitation = types.SimpleNamespace()
-        self.evt_precipitation.set = self.set_precipitation
+        self.evt_precipitation.set = MagicMock()
         self.evt_precipitation.set_write = self.set_precipitation
 
         self.topics = types.SimpleNamespace(
