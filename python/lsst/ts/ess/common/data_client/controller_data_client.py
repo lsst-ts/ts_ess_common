@@ -45,14 +45,6 @@ from .data_client_constants import telemetry_processor_dict
 if typing.TYPE_CHECKING:
     from lsst.ts import salobj
 
-# Time limit for connecting to the ESS Controller (seconds).
-CONNECT_TIMEOUT = 5
-
-# Timeout limit for communicating with the ESS Controller (seconds). This
-# includes writing a command and reading the response and reading telemetry.
-# Unit tests can set this to a lower value to speed up the test.
-COMMUNICATE_TIMEOUT = 60
-
 
 class ControllerDataClient(BaseReadLoopDataClient):
     """Get environmental data from sensors connected to an ESS Controller.
@@ -322,9 +314,8 @@ additionalProperties: false
                     simulation_mode=1,
                 )
                 self.socket_server.set_command_handler(mock_command_handler)
-                await asyncio.wait_for(
-                    self.socket_server.start_task, timeout=CONNECT_TIMEOUT
-                )
+                async with asyncio.timeout(self.connect_timeout):
+                    await self.socket_server.start_task
                 # Change self.config instead of using a local variable
                 # so descr and __repr__ show the correct host and port
                 port = self.socket_server.port
@@ -344,7 +335,8 @@ additionalProperties: false
             log=self.log,
             name=type(self).__name__,
         )
-        await asyncio.wait_for(fut=self.client.start_task, timeout=CONNECT_TIMEOUT)
+        async with asyncio.timeout(self.connect_timeout):
+            await self.client.start_task
         configuration = {Key.DEVICES: self.config.devices}
         await self.run_command(command=Command.CONFIGURE, configuration=configuration)
 
@@ -365,9 +357,8 @@ additionalProperties: false
         """Read and process data from the ESS Controller."""
         async with self.stream_lock:
             assert self.client is not None
-            data = await asyncio.wait_for(
-                self.client.read_json(), timeout=COMMUNICATE_TIMEOUT
-            )
+            async with asyncio.timeout(self.read_timeout):
+                data = await self.client.read_json()
         if Key.RESPONSE in data:
             self.log.warning("Read a command response with no command pending.")
         elif Key.TELEMETRY in data:
@@ -410,9 +401,8 @@ additionalProperties: false
             Key.COMMAND: command,
             Key.PARAMETERS: parameters,
         }
-        await asyncio.wait_for(
-            self._basic_run_command(data), timeout=COMMUNICATE_TIMEOUT
-        )
+        async with asyncio.timeout(self.connect_timeout):
+            await self._basic_run_command(data)
 
     async def _basic_run_command(self, data: dict[str, typing.Any]) -> None:
         """Write a json-encoded command dict. Potentially wait forever.

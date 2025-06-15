@@ -655,10 +655,8 @@ additionalProperties: false
         The format is as described by DATA_REGEX.
         """
         assert self.client is not None  # make mypy happy
-        read_bytes = await asyncio.wait_for(
-            self.client.readuntil(tcpip.DEFAULT_TERMINATOR),
-            timeout=self.config.read_timeout,
-        )
+        async with asyncio.timeout(self.read_timeout):
+            read_bytes = await self.client.readuntil(tcpip.DEFAULT_TERMINATOR)
         data = read_bytes.decode().strip()
         if not data:
             return

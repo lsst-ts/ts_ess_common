@@ -1,0 +1,1 @@
+Removed mandatory config values and used defaults when missing.
