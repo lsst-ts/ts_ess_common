@@ -286,10 +286,8 @@ additionalProperties: false
         await self.write(QUERY_TRACE_DATA_CMD)
         assert self.client is not None  # make mypy happy
         try:
-            read_bytes = await asyncio.wait_for(
-                self.client.readuntil(TERMINATOR),
-                timeout=self.config.read_timeout,
-            )
+            async with asyncio.timeout(self.read_timeout):
+                read_bytes = await self.client.readuntil(TERMINATOR)
         except Exception:
             self._have_seen_data = False
             raise

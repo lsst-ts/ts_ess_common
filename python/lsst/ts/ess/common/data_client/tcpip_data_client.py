@@ -221,7 +221,7 @@ additionalProperties: false
         """
         self.log.debug("read_data")
         assert self.processor is not None
-        async with asyncio.timeout(self.connect_timeout):
+        async with asyncio.timeout(self.read_timeout):
             self.log.debug("Waiting for data_event to be set.")
             await self.data_event.wait()
         self.log.debug(f"Processing {self.data=}")
