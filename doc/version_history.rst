@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.23.1 (2025-06-16)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Removed mandatory config values and used defaults when missing. (`OWS-551 <https://rubinobs.atlassian.net//browse/OWS-551>`_)
+
+
 v0.23.0 (2025-06-12)
 ====================
 
