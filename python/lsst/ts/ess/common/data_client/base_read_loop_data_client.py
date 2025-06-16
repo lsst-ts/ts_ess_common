@@ -41,6 +41,14 @@ from lsst.ts import utils
 if TYPE_CHECKING:
     from lsst.ts import salobj
 
+# Default maximum number of read timeouts.
+DEFAULT_MAX_READ_TIMEOUTS = 5
+
+# Default connect timeout [sec].
+DEFAULT_CONNECT_TIMEOUT = 60
+
+# Default read timeout [sec].
+DEFAULT_READ_TIMEOUT = 60
 
 # Telemetry rate limit [s] to prevent excessive error messages.
 DEFAULT_RATE_LIMIT = 1.0
@@ -131,13 +139,15 @@ class BaseReadLoopDataClient(abc.ABC):
         self.run_task = utils.make_done_future()
         self.loop_should_end = False
 
-        if "max_read_timeouts" not in vars(config):
-            raise RuntimeError("'max_read_timeouts' is required in 'config'.")
-        self.max_read_timeouts = self.config.max_read_timeouts
+        self.max_read_timeouts = getattr(
+            self.config, "max_read_timeouts", DEFAULT_MAX_READ_TIMEOUTS
+        )
 
-        if "connect_timeout" not in vars(config):
-            raise RuntimeError("'connect_timeout' is required in 'config'.")
-        self.connect_timeout = self.config.connect_timeout
+        self.connect_timeout = getattr(
+            self.config, "connect_timeout", DEFAULT_CONNECT_TIMEOUT
+        )
+
+        self.read_timeout = getattr(self.config, "read_timeout", DEFAULT_READ_TIMEOUT)
 
         self.num_consecutive_read_timeouts = 0
         self._connected = False

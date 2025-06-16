@@ -165,10 +165,8 @@ required:
     async def read_data(self) -> None:
         """Read data from thermal scanner."""
         assert self.client is not None
-        read_bytes = await asyncio.wait_for(
-            self.client.readuntil(b"\n"),
-            timeout=self.config.read_timeout,
-        )
+        async with asyncio.timeout(self.read_timeout):
+            read_bytes = await self.client.readuntil(b"\n")
         data = read_bytes.decode()
         if ":" not in data:
             return
