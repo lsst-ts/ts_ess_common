@@ -1,0 +1,1 @@
+Improved DataClient run loop termination.

@@ -57,6 +57,8 @@ DEFAULT_RATE_LIMIT = 1.0
 # This value limits the error messages to 20 Hz.
 MIN_RATE_LIMIT = 0.05
 
+# Telemetry loop finish timeout [s].
+TELEMETRY_LOOP_FINISH_TIMEOUT = 5.0
 
 # Dict of data client class name: data client class.
 # Access via the `get_data_client_class functions`.
@@ -186,6 +188,7 @@ class BaseReadLoopDataClient(abc.ABC):
 
     async def start(self) -> None:
         """Start the run task."""
+        self.loop_should_end = False
         self.run_task = asyncio.create_task(self.run())
 
     async def run(self) -> None:
@@ -201,12 +204,14 @@ class BaseReadLoopDataClient(abc.ABC):
         """
         self.num_consecutive_read_timeouts = 0
         self.timeout_event.clear()
-        while True:
+        while not self.loop_should_end:
             try:
                 if not self.connected:
+                    self.log.debug("Trying to connect.")
                     await self.connect()
                 await self.setup_reading()
-                while self.connected:
+                self.log.debug(f"{self.connected=}, {self.loop_should_end=}")
+                while self.connected and not self.loop_should_end:
                     rate_limit_task = asyncio.create_task(
                         asyncio.sleep(self.rate_limit)
                     )
@@ -236,13 +241,12 @@ class BaseReadLoopDataClient(abc.ABC):
                 self.loop_should_end = False
                 self.log.warning(message)
             finally:
+                self.log.debug("finally...")
                 await self.disconnect()
                 if not self.loop_should_end:
                     await asyncio.sleep(self.connect_timeout)
 
-            if self.loop_should_end:
-                self.log.info("End of DataClient life cycle. Goodbye.")
-                return
+        self.log.info("End of DataClient life cycle. Goodbye.")
 
     async def setup_reading(self) -> None:
         """Perform any tasks before starting the read loop."""
@@ -267,7 +271,19 @@ class BaseReadLoopDataClient(abc.ABC):
         If `disconnect` raises, this logs the exception and continues.
         """
         self.log.debug("Stop called.")
-        self.run_task.cancel()
+        self.loop_should_end = True
+
+        try:
+            async with asyncio.timeout(TELEMETRY_LOOP_FINISH_TIMEOUT):
+                await self.run_task
+        except TimeoutError:
+            self.log.exception("Failed to close run task in time alloted.")
+        except (Exception, asyncio.CancelledError):
+            self.log.exception("Something went wrong so closing run task.")
+        finally:
+            notyet_cancelled = self.run_task.cancel()
+            if notyet_cancelled:
+                await self.run_task
 
     def __repr__(self) -> str:
         """Return a repr of this data client.
