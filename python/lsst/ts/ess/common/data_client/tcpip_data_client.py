@@ -124,6 +124,14 @@ properties:
   channels:
     description: Number of channels.
     type: integer
+  num_samples:
+    description: >-
+      Number of samples per telemetry sample. Only relevant for
+      certain kinds of data, such as wind speed and direction.
+      Ignored for other kinds of data.
+    type: integer
+    minimum: 2
+    default: 60
   baud_rate:
     description: Baud rate of the sensor.
     type: integer
@@ -144,6 +152,7 @@ required:
   - name
   - sensor_type
   - channels
+  - num_samples
   - baud_rate
   - location
 additionalProperties: false
@@ -163,6 +172,7 @@ additionalProperties: false
             dev_id=None,
             sens_type=self.config.sensor_type,
             num_channels=self.config.channels,
+            num_samples=getattr(self.config, "num_samples", 0),
             baud_rate=self.config.baud_rate,
             location=self.config.location,
         )
@@ -185,6 +195,12 @@ additionalProperties: false
         assert self.device_configuration.port is not None
         sensor_type = sensor_dict[self.device_configuration.sens_type]
         sensor = sensor_type(log=self.log, num_channels=self.config.channels)
+        self.log.info(
+            f"Opening TcpipDevice["
+            f"host={self.device_configuration.host}, "
+            f"port={self.device_configuration.port}, "
+            f"{sensor_type=}]"
+        )
         self.tcpip_device = TcpipDevice(
             name=self.config.name,
             host=self.device_configuration.host,
@@ -198,8 +214,10 @@ additionalProperties: false
         await self.tcpip_device.open()
 
     async def disconnect(self) -> None:
+        self.log.debug("disconnect.")
         try:
             if self.connected:
+                self.log.debug("Closing the tcpip_device.")
                 assert self.tcpip_device is not None  # make mypy happy
                 await self.tcpip_device.close()
         finally:
