@@ -80,6 +80,7 @@ class MockDevice(BaseDevice):
         sensor: BaseSensor,
         callback_func: Callable,
         log: logging.Logger,
+        in_error_state: bool = False,
     ) -> None:
         super().__init__(
             name=name,
@@ -104,7 +105,7 @@ class MockDevice(BaseDevice):
         self.missed_channels = 0
         #     The sensor produces an error (True) or not (False) when being
         #     read.
-        self.in_error_state = False
+        self.in_error_state = in_error_state
         #     The sensor always (True) or never (False) produces noise
         #     telemetry. This applies only to LD-250 sensors.
         self.noise = False
@@ -126,6 +127,8 @@ class MockDevice(BaseDevice):
 
         # Initialize the formatter.
         self.mock_formatter = self.formatter_registry[type(self.sensor)]
+        if hasattr(self.mock_formatter, "in_error_state"):
+            self.mock_formatter.in_error_state = in_error_state
 
     async def basic_open(self) -> None:
         """Open the Sensor Device."""

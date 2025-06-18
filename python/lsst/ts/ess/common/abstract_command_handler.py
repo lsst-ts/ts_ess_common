@@ -46,6 +46,9 @@ class AbstractCommandHandler(ABC):
         a test class to verify that the command has been handled correctly.
     simulation_mode : `int`
         Indicating if a simulation mode (> 0) or not (0) is active.
+    devices_in_error_state : `bool`
+        Whether the devices are in error state (True) or not (False, default).
+        To be used by unit tests.
 
     The commands that can be handled are:
 
@@ -65,7 +68,12 @@ class AbstractCommandHandler(ABC):
 
     valid_simulation_modes = (0, 1)
 
-    def __init__(self, callback: Callable, simulation_mode: int) -> None:
+    def __init__(
+        self,
+        callback: Callable,
+        simulation_mode: int,
+        devices_in_error_state: bool = False,
+    ) -> None:
         self.log = logging.getLogger(type(self).__name__)
         if simulation_mode not in self.valid_simulation_modes:
             raise ValueError(
@@ -80,6 +88,7 @@ class AbstractCommandHandler(ABC):
         self._started = False
 
         self.devices: list[BaseDevice] = []
+        self.devices_in_error_state = devices_in_error_state
 
         self.dispatch_dict: dict[str, Callable] = {
             Command.CONFIGURE: self.configure,
@@ -159,7 +168,9 @@ class AbstractCommandHandler(ABC):
         device_configurations = self.configuration[Key.DEVICES]
         self.devices = []
         for device_configuration in device_configurations:
-            device: BaseDevice = self.create_device(device_configuration)
+            device: BaseDevice = self.create_device(
+                device_configuration, self.devices_in_error_state
+            )
             self.devices.append(device)
             self.log.debug(
                 f"Opening {device_configuration[Key.DEVICE_TYPE]} "
@@ -191,7 +202,9 @@ class AbstractCommandHandler(ABC):
         self._started = False
 
     @abstractmethod
-    def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
+    def create_device(
+        self, device_configuration: dict[str, Any], devices_in_error_state: bool = False
+    ) -> BaseDevice:
         """Create the device to connect to by using the specified
         configuration.
 
@@ -200,6 +213,9 @@ class AbstractCommandHandler(ABC):
         device_configuration : `dict`
             A dict representing the device to connect to. The format of the
             dict follows the configuration of the ts_ess_csc project.
+        devices_in_error_state : `bool`
+            Whether the devices are in error state (True) or not (False,
+            default). To be used by unit tests.
 
         Returns
         -------
