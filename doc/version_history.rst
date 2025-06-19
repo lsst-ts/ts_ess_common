@@ -8,6 +8,18 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.0 (2025-06-19)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Improved DataClient run loop termination. (`OSW-558 <https://rubinobs.atlassian.net//browse/OSW-558>`_)
+- Rewrote Device lifecycle. (`OSW-558 <https://rubinobs.atlassian.net//browse/OSW-558>`_)
+- Added num_samples config item. (`OSW-558 <https://rubinobs.atlassian.net//browse/OSW-558>`_)
+- Improved version module import. (`OSW-558 <https://rubinobs.atlassian.net//browse/OSW-558>`_)
+
+
 v0.23.1 (2025-06-16)
 ====================
 

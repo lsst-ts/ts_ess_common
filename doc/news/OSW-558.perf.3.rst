@@ -1,1 +1,0 @@
-Added num_samples config item.
