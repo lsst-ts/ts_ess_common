@@ -32,7 +32,9 @@ MOCK_DEVICE_ID_PREFIX = "MockDevice"
 
 
 class MockCommandHandler(AbstractCommandHandler):
-    def create_device(self, device_configuration: dict[str, Any]) -> BaseDevice:
+    def create_device(
+        self, device_configuration: dict[str, Any], devices_in_error_state: bool = False
+    ) -> BaseDevice:
         """Create the device to connect to by using the specified
         configuration.
 
@@ -42,6 +44,9 @@ class MockCommandHandler(AbstractCommandHandler):
             A dict representing the device to connect to. The format of the
             dict is described in the devices part of
             `lsst.ts.ess.common.CONFIG_SCHEMA`.
+        devices_in_error_state : `bool`
+            Whether the devices are in error state (True) or not (False,
+            default). To be used by unit tests.
 
         Returns
         -------
@@ -63,5 +68,6 @@ class MockCommandHandler(AbstractCommandHandler):
             sensor=sensor,
             callback_func=self._callback,
             log=self.log,
+            in_error_state=devices_in_error_state,
         )
         return device

@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import logging
 import unittest
 
@@ -27,22 +28,30 @@ from lsst.ts.ess import common
 
 class TcpipDeviceTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_tcp_ip_device(self) -> None:
-        log = logging.Logger(type(self).__name__)
+        self.log = logging.Logger(type(self).__name__)
+        self.data_event = asyncio.Event()
         num_channels = 4
-        sensor = common.sensor.TemperatureSensor(log=log, num_channels=num_channels)
+        sensor = common.sensor.TemperatureSensor(
+            log=self.log, num_channels=num_channels
+        )
         tcpip_device = common.device.TcpipDevice(
             name="Test",
             host="",
             port=0,
             sensor=sensor,
             baud_rate=19200,
-            callback_func=None,
-            log=log,
+            callback_func=self.process_telemetry,
+            log=self.log,
             simulation_mode=1,
         )
         await tcpip_device.open()
-        line = await tcpip_device.readline()
-        line = line.strip()
-        line_items = line.split(",")
-        assert len(line_items) == num_channels
+        await tcpip_device.readline()
+        await self.data_event.wait()
+        telemetry = self.data[common.Key.TELEMETRY][common.Key.SENSOR_TELEMETRY]
+        assert len(telemetry) == num_channels
         await tcpip_device.close()
+
+    async def process_telemetry(self, data: dict) -> None:
+        self.log.debug(f"Received {data=}")
+        self.data = data
+        self.data_event.set()

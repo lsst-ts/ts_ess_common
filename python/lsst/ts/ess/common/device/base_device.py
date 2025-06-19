@@ -38,6 +38,12 @@ __all__ = ["BaseDevice"]
 # Telemetry loop finish timeout [s].
 TELEMETRY_LOOP_FINISH_TIMEOUT = 5.0
 
+# Read timeout [seconds].
+READ_TIMEOUT = 5.0
+
+# Error state sleep time [sec].
+ERROR_STATE_SLEEP_TIME = 0.1
+
 
 class BaseDevice(ABC):
     """Base class for the different types of Sensor Devices.
@@ -79,7 +85,10 @@ class BaseDevice(ABC):
         self.baud_rate = baud_rate
         self._callback_func = callback_func
         self._telemetry_loop = utils.make_done_future()
+        self.loop_should_end = False
         self.is_open = False
+        self.open_event = asyncio.Event()
+        self.readline_event = asyncio.Event()
         self.log = log.getChild(type(self).__name__)
 
         # Support MockDevice fault state. To be used in unit tests only.
@@ -117,13 +126,10 @@ class BaseDevice(ABC):
         RuntimeError
             In case the device already is open.
         """
-        if self.is_open:
-            self.log.error("Already open, ignoring.")
-        await self.basic_open()
-        self.is_open = True
-
-        self.log.debug(f"Starting read loop for {self.name!r} sensor.")
+        self.loop_should_end = False
+        self.open_event.clear()
         self._telemetry_loop = asyncio.create_task(self._run())
+        await self.open_event.wait()
 
     @abstractmethod
     async def basic_open(self) -> None:
@@ -135,30 +141,62 @@ class BaseDevice(ABC):
 
         If enabled, loop and read the sensor and pass result to callback_func.
         """
-        self.log.debug("Starting sensor.")
-        while self.is_open:
-            curr_tai = utils.current_tai()
-            response = ResponseCode.OK
+        self.log.debug(f"Starting read loop for {self.name!r} sensor.")
+        self.open_event.clear()
+        while not self.loop_should_end:
             try:
-                line = await self.readline()
-            except Exception:
-                self.log.exception(f"Exception reading device {self.name}. Continuing.")
-                line = f"{self.sensor.terminator}"
-                response = ResponseCode.DEVICE_READ_ERROR
+                if not self.is_open:
+                    self.log.debug("Trying to open.")
+                    await self.basic_open()
+                    self.is_open = True
+                    self.open_event.set()
+                self.log.debug(f"{self.is_open=}, {self.loop_should_end=}")
+                self.readline_event.clear()
+                while self.is_open and not self.loop_should_end:
+                    curr_tai = utils.current_tai()
+                    response = ResponseCode.DEVICE_READ_ERROR
+                    line = f"{self.sensor.terminator}"
+                    if not self.in_error_state:
+                        try:
+                            async with asyncio.timeout(READ_TIMEOUT):
+                                line = await self.readline()
+                                response = ResponseCode.OK
+                                self.readline_event.set()
+                        except BaseException as e:
+                            await self.handle_readline_exception(e)
+                    else:
+                        await asyncio.sleep(ERROR_STATE_SLEEP_TIME)
 
-            if self.in_error_state:
-                response = ResponseCode.DEVICE_READ_ERROR
+                    sensor_telemetry = await self.sensor.extract_telemetry(line=line)
+                    reply = {
+                        Key.TELEMETRY: {
+                            Key.NAME: self.name,
+                            Key.TIMESTAMP: curr_tai,
+                            Key.RESPONSE_CODE: response,
+                            Key.SENSOR_TELEMETRY: sensor_telemetry,
+                        }
+                    }
+                    await self._callback_func(reply)
+            except asyncio.CancelledError:
+                self.loop_should_end = True
+            finally:
+                self.log.debug("finally...")
+                self.open_event.clear()
+                await self.basic_close()
+                self.is_open = False
 
-            sensor_telemetry = await self.sensor.extract_telemetry(line=line)
-            reply = {
-                Key.TELEMETRY: {
-                    Key.NAME: self.name,
-                    Key.TIMESTAMP: curr_tai,
-                    Key.RESPONSE_CODE: response,
-                    Key.SENSOR_TELEMETRY: sensor_telemetry,
-                }
-            }
-            await self._callback_func(reply)
+    async def handle_readline_exception(self, exception: BaseException) -> None:
+        """Handle any exception that happened in the `readline` method.
+
+        The default is to log and ignore but subclasses may override this
+        method to customize the behavior.
+
+        Parameters
+        ----------
+        exception : `BaseException`
+            The exception to handle.
+        """
+        self.log.exception(f"Exception reading device {self.name}. Continuing.")
 
     @abstractmethod
     async def readline(self) -> str:
@@ -174,13 +212,9 @@ class BaseDevice(ABC):
         raise NotImplementedError()
 
     async def close(self) -> None:
-        """Generic close function.
-
-        Stop the telemetry loop. Then check if the device is open and, if yes,
-        call basic_close.
-        """
+        """Stop the telemetry loop."""
         self.log.debug(f"Stopping read loop for {self.name!r} sensor.")
-        self.is_open = False
+        self.loop_should_end = True
 
         try:
             async with asyncio.timeout(TELEMETRY_LOOP_FINISH_TIMEOUT):
@@ -193,7 +227,6 @@ class BaseDevice(ABC):
             notyet_cancelled = self._telemetry_loop.cancel()
             if notyet_cancelled:
                 await self._telemetry_loop
-            await self.basic_close()
 
     @abstractmethod
     async def basic_close(self) -> None:

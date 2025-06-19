@@ -49,25 +49,23 @@ check_reply_func_dict = {
     common.SensorType.WINDSONIC: "check_windsonic_reply",
 }
 
-# Maximum number of times to wait before exiting a sleep loop.
-MAX_SLEEP_WAITS = 60
+# Maximum sleep time [sec].
+MAX_SLEEP_TIME = 10
 
 
 class MockTestTools:
     def __init__(self) -> None:
+        self.log = logging.getLogger(type(self).__name__)
         self.reply: None | dict[str, common.TelemetryDataType] = None
+        self.reply_event = asyncio.Event()
 
     async def _callback(self, reply: dict[str, common.TelemetryDataType]) -> None:
         self.reply = reply
+        self.reply_event.set()
 
     async def wait_for_reply(self) -> None:
-        self.reply = None
-        num_sleep_waits = 0
-        while not self.reply:
-            await asyncio.sleep(0.1)
-            num_sleep_waits = num_sleep_waits + 1
-            if num_sleep_waits >= MAX_SLEEP_WAITS:
-                raise TimeoutError("Did't get telemetry on time.")
+        async with asyncio.timeout(MAX_SLEEP_TIME):
+            await self.reply_event.wait()
 
     async def check_mock_device(
         self,
@@ -80,9 +78,8 @@ class MockTestTools:
         strike: bool = False,
     ) -> None:
         """Check the working of the MockDevice."""
-        log = logging.getLogger(type(self).__name__)
         sensor_class = common.sensor.sensor_registry[sensor_type]
-        sensor_arg_values: dict[str, int | logging.Logger] = {"log": log}
+        sensor_arg_values: dict[str, int | logging.Logger] = {"log": self.log}
         sensor_args = inspect.getfullargspec(sensor_class.__init__)
         if "num_channels" in sensor_args.args:
             sensor_arg_values["num_channels"] = num_channels
@@ -93,14 +90,12 @@ class MockTestTools:
             device_id="MockDevice",
             sensor=sensor,
             callback_func=self._callback,
-            log=log,
+            log=self.log,
+            in_error_state=in_error_state,
         ) as device:
+            self.reply_event.clear()
             device.disconnected_channel = disconnected_channel
             device.missed_channels = missed_channels
-            if hasattr(device.mock_formatter, "in_error_state"):
-                device.mock_formatter.in_error_state = in_error_state
-            else:
-                device.in_error_state = in_error_state
             device.noise = noise
             device.strike = strike
 
@@ -131,6 +126,7 @@ class MockTestTools:
             # Now read the telemetry to verify that no more truncated data
             # is produced if the MockDevice was instructed to produce such
             # data.
+            self.reply_event.clear()
             await self.wait_for_reply()
             assert self.reply is not None
             func_arg_values["reply"] = self.reply[common.Key.TELEMETRY]
@@ -234,10 +230,16 @@ class MockTestTools:
 
         assert name == device_name
         assert time > 0
-        assert common.ResponseCode.OK == response_code
+        if in_error_state:
+            assert common.ResponseCode.DEVICE_READ_ERROR == response_code
+        else:
+            assert common.ResponseCode.OK == response_code
 
-        assert common.device.MockElectricFieldStrengthConfig.min <= resp[0]
-        assert resp[0] <= common.device.MockElectricFieldStrengthConfig.max
+        if in_error_state:
+            assert math.isnan(resp[0])
+        else:
+            assert common.device.MockElectricFieldStrengthConfig.min <= resp[0]
+            assert resp[0] <= common.device.MockElectricFieldStrengthConfig.max
 
         if in_error_state:
             assert resp[1] == 1
