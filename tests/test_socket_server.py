@@ -35,7 +35,7 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
 
     @contextlib.asynccontextmanager
     async def create_server_with_command_handler(
-        self,
+        self, devices_in_error_state: bool = False
     ) -> typing.AsyncGenerator[common.SocketServer, None]:
         async with self.create_server(
             name="EssSensorsServer",
@@ -44,7 +44,9 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             connect_callback=self.connect_callback,
         ) as server:
             command_handler = common.MockCommandHandler(
-                callback=server.write_json, simulation_mode=1
+                callback=server.write_json,
+                simulation_mode=1,
+                devices_in_error_state=devices_in_error_state,
             )
             server.set_command_handler(command_handler)
             yield server
@@ -125,9 +127,9 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             - exit
         """
         mtt = MockTestTools()
-        async with self.create_server_with_command_handler() as server, self.create_client(
-            server
-        ) as client:
+        async with self.create_server_with_command_handler(
+            devices_in_error_state=in_error_state
+        ) as server, self.create_client(server) as client:
             await self.assert_configure(
                 client=client, name=name, num_channels=num_channels
             )
@@ -140,9 +142,6 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
 
             # Make sure that the mock sensor outputs truncated data.
             server.command_handler.devices[0].missed_channels = missed_channels
-
-            # Make sure that the mock sensor is in error state.
-            server.command_handler.devices[0].in_error_state = in_error_state
 
             await self.assert_next_connected(True)
             assert server.connected
