@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.1 (2025-07-11)
+====================
+
+Bug Fixes
+---------
+
+- Fixed setting spectrum analyzer start and stop frequencies. (`OSW-660 <https://rubinobs.atlassian.net//browse/OSW-660>`_)
+
+
 v0.24.0 (2025-06-19)
 ====================
 
