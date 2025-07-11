@@ -64,12 +64,8 @@ class SiglentSSA3000xDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         await data_client.start()
         await asyncio.sleep(1.0)
 
-        assert self.start_frequency == pytest.approx(
-            common.data_client.SiglentSSA3000xSpectrumAnalyzerDataClient.start_frequency
-        )
-        assert self.stop_frequency == pytest.approx(
-            common.data_client.SiglentSSA3000xSpectrumAnalyzerDataClient.stop_frequency
-        )
+        assert self.start_frequency == pytest.approx(data_client.start_frequency)
+        assert self.stop_frequency == pytest.approx(data_client.stop_frequency)
         assert np.amax(self.spectrum) <= 0.0
         assert np.amin(self.spectrum) >= -100.0
 

@@ -47,8 +47,6 @@ TERMINATOR = b"\n"
 EXPECTED_NUMBER_OF_DATA_POINTS = 751
 
 QUERY_TRACE_DATA_CMD = ":trace:data? 1"
-SET_FREQ_START_CMD = ":frequency:start 0.0 GHz"
-SET_FREQ_STOP_CMD = ":frequency:stop 3.0 GHz"
 
 
 class FreqUnit(enum.Enum):
@@ -75,14 +73,6 @@ class SiglentSSA3000xSpectrumAnalyzerDataClient(BaseReadLoopDataClient):
         Simulation mode; 0 for normal operation.
     """
 
-    # The commands to use with the spectrum analyzer.
-    query_trace_data_cmd = ":trace:data? 1"
-    set_freq_start_cmd = ":frequency:start 0.0 GHz"
-    set_freq_stop_cmd = ":frequency:stop 3.0 GHz"
-    # The start and stop frequencies as float values.
-    start_frequency = 0.0
-    stop_frequency = 3.0e9
-
     def __init__(
         self,
         config: types.SimpleNamespace,
@@ -105,6 +95,17 @@ class SiglentSSA3000xSpectrumAnalyzerDataClient(BaseReadLoopDataClient):
         self.mock_data_server: MockSiglentSSA3000xDataServer | None = None
         self._have_seen_data = False
         self.simulation_interval = 0.5
+
+        self.start_frequency = (
+            (self.config.freq_start_value * getattr(units, self.config.freq_start_unit))
+            .to(units.Hz)
+            .value
+        )
+        self.stop_frequency = (
+            (self.config.freq_stop_value * getattr(units, self.config.freq_stop_unit))
+            .to(units.Hz)
+            .value
+        )
 
     @classmethod
     def get_config_schema(cls) -> dict[str, Any]:
@@ -277,8 +278,18 @@ additionalProperties: false
     async def setup_reading(self) -> None:
         self._have_seen_data = False
         if self.connected:
-            await self.write(SET_FREQ_START_CMD)
-            await self.write(SET_FREQ_STOP_CMD)
+            await self.write(
+                self.get_set_freq_start_cmd(
+                    start_freq=self.config.freq_start_value,
+                    unit=getattr(units, self.config.freq_start_unit),
+                )
+            )
+            await self.write(
+                self.get_set_freq_stop_cmd(
+                    stop_freq=self.config.freq_start_value,
+                    unit=getattr(units, self.config.freq_stop_unit),
+                )
+            )
 
     async def read_data(self) -> None:
         """Read raw data from the SSA3000X Spectrum Analyzer."""
@@ -312,18 +323,8 @@ additionalProperties: false
         else:
             try:
                 await self.topics.tel_spectrumAnalyzer.set_write(
-                    startFrequency=(
-                        self.config.freq_start_value
-                        * getattr(units, self.config.freq_start_unit)
-                    )
-                    .to(units.Hz)
-                    .value,
-                    stopFrequency=(
-                        self.config.freq_stop_value
-                        * getattr(units, self.config.freq_stop_unit)
-                    )
-                    .to(units.Hz)
-                    .value,
+                    startFrequency=self.start_frequency,
+                    stopFrequency=self.stop_frequency,
                     spectrum=data,
                     timestamp=timestamp,
                 )
