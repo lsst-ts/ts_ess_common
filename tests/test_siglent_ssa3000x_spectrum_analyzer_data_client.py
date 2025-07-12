@@ -28,6 +28,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
 import pytest
+from astropy import units
 from lsst.ts.ess import common
 
 
@@ -53,6 +54,18 @@ class SiglentSSA3000xDataClientTestCase(unittest.IsolatedAsyncioTestCase):
             freq_stop_unit="GHz",
         )
         self.config = types.SimpleNamespace(**config_dict)
+        freq_start_unit: str = config_dict["freq_start_unit"]  # type: ignore
+        self.config_start_frequency = (
+            (config_dict["freq_start_value"] * getattr(units, freq_start_unit))
+            .to(units.Hz)
+            .value
+        )
+        freq_stop_unit: str = config_dict["freq_stop_unit"]  # type: ignore
+        self.config_stop_frequency = (
+            (config_dict["freq_stop_value"] * getattr(units, freq_stop_unit))
+            .to(units.Hz)
+            .value
+        )
 
         data_client = common.data_client.SiglentSSA3000xSpectrumAnalyzerDataClient(
             config=self.config,
@@ -66,6 +79,8 @@ class SiglentSSA3000xDataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
         assert self.start_frequency == pytest.approx(data_client.start_frequency)
         assert self.stop_frequency == pytest.approx(data_client.stop_frequency)
+        assert self.start_frequency == pytest.approx(self.config_start_frequency)
+        assert self.stop_frequency == pytest.approx(self.config_stop_frequency)
         assert np.amax(self.spectrum) <= 0.0
         assert np.amin(self.spectrum) >= -100.0
 
