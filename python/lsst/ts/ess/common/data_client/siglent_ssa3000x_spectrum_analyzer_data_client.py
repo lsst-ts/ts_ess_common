@@ -96,16 +96,8 @@ class SiglentSSA3000xSpectrumAnalyzerDataClient(BaseReadLoopDataClient):
         self._have_seen_data = False
         self.simulation_interval = 0.5
 
-        self.start_frequency = (
-            (self.config.freq_start_value * getattr(units, self.config.freq_start_unit))
-            .to(units.Hz)
-            .value
-        )
-        self.stop_frequency = (
-            (self.config.freq_stop_value * getattr(units, self.config.freq_stop_unit))
-            .to(units.Hz)
-            .value
-        )
+        self.start_frequency = 0.0
+        self.stop_frequency = 0.0
 
     @classmethod
     def get_config_schema(cls) -> dict[str, Any]:
@@ -201,7 +193,9 @@ additionalProperties: false
             String to be sent to the spectrum analyzer to select the start
             frequency.
         """
-        return f":frequency:start {start_freq:.1f} {unit.name}"
+        command = f":frequency:start {start_freq:.1f} {unit.name}"
+        self.log.info(f"frequency start command = {command}")
+        return command
 
     def get_set_freq_stop_cmd(
         self, stop_freq: float, unit: FreqUnit = FreqUnit.GHz
@@ -223,7 +217,9 @@ additionalProperties: false
             String to be sent to the spectrum analyzer to select the stop
             frequency.
         """
-        return f":frequency:stop {stop_freq:.1f} {unit.name}"
+        command = f":frequency:stop {stop_freq:.1f} {unit.name}"
+        self.log.info(f"frequency stop command = {command}")
+        return command
 
     @property
     def connected(self) -> bool:
@@ -286,23 +282,26 @@ additionalProperties: false
             )
             await self.write(
                 self.get_set_freq_stop_cmd(
-                    stop_freq=self.config.freq_start_value,
+                    stop_freq=self.config.freq_stop_value,
                     unit=getattr(units, self.config.freq_stop_unit),
                 )
+            )
+            self.start_frequency = float(
+                await self.send_command_and_read_reply(":frequency:start?")
+            )
+            self.stop_frequency = float(
+                await self.send_command_and_read_reply(":frequency:stop?")
+            )
+            assert self.client is not None
+            self.log.info(
+                f"SpectrumAnalyzer {self.client.host} has "
+                f"{self.start_frequency=} and {self.stop_frequency=}"
             )
 
     async def read_data(self) -> None:
         """Read raw data from the SSA3000X Spectrum Analyzer."""
         timestamp = utils.current_tai()
-        await self.write(QUERY_TRACE_DATA_CMD)
-        assert self.client is not None  # make mypy happy
-        try:
-            async with asyncio.timeout(self.read_timeout):
-                read_bytes = await self.client.readuntil(TERMINATOR)
-        except Exception:
-            self._have_seen_data = False
-            raise
-        raw_data = read_bytes.decode().strip()
+        raw_data = await self.send_command_and_read_reply(QUERY_TRACE_DATA_CMD)
         raw_data_items = raw_data.split(",")
         # The data from the spectrum analyzer ends in a "," so the last item
         # will be an empty string and needs to be dropped.
@@ -333,6 +332,31 @@ additionalProperties: false
 
         await asyncio.sleep(self.config.poll_interval)
 
+    async def send_command_and_read_reply(self, command: str) -> str:
+        """Send a command and read the reply.
+
+        Parameters
+        ----------
+        command : `str`
+            The command to send.
+
+        Returns
+        -------
+        str
+            The reply.
+
+        """
+        await self.write(command)
+        assert self.client is not None  # make mypy happy
+        try:
+            async with asyncio.timeout(self.read_timeout):
+                read_bytes = await self.client.readuntil(TERMINATOR)
+        except Exception:
+            self._have_seen_data = False
+            raise
+        raw_data = read_bytes.decode().strip()
+        return raw_data
+
 
 class MockSiglentSSA3000xDataServer(tcpip.OneClientReadLoopServer):
     """Mock Siglent SSA3000x data server.
@@ -357,12 +381,31 @@ class MockSiglentSSA3000xDataServer(tcpip.OneClientReadLoopServer):
         )
         self.simulation_interval = simulation_interval
         self.write_loop_task = utils.make_done_future()
+        self.start_frequency = 0.0
+        self.stop_frequency = 0.0
 
     async def read_and_dispatch(self) -> None:
         command = await self.read_str()
-        if command == QUERY_TRACE_DATA_CMD:
+        self.log.info(f"{command=}")
+        if command.startswith(":frequency:start "):
+            self.start_frequency = await self.get_frequency_as_value(command[17:])
+        elif command.startswith(":frequency:stop "):
+            self.stop_frequency = await self.get_frequency_as_value(command[16:])
+        elif command.startswith(":frequency:start?"):
+            await self.write_str(f"{self.start_frequency}")
+        elif command.startswith(":frequency:stop?"):
+            await self.write_str(f"{self.stop_frequency}")
+        elif command == QUERY_TRACE_DATA_CMD:
             await asyncio.sleep(self.simulation_interval)
             rng = np.random.default_rng(10)
             data = -100.0 * rng.random(EXPECTED_NUMBER_OF_DATA_POINTS)
             data_string = ", ".join(f"{d:0.3f}" for d in data)
             await self.write_str(data_string)
+
+    async def get_frequency_as_value(self, frequency_str: str) -> float:
+        frequency_items = frequency_str.split(" ")
+        return (
+            (float(frequency_items[0]) * getattr(units, frequency_items[1]))
+            .to(units.Hz)
+            .value
+        )
