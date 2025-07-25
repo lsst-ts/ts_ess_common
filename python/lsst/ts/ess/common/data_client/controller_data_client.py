@@ -121,6 +121,9 @@ properties:
     description: Timeout for connecting to the TCP/IP interface (sec).
     type: number
     default: 60.0
+  rate_limit:
+    type: number
+    default: 0.5
   devices:
     type: array
     minItems: 1
@@ -205,6 +208,8 @@ required:
   - host
   - port
   - max_read_timeouts
+  - connect_timeout
+  - rate_limit
   - devices
 additionalProperties: false
 """
