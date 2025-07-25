@@ -1,1 +1,0 @@
-Fixed handling spectrum analyzer start and stop frequencies.
