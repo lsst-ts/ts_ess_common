@@ -8,6 +8,21 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.2 (2025-07-25)
+====================
+
+Bug Fixes
+---------
+
+- Fixed handling spectrum analyzer start and stop frequencies. (`OSW-683 <https://rubinobs.atlassian.net//browse/OSW-683>`_)
+
+
+Performance Enhancement
+-----------------------
+
+- Added a low default rate limit for the Controller DataClient. (`OSW-620 <https://rubinobs.atlassian.net//browse/OSW-620>`_)
+
+
 v0.24.1 (2025-07-11)
 ====================
 

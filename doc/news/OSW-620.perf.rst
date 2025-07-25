@@ -1,1 +1,0 @@
-Added a low default rate limit for the Controller DataClient.
