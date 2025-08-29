@@ -71,7 +71,7 @@ class MockDevice(BaseDevice):
 
     # The wait time between sending telemetry (second). This can be adjusted by
     # unit tests to mock connection timeouts.
-    telemetry_interval = 1
+    telemetry_interval = 1.0
 
     def __init__(
         self,
@@ -144,8 +144,13 @@ class MockDevice(BaseDevice):
             one. May be returned empty if nothing was received or partial if
             the readline was started during device reception.
         """
-        # Mock the time needed to output telemetry.
-        await asyncio.sleep(MockDevice.telemetry_interval)
+        ti = self.telemetry_interval
+
+        # CSAT3B anemometers emit 10 samples per second.
+        if isinstance(self.sensor, Csat3bSensor):
+            ti = 0.1
+
+        await asyncio.sleep(ti)
 
         # If requested, return an error reply.
         if self.in_error_state:
