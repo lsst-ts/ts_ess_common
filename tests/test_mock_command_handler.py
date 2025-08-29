@@ -151,8 +151,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         assert self.command_handler._started
 
         # Give some time to the mock sensor to produce data
-        while len(self.responses) < len(self.device_configs):
-            await asyncio.sleep(0.5)
+        await asyncio.sleep(1.1)
 
         devices_names_checked: set[str] = set()
         while len(devices_names_checked) != len(self.device_configs):
