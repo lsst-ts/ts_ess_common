@@ -1,1 +1,0 @@
-Set the mock CSAT3B telemetry rate to 10 Hz, just like the real anemometer.

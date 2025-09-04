@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.3 (2025-08-29)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Set the mock CSAT3B telemetry rate to 10 Hz, just like the real anemometer. (`OSW-951 <https://rubinobs.atlassian.net//browse/OSW-951>`_)
+
+
 v0.24.2 (2025-07-25)
 ====================
 
