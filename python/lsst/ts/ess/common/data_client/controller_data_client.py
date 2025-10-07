@@ -339,6 +339,7 @@ additionalProperties: false
             port=self.config.port,
             log=self.log,
             name=type(self).__name__,
+            run_heartbeat_send_task=True,
         )
         async with asyncio.timeout(self.connect_timeout):
             await self.client.start_task

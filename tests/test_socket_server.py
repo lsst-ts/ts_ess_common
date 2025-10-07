@@ -129,7 +129,7 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
         mtt = MockTestTools()
         async with self.create_server_with_command_handler(
             devices_in_error_state=in_error_state
-        ) as server, self.create_client(server) as client:
+        ) as server, self.create_client(server, run_heartbeat_send_task=True) as client:
             await self.assert_configure(
                 client=client, name=name, num_channels=num_channels
             )
