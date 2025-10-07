@@ -8,6 +8,16 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.4 (2025-10-07)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Enabled heartbeat mechanism for ControllerDataClient. (`OSW-982 <https://rubinobs.atlassian.net//browse/OSW-982>`_)
+- Updated ts_conda_build dependency version. (`OSW-982 <https://rubinobs.atlassian.net//browse/OSW-982>`_)
+
+
 v0.24.3 (2025-08-29)
 ====================
 
