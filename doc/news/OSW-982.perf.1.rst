@@ -1,0 +1,1 @@
+Enabled heartbeat mechanism for ControllerDataClient.

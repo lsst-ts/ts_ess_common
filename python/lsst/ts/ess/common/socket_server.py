@@ -23,6 +23,7 @@ from __future__ import annotations
 
 __all__ = ["SocketServer"]
 
+import json
 import logging
 import typing
 
@@ -78,6 +79,7 @@ class SocketServer(tcpip.OneClientReadLoopServer):
             log=self.log,
             connect_callback=connect_callback,
             name=self.name,
+            run_heartbeat_monitor_task=True,
         )
 
     def set_command_handler(self, command_handler: AbstractCommandHandler) -> None:
@@ -93,16 +95,20 @@ class SocketServer(tcpip.OneClientReadLoopServer):
         self.command_handler = command_handler
 
     async def read_and_dispatch(self) -> None:
-        items = await self.read_json()
-        cmd = items[Key.COMMAND]
-        kwargs = items[Key.PARAMETERS]
-        if cmd == Command.EXIT:
-            await self.exit()
-        elif cmd == Command.DISCONNECT:
-            await self.close_client()
+        data = await self.readline()
+        if data == tcpip.HEARTBEAT + self.terminator:
+            await self.handle_received_heartbeat()
         else:
-            if self.command_handler is not None:
-                await self.command_handler.handle_command(cmd, **kwargs)
+            items = json.loads(data)
+            cmd = items[Key.COMMAND]
+            kwargs = items[Key.PARAMETERS]
+            if cmd == Command.EXIT:
+                await self.exit()
+            elif cmd == Command.DISCONNECT:
+                await self.close_client()
+            else:
+                if self.command_handler is not None:
+                    await self.command_handler.handle_command(cmd, **kwargs)
 
     async def close_client(self, **kwargs: typing.Any) -> None:
         """Stop sending telemetry and close the client."""
