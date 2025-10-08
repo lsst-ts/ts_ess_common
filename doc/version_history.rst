@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.5 (2025-10-08)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Set conda package version string. (`OSW-982 <https://rubinobs.atlassian.net//browse/OSW-982>`_)
+
+
 v0.24.4 (2025-10-07)
 ====================
 
