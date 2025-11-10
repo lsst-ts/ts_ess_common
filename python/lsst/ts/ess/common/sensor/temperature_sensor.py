@@ -75,9 +75,7 @@ class TemperatureSensor(BaseSensor):
                 else:
                     output.append(float(temperature_items[1]))
             else:
-                raise ValueError(
-                    f"At most one '=' symbol expected in temperature item {line_item}"
-                )
+                raise ValueError(f"At most one '=' symbol expected in temperature item {line_item}")
 
         # When the connection is first made, it may be done while the sensor is
         # in the middle of outputting data. In that case, only a partial string

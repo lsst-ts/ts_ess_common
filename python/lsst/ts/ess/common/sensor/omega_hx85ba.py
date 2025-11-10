@@ -80,9 +80,7 @@ class Hx85baSensor(BaseSensor):
             elif len(telemetry_items) == 2:
                 output.append(float(telemetry_items[1]))
             else:
-                raise ValueError(
-                    f"At most one '=' symbol expected in telemetry item {line_item}"
-                )
+                raise ValueError(f"At most one '=' symbol expected in telemetry item {line_item}")
 
         # When the connection is first made, it may be done while the sensor is
         # in the middle of outputting data. In that case, only a partial string
@@ -92,9 +90,7 @@ class Hx85baSensor(BaseSensor):
 
         # Add the computed dew point to the output. The casts to float are
         # necessary to keep mypy happy.
-        dew_point = compute_dew_point_magnus(
-            relative_humidity=float(output[0]), temperature=float(output[1])
-        )
+        dew_point = compute_dew_point_magnus(relative_humidity=float(output[0]), temperature=float(output[1]))
         output.append(dew_point)
 
         return output

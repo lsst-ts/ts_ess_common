@@ -188,9 +188,7 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
         simulation_mode: int = 0,
     ) -> None:
         if config.rain_stopped_interval <= config.read_timeout:
-            raise ValueError(
-                f"{config.rain_stopped_interval=} must be > {config.read_timeout=}"
-            )
+            raise ValueError(f"{config.rain_stopped_interval=} must be > {config.read_timeout=}")
         if config.sensor_name_dew_point and (
             not config.sensor_name_humidity or not config.sensor_name_temperature
         ):
@@ -207,9 +205,7 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
             simulation_mode=simulation_mode,
         )
 
-        self.topics.tel_airFlow.set(
-            sensorName=self.config.sensor_name_airflow, location=self.config.location
-        )
+        self.topics.tel_airFlow.set(sensorName=self.config.sensor_name_airflow, location=self.config.location)
         self.topics.tel_dewPoint.set(
             sensorName=self.config.sensor_name_dew_point, location=self.config.location
         )
@@ -239,15 +235,9 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
             log=self.log, num_samples=self.config.num_samples_airflow
         )
 
-        self.humidity_accumulator = FloatAccumulator(
-            num_samples=self.config.num_samples_temperature
-        )
-        self.pressure_accumulator = FloatAccumulator(
-            num_samples=self.config.num_samples_temperature
-        )
-        self.temperature_accumulator = FloatAccumulator(
-            num_samples=self.config.num_samples_temperature
-        )
+        self.humidity_accumulator = FloatAccumulator(num_samples=self.config.num_samples_temperature)
+        self.pressure_accumulator = FloatAccumulator(num_samples=self.config.num_samples_temperature)
+        self.temperature_accumulator = FloatAccumulator(num_samples=self.config.num_samples_temperature)
 
         self.mock_data_server: MockYoung32400DataServer | None = None
 
@@ -524,9 +514,7 @@ additionalProperties: false
         if self.config.sensor_name_airflow:
             self.air_flow_accumulator.add_sample(
                 timestamp=current_tai(),
-                direction=scaled_from_raw(
-                    wind_direction, *self.config.scale_offset_wind_direction
-                ),
+                direction=scaled_from_raw(wind_direction, *self.config.scale_offset_wind_direction),
                 speed=scaled_from_raw(wind_speed, *self.config.scale_offset_wind_speed),
                 isok=True,
             )
@@ -563,9 +551,7 @@ additionalProperties: false
         if self.config.sensor_name_temperature:
             report_temperature = await self._handle_temperature(temperature, timestamp)
 
-        if self.config.sensor_name_dew_point and (
-            report_humidity or report_temperature
-        ):
+        if self.config.sensor_name_dew_point and (report_humidity or report_temperature):
             await self._handle_dew_point(timestamp)
 
         if self.config.sensor_name_rain:
@@ -588,16 +574,10 @@ additionalProperties: false
         relative_humidity = self.topics.tel_relativeHumidity.data.relativeHumidityItem
         temperature = self.topics.tel_temperature.data.temperatureItem[0]
         if not math.isnan(relative_humidity) and not math.isnan(temperature):
-            dew_point = compute_dew_point_magnus(
-                relative_humidity=relative_humidity, temperature=temperature
-            )
-            await self.topics.tel_dewPoint.set_write(
-                dewPointItem=dew_point, timestamp=timestamp
-            )
+            dew_point = compute_dew_point_magnus(relative_humidity=relative_humidity, temperature=temperature)
+            await self.topics.tel_dewPoint.set_write(dewPointItem=dew_point, timestamp=timestamp)
 
-    async def _handle_rain_tip_count(
-        self, rain_tip_count: int, timestamp: float
-    ) -> None:
+    async def _handle_rain_tip_count(self, rain_tip_count: int, timestamp: float) -> None:
         if self.last_rain_tip_timestamp == 0:
             # Start recording rain data.
             self.last_rain_tip_count = rain_tip_count
@@ -630,14 +610,9 @@ additionalProperties: false
 
             rain_tip_dt = timestamp - last_rain_tip_timestamp
             rain_rate_mm_per_hr = (
-                rain_tip_dcount
-                * self.config.scale_rain_rate
-                * SECONDS_PER_HOUR
-                / rain_tip_dt
+                rain_tip_dcount * self.config.scale_rain_rate * SECONDS_PER_HOUR / rain_tip_dt
             )
-            await self.topics.tel_rainRate.set_write(
-                rainRateItem=round(rain_rate_mm_per_hr)
-            )
+            await self.topics.tel_rainRate.set_write(rainRateItem=round(rain_rate_mm_per_hr))
 
     def restart_rain_stopped_timer(self) -> None:
         """Start or restart the "rain stopped" timer."""
@@ -785,14 +760,10 @@ class Young32400RawDataGenerator:
             ).get(field_name, 4000)
 
             str_list_dict[field_name] = [
-                float_to_intstr(value=value, max_int=max_int)
-                for value in unscaled_float_array
+                float_to_intstr(value=value, max_int=max_int) for value in unscaled_float_array
             ]
 
-        return [
-            " ".join(str_list[i] for str_list in str_list_dict.values())
-            for i in range(num_items)
-        ]
+        return [" ".join(str_list[i] for str_list in str_list_dict.values()) for i in range(num_items)]
 
 
 class MockYoung32400DataServer(tcpip.OneClientServer):
@@ -845,9 +816,7 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
             if data is None:
                 raise RuntimeError("no simulated data")
 
-            self.log.info(
-                "Mock server ran out of simulated data; repeating the final value"
-            )
+            self.log.info("Mock server ran out of simulated data; repeating the final value")
             while self.connected:
                 await self.write(data.encode() + tcpip.DEFAULT_TERMINATOR)
                 await asyncio.sleep(self.simulation_interval)

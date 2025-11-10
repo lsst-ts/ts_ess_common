@@ -78,9 +78,7 @@ class Hx85aSensor(BaseSensor):
             elif len(telemetry_items) == 2:
                 output.append(float(telemetry_items[1]))
             else:
-                raise ValueError(
-                    f"At most one '=' symbol expected in telemetry item {line_item}"
-                )
+                raise ValueError(f"At most one '=' symbol expected in telemetry item {line_item}")
 
         # When the connection is first made, it may be done while the sensor is
         # in the middle of outputting data. In that case, only a partial string

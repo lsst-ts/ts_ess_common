@@ -30,22 +30,14 @@ from lsst.ts.ess import common
 
 
 class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
-    async def create_data_client(
-        self, config: types.SimpleNamespace | None = None
-    ) -> None:
+    async def create_data_client(self, config: types.SimpleNamespace | None = None) -> None:
         log = logging.getLogger()
         topics = types.SimpleNamespace()
         if not config:
-            config = types.SimpleNamespace(
-                name="test_config", max_read_timeouts=5, connect_timeout=0.1
-            )
-        self.data_client = common.data_client.TestReadLoopDataClient(
-            config=config, topics=topics, log=log
-        )
+            config = types.SimpleNamespace(name="test_config", max_read_timeouts=5, connect_timeout=0.1)
+        self.data_client = common.data_client.TestReadLoopDataClient(config=config, topics=topics, log=log)
 
-    async def validate_data_client(
-        self, task: typing.Callable, expect_error: bool
-    ) -> None:
+    async def validate_data_client(self, task: typing.Callable, expect_error: bool) -> None:
         if expect_error:
             self.data_client.do_timeout = True
         assert self.data_client.num_read_data == 0
@@ -63,9 +55,7 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_rate_limit(self) -> None:
         await self.create_data_client()
-        assert math.isclose(
-            self.data_client.rate_limit, common.data_client.DEFAULT_RATE_LIMIT
-        )
+        assert math.isclose(self.data_client.rate_limit, common.data_client.DEFAULT_RATE_LIMIT)
 
         custom_rate_limit = 0.5
         config = types.SimpleNamespace(
@@ -103,9 +93,6 @@ class ReadLoopDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         await self.data_client.timeout_event.wait()
 
         # Assert that num_reconnects has not been incremented.
-        assert (
-            self.data_client.num_consecutive_read_timeouts
-            == expected_num_consecutive_read_timeouts
-        )
+        assert self.data_client.num_consecutive_read_timeouts == expected_num_consecutive_read_timeouts
 
         await self.data_client.stop()

@@ -31,9 +31,7 @@ class TcpipDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         self.log = logging.Logger(type(self).__name__)
         self.data_event = asyncio.Event()
         num_channels = 4
-        sensor = common.sensor.TemperatureSensor(
-            log=self.log, num_channels=num_channels
-        )
+        sensor = common.sensor.TemperatureSensor(log=self.log, num_channels=num_channels)
         tcpip_device = common.device.TcpipDevice(
             name="Test",
             host="",

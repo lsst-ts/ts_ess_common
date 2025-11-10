@@ -158,9 +158,7 @@ class AirFlowAccumulator:
             timestamp = self.timestamp[-1]
             if len(self.speed) >= self.num_samples:
                 direction_arr = np.array(self.direction)
-                direction_mean, direction_std = get_circular_mean_and_std_dev(
-                    direction_arr
-                )
+                direction_mean, direction_std = get_circular_mean_and_std_dev(direction_arr)
                 speed_arr = np.array(self.speed)
                 speed_median, speed_std = get_median_and_std_dev(data=speed_arr)
                 dict_to_return = dict(

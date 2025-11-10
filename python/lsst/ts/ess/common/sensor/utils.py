@@ -26,9 +26,7 @@ import math
 from ..constants import TelemetryDataType
 
 
-def add_missing_telemetry(
-    telemetry: TelemetryDataType, expected_length: int
-) -> TelemetryDataType:
+def add_missing_telemetry(telemetry: TelemetryDataType, expected_length: int) -> TelemetryDataType:
     """Prepend a telemetry list with NaN values to make sure that it has the
     expected length.
 

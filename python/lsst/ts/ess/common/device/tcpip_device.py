@@ -106,9 +106,7 @@ class TcpipDevice(BaseDevice):
             self.host = self.mock_remote_device.host
             self.port = self.mock_remote_device.port
 
-        self.client = tcpip.Client(
-            host=self.host, port=self.port, log=self.log, name=type(self).__name__
-        )
+        self.client = tcpip.Client(host=self.host, port=self.port, log=self.log, name=type(self).__name__)
         await asyncio.wait_for(fut=self.client.start_task, timeout=COMMUNICATE_TIMEOUT)
 
     async def readline(self) -> str:
@@ -124,11 +122,7 @@ class TcpipDevice(BaseDevice):
         line: str = ""
         async with self.stream_lock:
             assert self.client is not None
-            line = (
-                await asyncio.wait_for(
-                    self.client.readline(), timeout=COMMUNICATE_TIMEOUT
-                )
-            ).decode()
+            line = (await asyncio.wait_for(self.client.readline(), timeout=COMMUNICATE_TIMEOUT)).decode()
         return line
 
     async def basic_close(self) -> None:

@@ -73,9 +73,7 @@ class TcpipDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         ):
             await asyncio.sleep(2)
 
-        evt_sensor_status.set_write.assert_called_with(
-            sensorName=config.name, sensorStatus=0, serverStatus=0
-        )
+        evt_sensor_status.set_write.assert_called_with(sensorName=config.name, sensorStatus=0, serverStatus=0)
         tel_temperature.set_write.assert_called_with(
             sensorName=config.name,
             timestamp=ANY,

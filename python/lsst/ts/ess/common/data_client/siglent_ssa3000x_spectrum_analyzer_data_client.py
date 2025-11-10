@@ -80,9 +80,7 @@ class SiglentSSA3000xSpectrumAnalyzerDataClient(BaseReadLoopDataClient):
         log: logging.Logger,
         simulation_mode: int = 0,
     ) -> None:
-        super().__init__(
-            config=config, topics=topics, log=log, simulation_mode=simulation_mode
-        )
+        super().__init__(config=config, topics=topics, log=log, simulation_mode=simulation_mode)
 
         self.topics.tel_spectrumAnalyzer.set(
             sensorName=self.config.sensor_name, location=self.config.location
@@ -173,9 +171,7 @@ additionalProperties: false
         assert self.client is not None  # keep mypy happy
         return f"host={self.client.host}, port={self.client.port}"
 
-    def get_set_freq_start_cmd(
-        self, start_freq: float, unit: FreqUnit = FreqUnit.GHz
-    ) -> str:
+    def get_set_freq_start_cmd(self, start_freq: float, unit: FreqUnit = FreqUnit.GHz) -> str:
         """Get the set start frequence command string for a given start
         frequency.
 
@@ -197,9 +193,7 @@ additionalProperties: false
         self.log.info(f"frequency start command = {command}")
         return command
 
-    def get_set_freq_stop_cmd(
-        self, stop_freq: float, unit: FreqUnit = FreqUnit.GHz
-    ) -> str:
+    def get_set_freq_stop_cmd(self, stop_freq: float, unit: FreqUnit = FreqUnit.GHz) -> str:
         """Get the set stop frequence command string for a given stop
         frequency.
 
@@ -286,16 +280,11 @@ additionalProperties: false
                     unit=getattr(units, self.config.freq_stop_unit),
                 )
             )
-            self.start_frequency = float(
-                await self.send_command_and_read_reply(":frequency:start?")
-            )
-            self.stop_frequency = float(
-                await self.send_command_and_read_reply(":frequency:stop?")
-            )
+            self.start_frequency = float(await self.send_command_and_read_reply(":frequency:start?"))
+            self.stop_frequency = float(await self.send_command_and_read_reply(":frequency:stop?"))
             assert self.client is not None
             self.log.info(
-                f"SpectrumAnalyzer {self.client.host} has "
-                f"{self.start_frequency=} and {self.stop_frequency=}"
+                f"SpectrumAnalyzer {self.client.host} has {self.start_frequency=} and {self.stop_frequency=}"
             )
 
     async def read_data(self) -> None:
@@ -404,8 +393,4 @@ class MockSiglentSSA3000xDataServer(tcpip.OneClientReadLoopServer):
 
     async def get_frequency_as_value(self, frequency_str: str) -> float:
         frequency_items = frequency_str.split(" ")
-        return (
-            (float(frequency_items[0]) * getattr(units, frequency_items[1]))
-            .to(units.Hz)
-            .value
-        )
+        return (float(frequency_items[0]) * getattr(units, frequency_items[1])).to(units.Hz).value

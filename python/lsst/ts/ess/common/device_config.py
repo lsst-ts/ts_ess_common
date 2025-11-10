@@ -84,15 +84,8 @@ class DeviceConfig:
     port: int | None = None
 
     def __post_init(self) -> None:
-        if (
-            self.dev_id is None
-            and self.dev_type is None
-            and self.host is None
-            and self.port is None
-        ):
-            raise ValueError(
-                "Either dev_id and dev_type or host and port should not be None."
-            )
+        if self.dev_id is None and self.dev_type is None and self.host is None and self.port is None:
+            raise ValueError("Either dev_id and dev_type or host and port should not be None.")
         self.dev_type = DeviceType(self.dev_type) if self.dev_type is not None else None
         self.sens_type = SensorType(self.sens_type)
 

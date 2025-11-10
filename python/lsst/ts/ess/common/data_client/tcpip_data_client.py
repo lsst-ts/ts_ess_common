@@ -68,9 +68,7 @@ class TcpipDataClient(BaseReadLoopDataClient):
         self.device_configuration: DeviceConfig | None = None
         self.processor: BaseProcessor | None = None
 
-        super().__init__(
-            config=config, topics=topics, log=log, simulation_mode=simulation_mode
-        )
+        super().__init__(config=config, topics=topics, log=log, simulation_mode=simulation_mode)
         self.configure()
 
         # Lock for TCP/IP communication
@@ -177,9 +175,7 @@ additionalProperties: false
             location=self.config.location,
         )
         processor_type = telemetry_processor_dict[self.device_configuration.sens_type]
-        self.processor = processor_type(
-            self.device_configuration, self.topics, self.log
-        )
+        self.processor = processor_type(self.device_configuration, self.topics, self.log)
 
     def descr(self) -> str:
         assert self.tcpip_device is not None

@@ -95,16 +95,12 @@ class Ld250Processor(BaseProcessor):
                 bearing=0,
             )
 
-    async def process_ld250_strike(
-        self, sensor_data: Sequence[float | str | int]
-    ) -> None:
+    async def process_ld250_strike(self, sensor_data: Sequence[float | str | int]) -> None:
         # First cancel any running timer task.
         if not self.strike_timer_task.done():
             self.strike_timer_task.cancel()
         # Then start a new one so the safe time interval is reset.
-        self.strike_timer_task = asyncio.create_task(
-            asyncio.sleep(self.device_configuration.safe_interval)
-        )
+        self.strike_timer_task = asyncio.create_task(asyncio.sleep(self.device_configuration.safe_interval))
         await self.topics.evt_lightningStrike.set_write(
             sensorName=self.device_configuration.name,
             correctedDistance=float(sensor_data[1]),

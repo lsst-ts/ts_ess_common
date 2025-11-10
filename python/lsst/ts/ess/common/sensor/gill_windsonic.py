@@ -114,13 +114,10 @@ class WindsonicSensor(BaseSensor):
             checksum_val = int(m.group("checksum"), 16)
 
             if status != self.good_status:
-                self.log.error(
-                    f"Expected status {self.good_status} but received {status}. Continuing."
-                )
+                self.log.error(f"Expected status {self.good_status} but received {status}. Continuing.")
 
             checksum_string = (
-                f"{self.unit_identifier},{direction_str},{speed_str},"
-                f"{self.windspeed_unit},{status},"
+                f"{self.unit_identifier},{direction_str},{speed_str},{self.windspeed_unit},{status},"
             )
             checksum = compute_checksum(checksum_string)
 

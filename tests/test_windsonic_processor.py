@@ -47,9 +47,7 @@ class WindsonicProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             }
         )
         log = logging.getLogger()
-        processor = common.processor.WindsonicProcessor(
-            device_configuration, topics, log
-        )
+        processor = common.processor.WindsonicProcessor(device_configuration, topics, log)
 
         timestamp = 12345.0
         response_code = 0

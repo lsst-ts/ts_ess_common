@@ -28,9 +28,7 @@ from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
 """A regex pattern for a noise telemetry line."""
-NOISE_PATTERN = re.compile(
-    rf"^\$({LD250TelemetryPrefix.NOISE_PREFIX.value})\*[0-9A-F]{{2}}\r\n$"
-)
+NOISE_PATTERN = re.compile(rf"^\$({LD250TelemetryPrefix.NOISE_PREFIX.value})\*[0-9A-F]{{2}}\r\n$")
 
 """A regex pattern for a status telemetry line."""
 STATUS_PATTERN = re.compile(

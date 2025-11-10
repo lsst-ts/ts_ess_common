@@ -141,13 +141,9 @@ class BaseReadLoopDataClient(abc.ABC):
         self.run_task = utils.make_done_future()
         self.loop_should_end = False
 
-        self.max_read_timeouts = getattr(
-            self.config, "max_read_timeouts", DEFAULT_MAX_READ_TIMEOUTS
-        )
+        self.max_read_timeouts = getattr(self.config, "max_read_timeouts", DEFAULT_MAX_READ_TIMEOUTS)
 
-        self.connect_timeout = getattr(
-            self.config, "connect_timeout", DEFAULT_CONNECT_TIMEOUT
-        )
+        self.connect_timeout = getattr(self.config, "connect_timeout", DEFAULT_CONNECT_TIMEOUT)
 
         self.read_timeout = getattr(self.config, "read_timeout", DEFAULT_READ_TIMEOUT)
 
@@ -157,9 +153,7 @@ class BaseReadLoopDataClient(abc.ABC):
 
         # Set the configured rate limit if present and make sure it is not
         # too small. Use the default rate limit if not in the configuration.
-        self.rate_limit = max(
-            MIN_RATE_LIMIT, getattr(self.config, "rate_limit", DEFAULT_RATE_LIMIT)
-        )
+        self.rate_limit = max(MIN_RATE_LIMIT, getattr(self.config, "rate_limit", DEFAULT_RATE_LIMIT))
 
     @classmethod
     @abc.abstractmethod
@@ -212,9 +206,7 @@ class BaseReadLoopDataClient(abc.ABC):
                 await self.setup_reading()
                 self.log.debug(f"{self.connected=}, {self.loop_should_end=}")
                 while self.connected and not self.loop_should_end:
-                    rate_limit_task = asyncio.create_task(
-                        asyncio.sleep(self.rate_limit)
-                    )
+                    rate_limit_task = asyncio.create_task(asyncio.sleep(self.rate_limit))
                     try:
                         await self.read_data()
                         self.num_consecutive_read_timeouts = 0

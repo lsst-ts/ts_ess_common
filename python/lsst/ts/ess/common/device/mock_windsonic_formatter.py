@@ -37,12 +37,8 @@ class MockWindsonicFormatter(MockFormatter):
         disconnected_channel: int = 0,
         missed_channels: int = 0,
     ) -> list[str]:
-        direction = (
-            f"{random.randint(MockDirectionConfig.min, MockDirectionConfig.max):03d}"
-        )
-        speed = (
-            f"{random.uniform(MockWindSpeedConfig.min, MockWindSpeedConfig.max):06.2f}"
-        )
+        direction = f"{random.randint(MockDirectionConfig.min, MockDirectionConfig.max):03d}"
+        speed = f"{random.uniform(MockWindSpeedConfig.min, MockWindSpeedConfig.max):06.2f}"
         checksum_string = (
             f"{WindsonicSensor.unit_identifier},{direction},{speed},"
             f"{WindsonicSensor.windspeed_unit},{WindsonicSensor.good_status},"

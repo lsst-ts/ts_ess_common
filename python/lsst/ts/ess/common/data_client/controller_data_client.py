@@ -86,9 +86,7 @@ class ControllerDataClient(BaseReadLoopDataClient):
         # Socket server for simulation mode.
         self.socket_server: SocketServer | None = None
 
-        super().__init__(
-            config=config, topics=topics, log=log, simulation_mode=simulation_mode
-        )
+        super().__init__(config=config, topics=topics, log=log, simulation_mode=simulation_mode)
         self.configure()
 
         # Validator for JSON data.
@@ -325,9 +323,7 @@ additionalProperties: false
                 # so descr and __repr__ show the correct host and port
                 port = self.socket_server.port
             else:
-                self.log.info(
-                    f"{self}.enable_socket_server false; connection will fail."
-                )
+                self.log.info(f"{self}.enable_socket_server false; connection will fail.")
                 port = 0
             # Change self.config so descr and __repr__ show the actual
             # host and port.
@@ -435,9 +431,7 @@ additionalProperties: false
             await self.client.write_json(data)
             while True:
                 if not self.connected:
-                    raise ConnectionError(
-                        "Disconnected while waiting for command response."
-                    )
+                    raise ConnectionError("Disconnected while waiting for command response.")
                 data = await self.client.read_json()
                 if Key.RESPONSE in data:
                     response = data[Key.RESPONSE]
@@ -476,27 +470,18 @@ additionalProperties: false
         try:
             device_configuration = self.device_configurations.get(sensor_name)
             if device_configuration is None:
-                raise RuntimeError(
-                    f"No device configuration for sensor_name={sensor_name}."
-                )
+                raise RuntimeError(f"No device configuration for sensor_name={sensor_name}.")
             if response_code == ResponseCode.OK:
                 if sensor_name not in self.processors:
-                    processor_type = telemetry_processor_dict[
-                        device_configuration.sens_type
-                    ]
-                    self.processors[sensor_name] = processor_type(
-                        device_configuration, self.topics, self.log
-                    )
+                    processor_type = telemetry_processor_dict[device_configuration.sens_type]
+                    self.processors[sensor_name] = processor_type(device_configuration, self.topics, self.log)
                 p = self.processors[sensor_name]
                 await p.process_telemetry(timestamp, response_code, sensor_data)
             elif response_code == ResponseCode.DEVICE_READ_ERROR:
-                raise RuntimeError(
-                    f"Error reading sensor {sensor_name}. Please check the hardware."
-                )
+                raise RuntimeError(f"Error reading sensor {sensor_name}. Please check the hardware.")
             else:
                 self.log.warning(
-                    f"Ignoring telemetry for sensor {sensor_name} "
-                    f"with unknown response code {response_code}."
+                    f"Ignoring telemetry for sensor {sensor_name} with unknown response code {response_code}."
                 )
         except Exception as e:
             self.log.exception(f"process_telemetry failed: {e!r}.")

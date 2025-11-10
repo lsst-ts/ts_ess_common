@@ -34,14 +34,10 @@ class GecThermalscannerDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         log = logging.getLogger()
 
         tel_temperature = types.SimpleNamespace(
-            data=types.SimpleNamespace(
-                temperatureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            data=types.SimpleNamespace(temperatureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         tel_temperature.DataType = MagicMock(
-            return_value=types.SimpleNamespace(
-                temperatureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            return_value=types.SimpleNamespace(temperatureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         tel_temperature.set = MagicMock()
         tel_temperature.set_write = AsyncMock()

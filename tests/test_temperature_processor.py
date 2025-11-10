@@ -42,9 +42,7 @@ class TemperatureProcessorTestCase(unittest.IsolatedAsyncioTestCase):
         evt_sensor_status = AsyncMock()
         tel_temperature = AsyncMock()
         tel_temperature.DataType = MagicMock(
-            return_value=types.SimpleNamespace(
-                temperatureItem=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-            )
+            return_value=types.SimpleNamespace(temperatureItem=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         )
         topics = types.SimpleNamespace(
             **{
@@ -53,9 +51,7 @@ class TemperatureProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             }
         )
         log = logging.getLogger()
-        processor = common.processor.TemperatureProcessor(
-            device_configuration, topics, log
-        )
+        processor = common.processor.TemperatureProcessor(device_configuration, topics, log)
 
         timestamp = 12345.0
         response_code = 0

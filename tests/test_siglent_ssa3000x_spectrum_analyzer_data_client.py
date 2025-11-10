@@ -56,15 +56,11 @@ class SiglentSSA3000xDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.config = types.SimpleNamespace(**config_dict)
         freq_start_unit: str = config_dict["freq_start_unit"]  # type: ignore
         self.config_start_frequency = (
-            (config_dict["freq_start_value"] * getattr(units, freq_start_unit))
-            .to(units.Hz)
-            .value
+            (config_dict["freq_start_value"] * getattr(units, freq_start_unit)).to(units.Hz).value
         )
         freq_stop_unit: str = config_dict["freq_stop_unit"]  # type: ignore
         self.config_stop_frequency = (
-            (config_dict["freq_stop_value"] * getattr(units, freq_stop_unit))
-            .to(units.Hz)
-            .value
+            (config_dict["freq_stop_value"] * getattr(units, freq_stop_unit)).to(units.Hz).value
         )
 
         data_client = common.data_client.SiglentSSA3000xSpectrumAnalyzerDataClient(
