@@ -27,4 +27,3 @@ from .mock_formatter import *
 from .mock_sps30_formatter import *
 from .mock_temperature_formatter import *
 from .mock_windsonic_formatter import *
-from .tcpip_device import *
