@@ -1,6 +1,6 @@
 # This file is part of ts_ess_common.
 #
-# Developed for the Vera Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,19 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-try:
-    from .version import __version__
-except ImportError:
-    __version__ = "?"
+import asyncio
 
-# Import sub modules
-from . import accumulator, data_client, device, processor, sensor
-from .abstract_command_handler import *
-from .command_error import *
-from .config_schema import *
-from .constants import *
-from .device_config import *
-from .mock_command_handler import *
-from .mock_telemetry_server import *
-from .socket_server import *
-from .utils import *
+from lsst.ts.ess import common
+
+
+asyncio.run(common.run_mock_telemetry_server())
