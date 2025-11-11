@@ -158,9 +158,7 @@ class AirTurbulenceAccumulator:
             if len(self.speed) >= self.num_samples:
                 # Return good data.
                 speed_arr = np.column_stack(self.speed)
-                speed_median_arr, speed_std_arr = get_median_and_std_dev(
-                    data=speed_arr, axis=1
-                )
+                speed_median_arr, speed_std_arr = get_median_and_std_dev(data=speed_arr, axis=1)
 
                 # Use axis=0 to make sure that the norm of each [x, y, z]
                 # triplet is calculated instead of axis=1 which calculates the

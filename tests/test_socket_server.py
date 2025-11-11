@@ -92,9 +92,7 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
 
     async def test_close_client(self) -> None:
         client: tcpip.Client
-        async with self.create_server_with_command_handler() as server, self.create_client(
-            server
-        ) as client:
+        async with self.create_server_with_command_handler() as server, self.create_client(server) as client:
             await self.assert_next_connected(True)
             assert server.connected
 
@@ -127,18 +125,15 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
             - exit
         """
         mtt = MockTestTools()
-        async with self.create_server_with_command_handler(
-            devices_in_error_state=in_error_state
-        ) as server, self.create_client(server, run_heartbeat_send_task=True) as client:
-            await self.assert_configure(
-                client=client, name=name, num_channels=num_channels
-            )
+        async with (
+            self.create_server_with_command_handler(devices_in_error_state=in_error_state) as server,
+            self.create_client(server, run_heartbeat_send_task=True) as client,
+        ):
+            await self.assert_configure(client=client, name=name, num_channels=num_channels)
 
             # Make sure that the mock sensor outputs data for a disconnected
             # channel.
-            server.command_handler.devices[0].disconnected_channel = (
-                disconnected_channel
-            )
+            server.command_handler.devices[0].disconnected_channel = disconnected_channel
 
             # Make sure that the mock sensor outputs truncated data.
             server.command_handler.devices[0].missed_channels = missed_channels
@@ -191,9 +186,7 @@ class SocketServerTestCase(tcpip.BaseOneClientServerTestCase):
         """Test the MockController with one disconnected channel and no
         truncated data.
         """
-        await self.check_server_test(
-            name="Test1", num_channels=4, disconnected_channel=1
-        )
+        await self.check_server_test(name="Test1", num_channels=4, disconnected_channel=1)
 
     async def test_full_command_sequence_with_truncated_output(self) -> None:
         """Test the MockController with no disconnected channels and truncated

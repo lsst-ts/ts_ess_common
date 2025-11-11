@@ -168,9 +168,7 @@ class AbstractCommandHandler(ABC):
         device_configurations = self.configuration[Key.DEVICES]
         self.devices = []
         for device_configuration in device_configurations:
-            device: BaseDevice = self.create_device(
-                device_configuration, self.devices_in_error_state
-            )
+            device: BaseDevice = self.create_device(device_configuration, self.devices_in_error_state)
             self.devices.append(device)
             self.log.debug(
                 f"Opening {device_configuration[Key.DEVICE_TYPE]} "

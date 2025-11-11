@@ -62,7 +62,6 @@ class MockTemperatureFormatter(MockFormatter):
         missed_channels: int = 0,
     ) -> list[str]:
         output = [
-            format_temperature(i, disconnected_channel, missed_channels)
-            for i in range(0, num_channels)
+            format_temperature(i, disconnected_channel, missed_channels) for i in range(0, num_channels)
         ]
         return output

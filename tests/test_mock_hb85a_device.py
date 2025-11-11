@@ -38,15 +38,11 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         for two channels.
         """
         mtt = MockTestTools()
-        await mtt.check_mock_device(
-            sensor_type=common.SensorType.HX85A, missed_channels=2
-        )
+        await mtt.check_mock_device(sensor_type=common.SensorType.HX85A, missed_channels=2)
 
     async def test_mock_hx85a_device_in_error_state(self) -> None:
         """Test the MockDevice in error state meaning it will only return empty
         strings.
         """
         mtt = MockTestTools()
-        await mtt.check_mock_device(
-            sensor_type=common.SensorType.HX85A, in_error_state=True
-        )
+        await mtt.check_mock_device(sensor_type=common.SensorType.HX85A, in_error_state=True)

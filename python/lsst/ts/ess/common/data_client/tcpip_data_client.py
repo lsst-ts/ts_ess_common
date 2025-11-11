@@ -29,16 +29,22 @@ import types
 import typing
 
 import yaml
+from lsst.ts import tcpip, utils
 
-from ..constants import Key
-from ..device import TcpipDevice
+from ..constants import ResponseCode
 from ..device_config import DeviceConfig
 from ..processor import BaseProcessor
+from ..sensor import BaseSensor
 from .base_read_loop_data_client import BaseReadLoopDataClient
 from .data_client_constants import sensor_dict, telemetry_processor_dict
 
 if typing.TYPE_CHECKING:
     from lsst.ts import salobj
+
+# Timeout limit for communicating with the remote device (seconds). This
+# includes writing a command and reading the response and reading telemetry.
+# Unit tests can set this to a lower value to speed up the test.
+COMMUNICATE_TIMEOUT = 60
 
 
 class TcpipDataClient(BaseReadLoopDataClient):
@@ -68,17 +74,15 @@ class TcpipDataClient(BaseReadLoopDataClient):
         self.device_configuration: DeviceConfig | None = None
         self.processor: BaseProcessor | None = None
 
-        super().__init__(
-            config=config, topics=topics, log=log, simulation_mode=simulation_mode
-        )
+        super().__init__(config=config, topics=topics, log=log, simulation_mode=simulation_mode)
         self.configure()
 
         # Lock for TCP/IP communication
         self.stream_lock = asyncio.Lock()
 
-        self.tcpip_device: TcpipDevice | None = None
+        self.client: tcpip.Client = tcpip.Client(host="", port=0, log=log)
+        self.sensor: BaseSensor | None = None
         self.data: dict = {}
-        self.data_event = asyncio.Event()
 
     @classmethod
     def get_config_schema(cls) -> dict[str, typing.Any]:
@@ -177,57 +181,46 @@ additionalProperties: false
             location=self.config.location,
         )
         processor_type = telemetry_processor_dict[self.device_configuration.sens_type]
-        self.processor = processor_type(
-            self.device_configuration, self.topics, self.log
-        )
+        self.processor = processor_type(self.device_configuration, self.topics, self.log)
 
     def descr(self) -> str:
-        assert self.tcpip_device is not None
-        return f"host={self.tcpip_device.host}, port={self.tcpip_device.port}"
+        assert self.client is not None
+        return f"host={self.client.host}, port={self.client.port}"
 
     @property
     def connected(self) -> bool:
-        return self.tcpip_device is not None and self.tcpip_device.connected
+        return self.client is not None and self.client.connected
 
     async def connect(self) -> None:
         assert self.device_configuration is not None
         assert self.device_configuration.host is not None
         assert self.device_configuration.port is not None
         sensor_type = sensor_dict[self.device_configuration.sens_type]
-        sensor = sensor_type(log=self.log, num_channels=self.config.channels)
+        self.sensor = sensor_type(log=self.log, num_channels=self.config.channels)
         self.log.info(
             f"Opening TcpipDevice["
             f"host={self.device_configuration.host}, "
             f"port={self.device_configuration.port}, "
             f"{sensor_type=}]"
         )
-        self.tcpip_device = TcpipDevice(
-            name=self.config.name,
+        self.client = tcpip.Client(
             host=self.device_configuration.host,
             port=self.device_configuration.port,
-            sensor=sensor,
-            baud_rate=0,
-            callback_func=self.process_telemetry,
             log=self.log,
-            simulation_mode=self.simulation_mode,
+            name=type(self).__name__,
         )
-        await self.tcpip_device.open()
+        async with asyncio.timeout(COMMUNICATE_TIMEOUT):
+            await self.client.start_task
 
     async def disconnect(self) -> None:
         self.log.debug("disconnect.")
         try:
             if self.connected:
                 self.log.debug("Closing the tcpip_device.")
-                assert self.tcpip_device is not None  # make mypy happy
-                await self.tcpip_device.close()
+                assert self.client is not None  # make mypy happy
+                await self.client.close()
         finally:
-            self.tcpip_device = None
-
-    async def process_telemetry(self, data: dict) -> None:
-        self.log.debug(f"Received {data=}")
-        self.data = data
-        self.log.debug("Setting data_event.")
-        self.data_event.set()
+            self.client = None
 
     async def read_data(self) -> None:
         """Read data.
@@ -238,14 +231,24 @@ additionalProperties: false
         otherwise the `read_loop` method may hang forever.
         """
         self.log.debug("read_data")
-        assert self.processor is not None
-        async with asyncio.timeout(self.read_timeout):
-            self.log.debug("Waiting for data_event to be set.")
-            await self.data_event.wait()
-        self.log.debug(f"Processing {self.data=}")
-        telemetry_data = self.data[Key.TELEMETRY]
-        timestamp = telemetry_data[Key.TIMESTAMP]
-        response_code = telemetry_data[Key.RESPONSE_CODE]
-        sensor_data = telemetry_data[Key.SENSOR_TELEMETRY]
-        await self.processor.process_telemetry(timestamp, response_code, sensor_data)
-        self.data_event.clear()
+        assert self.sensor is not None
+        line = f"{self.sensor.terminator}"
+        response_code = ResponseCode.DEVICE_READ_ERROR
+
+        async with self.stream_lock:
+            assert self.client is not None
+            async with asyncio.timeout(COMMUNICATE_TIMEOUT):
+                while line == self.sensor.terminator:
+                    line = (await self.client.readline()).decode()
+                    response_code = ResponseCode.OK
+
+        self.log.debug(f"Processing {line=}")
+        try:
+            timestamp = utils.current_tai()
+            assert self.sensor is not None
+            sensor_data = await self.sensor.extract_telemetry(line)
+            assert self.processor is not None
+            await self.processor.process_telemetry(timestamp, response_code, sensor_data)
+        except BaseException:
+            self.log.exception("Exception while reading data.")
+        self.log.debug("Done.")

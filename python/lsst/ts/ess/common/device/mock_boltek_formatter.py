@@ -53,9 +53,7 @@ class MockEFM100CFormatter(MockFormatter):
         disconnected_channel: int = 0,
         missed_channels: int = 0,
     ) -> list[str]:
-        efs = random.uniform(
-            MockElectricFieldStrengthConfig.min, MockElectricFieldStrengthConfig.max
-        )
+        efs = random.uniform(MockElectricFieldStrengthConfig.min, MockElectricFieldStrengthConfig.max)
         fault = int(self.in_error_state)
         return [f"${efs:+06.2f}", f"{fault}*{random_checksum()}"]
 
@@ -77,12 +75,8 @@ class MockLD250StatusFormatter(MockFormatter):
         disconnected_channel: int = 0,
         missed_channels: int = 0,
     ) -> list[str]:
-        close_strike_rate = random.randint(
-            MockStrikeRateConfig.min, MockStrikeRateConfig.max
-        )
-        severe_strike_rate = random.randint(
-            MockStrikeRateConfig.min, MockStrikeRateConfig.max
-        )
+        close_strike_rate = random.randint(MockStrikeRateConfig.min, MockStrikeRateConfig.max)
+        severe_strike_rate = random.randint(MockStrikeRateConfig.min, MockStrikeRateConfig.max)
         close_alarm_status = random.randint(0, 1)
         severe_alarm_status = random.randint(0, 1)
         gps_heading = random.uniform(MockAzimuthConfig.min, MockAzimuthConfig.max)
@@ -103,12 +97,8 @@ class MockLD250StrikeFormatter(MockFormatter):
         disconnected_channel: int = 0,
         missed_channels: int = 0,
     ) -> list[str]:
-        corrested_strike_distance = random.randint(
-            MockDistanceConfig.min, MockDistanceConfig.max
-        )
-        uncorrested_strike_distance = random.randint(
-            MockDistanceConfig.min, MockDistanceConfig.max
-        )
+        corrested_strike_distance = random.randint(MockDistanceConfig.min, MockDistanceConfig.max)
+        uncorrested_strike_distance = random.randint(MockDistanceConfig.min, MockDistanceConfig.max)
         bearing = random.uniform(MockAzimuthConfig.min, MockAzimuthConfig.max)
         return [
             f"${LD250TelemetryPrefix.STRIKE_PREFIX.value}",

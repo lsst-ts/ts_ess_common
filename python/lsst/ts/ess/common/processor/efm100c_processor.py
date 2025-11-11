@@ -57,9 +57,7 @@ class Efm100cProcessor(BaseProcessor):
 
         # Cache of data, a dict of
         # sensor_name: ElectricFieldStrengthAccumulator.
-        self.electric_field_strength_cache: dict[
-            str, ElectricFieldStrengthAccumulator
-        ] = dict()
+        self.electric_field_strength_cache: dict[str, ElectricFieldStrengthAccumulator] = dict()
 
     async def process_telemetry(
         self,
@@ -80,9 +78,7 @@ class Efm100cProcessor(BaseProcessor):
         """
         if self.device_configuration.name not in self.electric_field_strength_cache:
             self.electric_field_strength_cache[self.device_configuration.name] = (
-                ElectricFieldStrengthAccumulator(
-                    num_samples=self.device_configuration.num_samples
-                )
+                ElectricFieldStrengthAccumulator(num_samples=self.device_configuration.num_samples)
             )
         accumulator = self.electric_field_strength_cache[self.device_configuration.name]
 
@@ -116,9 +112,7 @@ class Efm100cProcessor(BaseProcessor):
                     sensorName=self.device_configuration.name,
                     strength=np.nan,
                 )
-        self.log.debug(
-            "Sending the tel_electricFieldStrength telemetry and evt_sensorStatus event."
-        )
+        self.log.debug("Sending the tel_electricFieldStrength telemetry and evt_sensorStatus event.")
         await self.topics.tel_electricFieldStrength.set_write(
             sensorName=self.device_configuration.name,
             **topic_kwargs,

@@ -179,11 +179,7 @@ class MockTestTools:
         response_code = reply["response_code"]
         resp: common.TelemetryDataType = []
         for value in reply["sensor_telemetry"]:
-            assert (
-                isinstance(value, float)
-                or isinstance(value, int)
-                or isinstance(value, str)
-            )
+            assert isinstance(value, float) or isinstance(value, int) or isinstance(value, str)
             resp.append(value)
 
         assert name == device_name

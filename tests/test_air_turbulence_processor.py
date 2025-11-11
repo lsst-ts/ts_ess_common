@@ -47,9 +47,7 @@ class AirTurbulenceProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             }
         )
         log = logging.getLogger()
-        processor = common.processor.AirTurbulenceProcessor(
-            device_configuration, topics, log
-        )
+        processor = common.processor.AirTurbulenceProcessor(device_configuration, topics, log)
 
         timestamp = 12345.0
         response_code = 0

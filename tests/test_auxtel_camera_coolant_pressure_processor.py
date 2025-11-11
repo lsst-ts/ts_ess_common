@@ -50,9 +50,7 @@ class AuxTelCameraCoolantPressureProcessorTestCase(unittest.IsolatedAsyncioTestC
             }
         )
         log = logging.getLogger()
-        processor = common.processor.AuxTelCameraCoolantPressureProcessor(
-            device_configuration, topics, log
-        )
+        processor = common.processor.AuxTelCameraCoolantPressureProcessor(device_configuration, topics, log)
 
         timestamp = 12345.0
         response_code = 0

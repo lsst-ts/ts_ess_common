@@ -35,9 +35,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.log = logging.getLogger(type(self).__name__)
         self.responses: list[dict[common.ResponseCode, Any]] = []
-        self.command_handler = common.MockCommandHandler(
-            callback=self.callback, simulation_mode=1
-        )
+        self.command_handler = common.MockCommandHandler(callback=self.callback, simulation_mode=1)
         self.device_config_01 = common.DeviceConfig(
             name="Test01",
             num_channels=4,
@@ -100,21 +98,15 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(device, common.device.MockDevice)
         assert isinstance(device.sensor, common.sensor.TemperatureSensor)
 
-        device = self.command_handler.create_device(
-            device_configuration=self.device_config_02.as_dict()
-        )
+        device = self.command_handler.create_device(device_configuration=self.device_config_02.as_dict())
         assert isinstance(device, common.device.MockDevice)
         assert isinstance(device.sensor, common.sensor.Hx85aSensor)
 
-        device = self.command_handler.create_device(
-            device_configuration=self.device_config_03.as_dict()
-        )
+        device = self.command_handler.create_device(device_configuration=self.device_config_03.as_dict())
         assert isinstance(device, common.device.MockDevice)
         assert isinstance(device.sensor, common.sensor.Hx85baSensor)
 
-        device = self.command_handler.create_device(
-            device_configuration=self.device_config_04.as_dict()
-        )
+        device = self.command_handler.create_device(device_configuration=self.device_config_04.as_dict())
         assert isinstance(device, common.device.MockDevice)
         assert isinstance(device.sensor, common.sensor.Csat3bSensor)
 
@@ -129,10 +121,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
         with self.assertLogs("MockCommandHandler", level="DEBUG") as log:
             await self.command_handler.stop_sending_telemetry()
         assert "DEBUG:MockCommandHandler:stop_sending_telemetry" in log.output
-        assert (
-            "WARNING:MockCommandHandler:Not started yet. Ignoring stop command."
-            in log.output
-        )
+        assert "WARNING:MockCommandHandler:Not started yet. Ignoring stop command." in log.output
         assert len(self.command_handler.devices) == 0
 
         # The working of the functions is tested in test_handle_command.
@@ -162,9 +151,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             reply_to_check = reply[common.Key.TELEMETRY]
             if device_config.sens_type == common.SensorType.TEMPERATURE:
                 num_channels = device_config.num_channels
-                mtt.check_temperature_reply(
-                    reply=reply_to_check, name=name, num_channels=num_channels
-                )
+                mtt.check_temperature_reply(reply=reply_to_check, name=name, num_channels=num_channels)
             elif device_config.sens_type == common.SensorType.HX85A:
                 mtt.check_hx85a_reply(reply=reply_to_check, name=name)
             elif device_config.sens_type == common.SensorType.HX85BA:
@@ -172,9 +159,7 @@ class MockCommandHandlerTestCase(unittest.IsolatedAsyncioTestCase):
             elif device_config.sens_type == common.SensorType.CSAT3B:
                 mtt.check_csat3b_reply(reply=reply_to_check, name=name)
             else:
-                raise ValueError(
-                    f"Unsupported sensor type {device_config.sens_type} encountered."
-                )
+                raise ValueError(f"Unsupported sensor type {device_config.sens_type} encountered.")
 
         await self.command_handler.stop_sending_telemetry()
         # Give time to the telemetry_task to get cancelled.
