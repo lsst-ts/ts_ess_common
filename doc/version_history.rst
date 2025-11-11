@@ -8,6 +8,33 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.6 (2025-11-11)
+====================
+
+New Features
+------------
+
+- Added the MockTelemetryServer. (`OSW-1346 <https://rubinobs.atlassian.net//browse/OSW-1346>`_)
+
+
+Bug Fixes
+---------
+
+- Fixed the TcpipDataClient. (`OSW-1346 <https://rubinobs.atlassian.net//browse/OSW-1346>`_)
+
+
+API Removal or Deprecation
+--------------------------
+
+- Removed the TcpipDevice. (`OSW-1346 <https://rubinobs.atlassian.net//browse/OSW-1346>`_)
+
+
+Other Changes and Additions
+---------------------------
+
+- Formatted code with ruff. (`OSW-1346 <https://rubinobs.atlassian.net//browse/OSW-1346>`_)
+
+
 v0.24.5 (2025-10-08)
 ====================
 
