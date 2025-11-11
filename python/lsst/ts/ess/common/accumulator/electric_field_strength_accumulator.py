@@ -141,9 +141,7 @@ class ElectricFieldStrengthAccumulator:
             if len(self.strength) >= self.num_samples:
                 # Return good data
                 strength_arr = np.array(self.strength)
-                strength_median, strength_std = get_median_and_std_dev(
-                    data=strength_arr
-                )
+                strength_median, strength_std = get_median_and_std_dev(data=strength_arr)
                 self.clear()
                 return dict(
                     timestamp=timestamp,

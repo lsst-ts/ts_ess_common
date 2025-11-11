@@ -59,9 +59,7 @@ class MockCommandHandler(AbstractCommandHandler):
             In case an incorrect configuration has been loaded.
         """
         sensor = create_sensor(device_configuration=device_configuration, log=self.log)
-        self.log.debug(
-            f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}."
-        )
+        self.log.debug(f"Creating MockDevice with name {device_configuration[Key.NAME]} and sensor {sensor}.")
         device: BaseDevice = MockDevice(
             name=device_configuration[Key.NAME],
             device_id=f"{MOCK_DEVICE_ID_PREFIX}-{device_configuration[Key.NAME]}",

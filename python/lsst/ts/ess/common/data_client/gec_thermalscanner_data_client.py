@@ -64,11 +64,7 @@ class GecThermalscannerDataClient(BaseReadLoopDataClient):
         num_topics = ceil(NUM_THERMOCOUPLES / 16)
         for tn in range(num_topics):
             topic = copy(self.topics.tel_temperature)
-            num_channels = (
-                16 - (num_topics * 16 - NUM_THERMOCOUPLES)
-                if tn == (num_topics - 1)
-                else 16
-            )
+            num_channels = 16 - (num_topics * 16 - NUM_THERMOCOUPLES) if tn == (num_topics - 1) else 16
             topic.set(
                 sensorName=f"{self.config.sensor_name} {tn + 1}/{num_topics}",
                 location=self.config.location,
@@ -137,9 +133,7 @@ required:
             await self.disconnect()
 
         if self.simulation_mode > 0:
-            self.mock_data_server = MockGetThermalscannerDataServer(
-                self.log, self.simulation_interval
-            )
+            self.mock_data_server = MockGetThermalscannerDataServer(self.log, self.simulation_interval)
             await self.mock_data_server.start_task
 
             host = tcpip.LOCALHOST_IPV4
@@ -196,7 +190,6 @@ required:
 
 
 class MockGetThermalscannerDataServer(tcpip.OneClientServer):
-
     def __init__(self, log: logging.Logger, simulation_interval: float):
         self.log = log
         self.simulation_interval = simulation_interval
@@ -216,10 +209,7 @@ class MockGetThermalscannerDataServer(tcpip.OneClientServer):
 
     async def write_loop(self) -> None:
         while True:
-            temperatures = [
-                str(random.randint(-1000, 1000) / 100.0)
-                for i in range(NUM_THERMOCOUPLES)
-            ]
+            temperatures = [str(random.randint(-1000, 1000) / 100.0) for i in range(NUM_THERMOCOUPLES)]
 
             telemetry = str(time.time()) + ":" + ",".join(temperatures)
             await self.write_str(telemetry + "\n")

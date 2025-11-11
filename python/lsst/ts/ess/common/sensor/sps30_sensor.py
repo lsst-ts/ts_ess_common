@@ -131,8 +131,7 @@ class Sps30Sensor(BaseSensor):
 
             if computed_checksum != received_checksum:
                 raise ValueError(
-                    f"Checksum mismatch: computed {computed_checksum}, "
-                    f"received {received_checksum}"
+                    f"Checksum mismatch: computed {computed_checksum}, received {received_checksum}"
                 )
 
             # Verify status
@@ -145,31 +144,21 @@ class Sps30Sensor(BaseSensor):
             # Particle sizes
             for i in range(1, 6):
                 size = m.group(f"size{i}")
-                output.append(
-                    np.nan if size == self.DEFAULT_PARTICLE_SIZE else float(size)
-                )
+                output.append(np.nan if size == self.DEFAULT_PARTICLE_SIZE else float(size))
 
             # Matter concentrations
             for i in range(1, 6):
                 conc = m.group(f"conc{i}")
-                output.append(
-                    np.nan if conc == self.DEFAULT_CONCENTRATION else float(conc)
-                )
+                output.append(np.nan if conc == self.DEFAULT_CONCENTRATION else float(conc))
 
             # Number concentrations
             for i in range(1, 6):
                 num = m.group(f"num{i}")
-                output.append(
-                    np.nan if num == self.DEFAULT_CONCENTRATION else float(num)
-                )
+                output.append(np.nan if num == self.DEFAULT_CONCENTRATION else float(num))
 
             # Typical particle size
             typical_size = m.group("typical_size")
-            output.append(
-                np.nan
-                if typical_size == self.DEFAULT_TYPICAL_SIZE
-                else float(typical_size)
-            )
+            output.append(np.nan if typical_size == self.DEFAULT_TYPICAL_SIZE else float(typical_size))
 
             output.append(str(m.group("location")))
 

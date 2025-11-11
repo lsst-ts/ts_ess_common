@@ -108,9 +108,7 @@ class BaseDevice(ABC):
 
     def __repr__(self) -> str:
         vars_str = ", ".join(
-            f"{var}={val!r}"
-            for var, val in vars(self).items()
-            if var not in {"log", "terminator"}
+            f"{var}={val!r}" for var, val in vars(self).items() if var not in {"log", "terminator"}
         )
         st = f"{type(self).__name__}<{vars_str}>"
         return st

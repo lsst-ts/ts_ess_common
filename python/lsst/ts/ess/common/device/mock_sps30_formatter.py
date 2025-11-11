@@ -61,8 +61,4 @@ class MockSps30Formatter(MockFormatter):
         checksum_string = ",".join(telemetry_data)
         checksum = f"{compute_particulate_checksum(checksum_string):02x}"
 
-        return [
-            f"{Sps30Sensor.START_CHAR}"
-            f"{','.join(telemetry_data)}"
-            f"{Sps30Sensor.END_CHAR}{checksum}"
-        ]
+        return [f"{Sps30Sensor.START_CHAR}{','.join(telemetry_data)}{Sps30Sensor.END_CHAR}{checksum}"]

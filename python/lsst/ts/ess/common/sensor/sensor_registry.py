@@ -49,17 +49,13 @@ def register_sensor(sensor_type: SensorType, sensor_class: Type[BaseSensor]) -> 
 
     """
     if not issubclass(sensor_class, BaseSensor):
-        raise TypeError(
-            f"sensor_class={sensor_class!r} is not a subclass of BaseSensor."
-        )
+        raise TypeError(f"sensor_class={sensor_class!r} is not a subclass of BaseSensor.")
     if sensor_type in sensor_registry:
         raise ValueError(f"sensor_type={sensor_type} already registered.")
     sensor_registry[sensor_type] = sensor_class
 
 
-def create_sensor(
-    device_configuration: dict[str, Any], log: logging.Logger
-) -> BaseSensor:
+def create_sensor(device_configuration: dict[str, Any], log: logging.Logger) -> BaseSensor:
     """Create the sensor to connect to by using the specified
     configuration.
 

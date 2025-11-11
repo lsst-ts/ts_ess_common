@@ -38,6 +38,4 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         disconnected channels and no truncated data.
         """
         mtt = MockTestTools()
-        await mtt.check_mock_device(
-            sensor_type=common.SensorType.EFM100C, in_error_state=True
-        )
+        await mtt.check_mock_device(sensor_type=common.SensorType.EFM100C, in_error_state=True)

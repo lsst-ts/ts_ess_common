@@ -92,28 +92,20 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.tel_air_flow.set = MagicMock()
         self.tel_air_flow.set_write = self.set_air_flow
 
-        self.tel_dew_point = types.SimpleNamespace(
-            data=types.SimpleNamespace(dewPointItem=math.nan)
-        )
+        self.tel_dew_point = types.SimpleNamespace(data=types.SimpleNamespace(dewPointItem=math.nan))
         self.tel_dew_point.set = MagicMock()
         self.tel_dew_point.set_write = self.set_dew_point
 
         self.tel_pressure = types.SimpleNamespace(
-            data=types.SimpleNamespace(
-                pressureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            data=types.SimpleNamespace(pressureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         self.tel_pressure.DataType = MagicMock(
-            return_value=types.SimpleNamespace(
-                pressureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            return_value=types.SimpleNamespace(pressureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         self.tel_pressure.set = MagicMock()
         self.tel_pressure.set_write = self.set_pressure
 
-        self.tel_rain_rate = types.SimpleNamespace(
-            data=types.SimpleNamespace(rainRateItem=math.nan)
-        )
+        self.tel_rain_rate = types.SimpleNamespace(data=types.SimpleNamespace(rainRateItem=math.nan))
         self.tel_rain_rate.set = MagicMock()
         self.tel_rain_rate.set_write = self.set_rain_rate
 
@@ -124,14 +116,10 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.tel_relative_humidity.set_write = self.set_relative_humidity
 
         self.tel_temperature = types.SimpleNamespace(
-            data=types.SimpleNamespace(
-                temperatureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            data=types.SimpleNamespace(temperatureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         self.tel_temperature.DataType = MagicMock(
-            return_value=types.SimpleNamespace(
-                temperatureItem=[math.nan, math.nan, math.nan, math.nan]
-            )
+            return_value=types.SimpleNamespace(temperatureItem=[math.nan, math.nan, math.nan, math.nan])
         )
         self.tel_temperature.set = MagicMock()
         self.tel_temperature.set_write = self.set_temperature
@@ -180,9 +168,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         self.rain_rate_event.set()
 
     async def set_relative_humidity(self, **kwargs: typing.Any) -> None:
-        self.tel_relative_humidity.data.relativeHumidityItem = kwargs[
-            "relativeHumidityItem"
-        ]
+        self.tel_relative_humidity.data.relativeHumidityItem = kwargs["relativeHumidityItem"]
         self.relative_humidity_event.set()
 
     async def set_temperature(self, **kwargs: typing.Any) -> None:
@@ -191,9 +177,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_raw_data_generator(self) -> None:
         field_name_index = {
             field_name: i
-            for i, field_name in enumerate(
-                common.data_client.Young32400RawDataGenerator.stat_names
-            )
+            for i, field_name in enumerate(common.data_client.Young32400RawDataGenerator.stat_names)
         }
         config = self.default_config
 
@@ -252,9 +236,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 tip_counts = values[:, field_index]
                 delta_counts = tip_counts[-1] - tip_counts[0]
                 if delta_counts < 0:
-                    delta_counts += (
-                        common.data_client.Young32400RawDataGenerator.max_rain_tip_count
-                    )
+                    delta_counts += common.data_client.Young32400RawDataGenerator.max_rain_tip_count
                 samples_per_hour = 60 * 50 / data_gen.read_interval
                 mm_per_count = config.scale_rain_rate
                 mean = (delta_counts / num_items) * mm_per_count * samples_per_hour
@@ -264,15 +246,11 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 # Use circular statistics.
                 scale, offset = config.scale_offset_wind_direction
                 wind_direction_deg = values[:, field_index] * scale + offset
-                mean, std = common.accumulator.get_circular_mean_and_std_dev(
-                    wind_direction_deg
-                )
+                mean, std = common.accumulator.get_circular_mean_and_std_dev(wind_direction_deg)
                 mean_diff = utils.angle_diff(mean, expected_mean).deg
                 # Be generous in these comparisons; this is a sanity check
                 # that should pass for essentially all random seeds.
-                print(
-                    f"{field_name=}; {mean=:0.2f}; {expected_mean=}; {std=:0.2f}; {expected_std=}"
-                )
+                print(f"{field_name=}; {mean=:0.2f}; {expected_mean=}; {std=:0.2f}; {expected_std=}")
                 assert mean_diff == pytest.approx(0, abs=expected_std)
                 assert std == pytest.approx(expected_std, rel=0.1)
             else:
@@ -282,9 +260,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 std = raw_stds[field_index] * scale
                 # Be generous in these comparisons; this is a sanity check
                 # that should pass for essentially all random seeds.
-                print(
-                    f"{field_name=}; {mean=:0.2f}; {expected_mean=}; {std=:0.2f}; {expected_std=}"
-                )
+                print(f"{field_name=}; {mean=:0.2f}; {expected_mean=}; {std=:0.2f}; {expected_std=}")
                 assert mean == pytest.approx(expected_mean, abs=expected_std)
                 assert std == pytest.approx(expected_std, rel=0.1)
 
@@ -306,21 +282,15 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         num_checks_per_topic = 2
         # Need enough items to report rain rate num_checks_per_topic times,
         # plus margin.
-        num_items = int(
-            (num_checks_per_topic + 1) * config.rain_stopped_interval / read_interval
-        )
-        data_client.simulated_raw_data = data_gen.create_raw_data_list(
-            config=config, num_items=num_items
-        )
+        num_items = int((num_checks_per_topic + 1) * config.rain_stopped_interval / read_interval)
+        data_client.simulated_raw_data = data_gen.create_raw_data_list(config=config, num_items=num_items)
         await data_client.start()
         # await asyncio.sleep(10)
 
         try:
             for i in range(num_checks_per_topic):
                 await self.check_air_flow(config=config, data_gen=data_gen)
-                await self.check_humidity_temperature_pressure_dew_point(
-                    config=config, data_gen=data_gen
-                )
+                await self.check_humidity_temperature_pressure_dew_point(config=config, data_gen=data_gen)
                 if i == 0:
                     await self.precipitation_event.wait()
                     assert self.tel_rain_rate.data.rainRateItem
@@ -351,23 +321,17 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         """
         await self.air_flow_event.wait()
 
-        direction_diff = utils.angle_diff(
-            self.tel_air_flow.data.direction, data_gen.mean_wind_direction
-        ).deg
+        direction_diff = utils.angle_diff(self.tel_air_flow.data.direction, data_gen.mean_wind_direction).deg
         assert direction_diff == pytest.approx(0, abs=data_gen.std_wind_direction)
 
         # Note: the standard deviation is computed from a small number
         # of samples and direction is cast to int (in ts_xml 15)
         # so it may vary even more from the specified value.
-        assert self.tel_air_flow.data.direction_std_dev == pytest.approx(
-            data_gen.std_wind_direction, rel=1
-        )
+        assert self.tel_air_flow.data.direction_std_dev == pytest.approx(data_gen.std_wind_direction, rel=1)
         assert self.tel_air_flow.data.speed == pytest.approx(
             data_gen.mean_wind_speed, rel=data_gen.std_wind_speed
         )
-        assert self.tel_air_flow.data.speed_std_dev == pytest.approx(
-            data_gen.std_wind_speed, rel=0.5
-        )
+        assert self.tel_air_flow.data.speed_std_dev == pytest.approx(data_gen.std_wind_speed, rel=0.5)
 
     async def check_humidity_temperature_pressure_dew_point(
         self,
@@ -387,23 +351,17 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         await self.relative_humidity_event.wait()
         data = self.tel_relative_humidity.data
         read_humidity = data.relativeHumidityItem
-        assert data.relativeHumidityItem == pytest.approx(
-            data_gen.mean_humidity, abs=data_gen.std_humidity
-        )
+        assert data.relativeHumidityItem == pytest.approx(data_gen.mean_humidity, abs=data_gen.std_humidity)
 
         await self.temperature_event.wait()
         data = self.tel_temperature.data
         read_temperature = data.temperatureItem[0]
-        assert read_temperature == pytest.approx(
-            data_gen.mean_temperature, abs=data_gen.std_temperature
-        )
+        assert read_temperature == pytest.approx(data_gen.mean_temperature, abs=data_gen.std_temperature)
         assert all(math.isnan(value) for value in data.temperatureItem[1:])
 
         await self.pressure_event.wait()
         data = self.tel_pressure.data
-        assert data.pressureItem[0] == pytest.approx(
-            data_gen.mean_pressure, abs=data_gen.std_pressure
-        )
+        assert data.pressureItem[0] == pytest.approx(data_gen.mean_pressure, abs=data_gen.std_pressure)
         assert all(math.isnan(value) for value in data.pressureItem[1:])
 
         expected_dew_point = compute_dew_point_magnus(

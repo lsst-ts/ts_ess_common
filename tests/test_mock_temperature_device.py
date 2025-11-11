@@ -31,9 +31,7 @@ class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
         disconnected channels and no truncated data.
         """
         mtt = MockTestTools()
-        await mtt.check_mock_device(
-            sensor_type=common.SensorType.TEMPERATURE, num_channels=4
-        )
+        await mtt.check_mock_device(sensor_type=common.SensorType.TEMPERATURE, num_channels=4)
 
     async def test_mock_temperature_device_with_disconnected_channel(self) -> None:
         """Test the MockDevice with one disconnected channel and no truncated
