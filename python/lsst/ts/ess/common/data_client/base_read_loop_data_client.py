@@ -228,7 +228,8 @@ class BaseReadLoopDataClient(abc.ABC):
 
                 message = (
                     f"Read timed out. This is timeout #{self.num_consecutive_read_timeouts} "
-                    f"of {self.max_read_timeouts} allowed. Error was: {e!r}. Attempting to reconnect."
+                    f"of {self.max_read_timeouts} allowed. Error was: {e!r}. "
+                    f"Attempting to reconnect in {self.connect_timeout} seconds."
                 )
                 self.loop_should_end = False
                 self.log.warning(message)

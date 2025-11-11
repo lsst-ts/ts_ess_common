@@ -57,27 +57,31 @@ class TcpipDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_tcpip_data_client(self) -> None:
         log = logging.getLogger()
         config = self.get_config("tcpip_temperature_sensor.yaml")
-        evt_sensor_status = AsyncMock()
-        tel_temperature = AsyncMock()
-        tel_temperature.DataType = MagicMock(
-            return_value=types.SimpleNamespace(temperatureItem=[0.0, 0.0, 0.0, 0.0])
-        )
-        topics = types.SimpleNamespace(
-            **{
-                "evt_sensorStatus": evt_sensor_status,
-                "tel_temperature": tel_temperature,
-            },
-        )
-        async with common.data_client.TcpipDataClient(
-            config=config, topics=topics, log=log, simulation_mode=1
-        ):
-            await asyncio.sleep(2)
+        async with common.MockTelemetryServer(host=config.host, port=0, log=log) as server:
+            config.port = server.port
+            evt_sensor_status = AsyncMock()
+            tel_temperature = AsyncMock()
+            tel_temperature.DataType = MagicMock(
+                return_value=types.SimpleNamespace(temperatureItem=[0.0, 0.0, 0.0, 0.0])
+            )
+            topics = types.SimpleNamespace(
+                **{
+                    "evt_sensorStatus": evt_sensor_status,
+                    "tel_temperature": tel_temperature,
+                },
+            )
+            async with common.data_client.TcpipDataClient(
+                config=config, topics=topics, log=log, simulation_mode=1
+            ):
+                await asyncio.sleep(2)
 
-        evt_sensor_status.set_write.assert_called_with(sensorName=config.name, sensorStatus=0, serverStatus=0)
-        tel_temperature.set_write.assert_called_with(
-            sensorName=config.name,
-            timestamp=ANY,
-            temperatureItem=[ANY] * config.channels,
-            numChannels=config.channels,
-            location=config.location,
-        )
+            evt_sensor_status.set_write.assert_called_with(
+                sensorName=config.name, sensorStatus=0, serverStatus=0
+            )
+            tel_temperature.set_write.assert_called_with(
+                sensorName=config.name,
+                timestamp=ANY,
+                temperatureItem=[ANY] * config.channels,
+                numChannels=config.channels,
+                location=config.location,
+            )
