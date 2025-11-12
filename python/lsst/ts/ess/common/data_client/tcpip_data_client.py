@@ -31,12 +31,13 @@ import typing
 import yaml
 from lsst.ts import tcpip, utils
 
-from ..constants import ResponseCode
+from ..constants import Key, ResponseCode
 from ..device_config import DeviceConfig
+from ..mock_telemetry_server import MockTelemetryServer
 from ..processor import BaseProcessor
-from ..sensor import BaseSensor
+from ..sensor import BaseSensor, create_sensor
 from .base_read_loop_data_client import BaseReadLoopDataClient
-from .data_client_constants import sensor_dict, telemetry_processor_dict
+from .data_client_constants import telemetry_processor_dict
 
 if typing.TYPE_CHECKING:
     from lsst.ts import salobj
@@ -83,6 +84,9 @@ class TcpipDataClient(BaseReadLoopDataClient):
         self.client: tcpip.Client = tcpip.Client(host="", port=0, log=log)
         self.sensor: BaseSensor | None = None
         self.data: dict = {}
+
+        # Mock telemetry server for simulation mode != 0.
+        self.mock_telemetry_server: MockTelemetryServer | None = None
 
     @classmethod
     def get_config_schema(cls) -> dict[str, typing.Any]:
@@ -193,15 +197,29 @@ additionalProperties: false
 
     async def connect(self) -> None:
         assert self.device_configuration is not None
-        assert self.device_configuration.host is not None
-        assert self.device_configuration.port is not None
-        sensor_type = sensor_dict[self.device_configuration.sens_type]
-        self.sensor = sensor_type(log=self.log, num_channels=self.config.channels)
+        device_configuration = {
+            Key.NAME.value: "MockDevice",
+            Key.SENSOR_TYPE.value: self.device_configuration.sens_type,
+            Key.CHANNELS.value: self.device_configuration.num_channels,
+        }
+        self.sensor = create_sensor(device_configuration=device_configuration, log=self.log)
+
+        if self.simulation_mode != 0:
+            self.mock_telemetry_server = MockTelemetryServer(
+                host=tcpip.LOCAL_HOST,
+                port=0,
+                log=self.log,
+                device_configuration=device_configuration,
+            )
+            await self.mock_telemetry_server.start_task
+            self.device_configuration.host = self.mock_telemetry_server.host
+            self.device_configuration.port = self.mock_telemetry_server.port
+
         self.log.info(
             f"Opening TcpipDevice["
             f"host={self.device_configuration.host}, "
             f"port={self.device_configuration.port}, "
-            f"{sensor_type=}]"
+            f"sensor_type={self.device_configuration.sens_type}]"
         )
         self.client = tcpip.Client(
             host=self.device_configuration.host,
@@ -221,6 +239,9 @@ additionalProperties: false
                 await self.client.close()
         finally:
             self.client = None
+
+        if self.simulation_mode != 0 and self.mock_telemetry_server is not None:
+            await self.mock_telemetry_server.close()
 
     async def read_data(self) -> None:
         """Read data.

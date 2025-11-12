@@ -22,8 +22,11 @@
 import platform
 
 from .base_device import *
+from .mock_boltek_formatter import *
+from .mock_csat3b_formatter import *
 from .mock_device import *
 from .mock_formatter import *
+from .mock_hx85_formatter import *
 from .mock_sps30_formatter import *
 from .mock_temperature_formatter import *
 from .mock_windsonic_formatter import *
