@@ -27,8 +27,12 @@ import typing
 
 from lsst.ts import tcpip
 
+from .constants import Key, ResponseCode, SensorType
+from .device import BaseDevice, MockDevice
+from .sensor import create_sensor
 
-DATA = "C01=0032.1443,C02=0033.0320,C03=-001.3020,C04=-201.0000\r\n"
+
+MOCK_DEVICE_ID_PREFIX = "MockDevice"
 
 
 class MockTelemetryServer(tcpip.OneClientReadLoopServer):
@@ -37,6 +41,7 @@ class MockTelemetryServer(tcpip.OneClientReadLoopServer):
         host: str | None,
         port: int | None,
         log: logging.Logger,
+        device_configuration: dict[str, typing.Any],
         connect_callback: tcpip.ConnectCallbackType | None = None,
         name: str = "",
         **kwargs: typing.Any,
@@ -49,21 +54,40 @@ class MockTelemetryServer(tcpip.OneClientReadLoopServer):
             name=name,
             **kwargs,
         )
+        self.sensor = create_sensor(device_configuration, log=self.log)
+        self.device_configuration = device_configuration
+        self.device: BaseDevice = MockDevice(
+            name=name,
+            device_id=f"{MOCK_DEVICE_ID_PREFIX}-{name}",
+            sensor=self.sensor,
+            callback_func=self.callback,
+            log=self.log,
+        )
 
     async def read_and_dispatch(self) -> None:
         """Send the same data every second."""
         try:
-            self.log.info(f"Sending data {DATA}.")
-            await self.write_str(DATA)
+            data = await self.device.readline()
+            self.log.info(f"Sending data {data}.")
+            await self.write_str(data + self.sensor.terminator)
             await asyncio.sleep(1.0)
         except (asyncio.IncompleteReadError, ConnectionResetError):
             # Ignore
             pass
 
+    async def callback(self, response: dict[ResponseCode, typing.Any]) -> None:
+        # Empty because unused.
+        pass
+
 
 async def run_mock_telemetry_server() -> None:
     logging.basicConfig(format="%(asctime)s:%(levelname)s:%(name)s:%(message)s", level=logging.DEBUG)
     log = logging.getLogger("dummy")
-    srv = MockTelemetryServer(host="0.0.0.0", port=4001, log=log)
+    device_configuration = {
+        Key.NAME.value: "MockDevice",
+        Key.SENSOR_TYPE.value: SensorType.TEMPERATURE,
+        Key.CHANNELS.value: 4,
+    }
+    srv = MockTelemetryServer(host="0.0.0.0", port=4001, log=log, device_configuration=device_configuration)
     await srv.start_task
     await srv._server.serve_forever()
