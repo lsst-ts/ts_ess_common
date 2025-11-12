@@ -57,7 +57,14 @@ class TcpipDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_tcpip_data_client(self) -> None:
         log = logging.getLogger()
         config = self.get_config("tcpip_temperature_sensor.yaml")
-        async with common.MockTelemetryServer(host=config.host, port=0, log=log) as server:
+        device_configuration = {
+            common.Key.NAME.value: config.name,
+            common.Key.SENSOR_TYPE.value: config.sensor_type,
+            common.Key.CHANNELS.value: config.channels,
+        }
+        async with common.MockTelemetryServer(
+            host=config.host, port=0, log=log, device_configuration=device_configuration
+        ) as server:
             config.port = server.port
             evt_sensor_status = AsyncMock()
             tel_temperature = AsyncMock()
