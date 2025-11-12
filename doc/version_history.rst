@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.7 (2025-11-12)
+====================
+
+Bug Fixes
+---------
+
+- Made the TcpipDataClient work in simulation mode. (`OSW-1415 <https://rubinobs.atlassian.net//browse/OSW-1415>`_)
+
+
 v0.24.6 (2025-11-11)
 ====================
 
