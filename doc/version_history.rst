@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.24.8 (2025-11-26)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Improved the mock temperature sensor range. (`OSW-1473 <https://rubinobs.atlassian.net//browse/OSW-1473>`_)
+
+
 v0.24.7 (2025-11-12)
 ====================
 
