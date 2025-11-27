@@ -24,7 +24,7 @@ import logging
 import pathlib
 import types
 import unittest
-from unittest.mock import ANY, AsyncMock, MagicMock
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import yaml
 from lsst.ts.ess import common
@@ -56,7 +56,6 @@ class ControllerDataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_controller_data_client(self) -> None:
         log = logging.getLogger()
-        config = self.get_config("test_hx85a_sensor.yaml")
         evt_sensor_status = AsyncMock()
         tel_dew_point = AsyncMock()
         tel_relative_humidity = AsyncMock()
@@ -72,6 +71,8 @@ class ControllerDataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 "tel_temperature": tel_temperature,
             }
         )
+
+        config = self.get_config("test_hx85a_sensor.yaml")
         async with common.data_client.ControllerDataClient(
             config=config, topics=topics, log=log, simulation_mode=1
         ):
@@ -99,3 +100,31 @@ class ControllerDataClientTestCase(unittest.IsolatedAsyncioTestCase):
             numChannels=1,
             location=config.devices[0]["location"],
         )
+
+    async def test_controller_data_client_read_error(self) -> None:
+        log = logging.getLogger()
+        evt_sensor_status = AsyncMock()
+        tel_lightningStrikeStatus = AsyncMock()
+        evt_lightningStrike = AsyncMock()
+        evt_highElectricField = AsyncMock()
+        tel_electricFieldStrength = AsyncMock()
+        topics = types.SimpleNamespace(
+            **{
+                "evt_sensorStatus": evt_sensor_status,
+                "tel_lightningStrikeStatus": tel_lightningStrikeStatus,
+                "evt_lightningStrike": evt_lightningStrike,
+                "evt_highElectricField": evt_highElectricField,
+                "tel_electricFieldStrength": tel_electricFieldStrength,
+            }
+        )
+
+        with patch.object(common.sensor.Efm100cSensor, "extract_telemetry") as mock_extract_telemetry:
+            mock_extract_telemetry.return_value = []
+            config = self.get_config("test_lightning_sensors.yaml")
+            async with common.data_client.ControllerDataClient(
+                config=config, topics=topics, log=log, simulation_mode=1
+            ) as cdc:
+                while cdc.num_consecutive_read_timeouts < 2:
+                    await asyncio.sleep(1)
+
+                assert cdc.num_consecutive_read_timeouts == 2
