@@ -26,13 +26,14 @@ __all__ = ["ControllerDataClient"]
 import asyncio
 import json
 import logging
+import math
 import types
 import typing
 from collections.abc import Sequence
 
 import jsonschema
 import yaml
-from lsst.ts import tcpip
+from lsst.ts import tcpip, utils
 
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
 from ..device_config import DeviceConfig
@@ -93,7 +94,10 @@ class ControllerDataClient(BaseReadLoopDataClient):
         self.validator = jsonschema.Draft7Validator(schema=self.get_telemetry_schema())
 
         # A dict of sensor_name: BaseProcessor.
-        self.processors: dict[str, BaseProcessor] = dict()
+        self.processors: dict[str, BaseProcessor] = {}
+
+        # First UNIX TAI time [sec] that a read error happened.
+        self.first_read_error_times: dict[str, float] = {}
 
     @classmethod
     def get_config_schema(cls) -> dict[str, typing.Any]:
@@ -119,6 +123,10 @@ properties:
     description: Timeout for connecting to the TCP/IP interface (sec).
     type: number
     default: 60.0
+  max_error_state_period:
+    description: Maximum period (sec) for read errors before raising the exception.
+    type: number
+    default: 300
   rate_limit:
     type: number
     default: 0.5
@@ -365,19 +373,36 @@ additionalProperties: false
             self.log.warning("Read a command response with no command pending.")
         elif Key.TELEMETRY in data:
             self.log.debug(f"Processing {data}.")
-            try:
-                self.validator.validate(data)
-                telemetry_data = data[Key.TELEMETRY]
-                await self.process_telemetry(
-                    sensor_name=telemetry_data[Key.NAME],
-                    timestamp=telemetry_data[Key.TIMESTAMP],
-                    response_code=telemetry_data[Key.RESPONSE_CODE],
-                    sensor_data=telemetry_data[Key.SENSOR_TELEMETRY],
-                )
-            except Exception:
-                self.log.exception(f"Exception processing {data}. Ignoring.")
+            telemetry_data = data[Key.TELEMETRY]
+            if Key.NAME in telemetry_data:
+                sensor_name = telemetry_data[Key.NAME]
+                if sensor_name not in self.first_read_error_times:
+                    self.first_read_error_times[sensor_name] = 0.0
+
+                try:
+                    self.validator.validate(data)
+                    await self.process_telemetry(
+                        sensor_name=sensor_name,
+                        timestamp=telemetry_data[Key.TIMESTAMP],
+                        response_code=telemetry_data[Key.RESPONSE_CODE],
+                        sensor_data=telemetry_data[Key.SENSOR_TELEMETRY],
+                    )
+                    self.first_read_error_times[sensor_name] = 0.0
+                except Exception:
+                    if math.isclose(self.first_read_error_times[sensor_name], 0.0):
+                        self.log.exception(f"Exception processing {data}.")
+                        self.first_read_error_times[sensor_name] = utils.current_tai()
+                    now = utils.current_tai()
+                    if now - self.first_read_error_times[sensor_name] > self.config.max_error_state_period:
+                        self.log.error(
+                            f"Error processing telemetry for more than {self.config.max_error_state_period} "
+                            "seconds. Raising exception."
+                        )
+                        raise
+            else:
+                raise RuntimeError(f"Unparsable {data=}.")
         else:
-            self.log.warning(f"Ignoring unparsable {data}.")
+            raise RuntimeError(f"Unparsable {data=}.")
 
     async def run_command(self, command: str, **parameters: typing.Any) -> None:
         """Write a command. Time out if it takes too long.
