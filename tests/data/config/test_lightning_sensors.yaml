@@ -1,0 +1,22 @@
+host: 127.0.0.1
+port: 5000
+max_read_timeouts: 2
+connect_timeout: 1
+max_error_state_period: 1
+devices:
+  - name: EssElectricField
+    device_type: FTDI
+    ftdi_id: ABC
+    baud_rate: 9600
+    sensor_type: EFM100C
+    safe_interval: 2
+    num_samples: 2
+    threshold: 1.0
+    location: Test
+  - name: EssLightning
+    device_type: FTDI
+    ftdi_id: ABC
+    baud_rate: 9600
+    sensor_type: LD250
+    safe_interval: 2
+    location: Test
