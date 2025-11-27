@@ -1,1 +1,0 @@
-Avoided superfluous error messages and raised exception when errors for too long reading telemetry.
