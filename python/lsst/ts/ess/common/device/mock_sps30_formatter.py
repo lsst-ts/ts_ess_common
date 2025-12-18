@@ -21,12 +21,16 @@
 
 __all__ = ["MockSps30Formatter"]
 
+import datetime
 import random
 
-from lsst.ts.ess.common.device.mock_formatter import MockFormatter
-from lsst.ts.ess.common.sensor.sps30_sensor import (
-    Sps30Sensor,
-    compute_particulate_checksum,
+from ..constants import PARTICLE_SIZES
+from ..sensor.sps30_sensor import Sps30Sensor
+from .mock_formatter import (
+    MockFormatter,
+    MockParticleConcentrationConfig,
+    MockParticleNumberConcentrationConfig,
+    MockParticleSizeConfig,
 )
 
 
@@ -38,12 +42,20 @@ class MockSps30Formatter(MockFormatter):
         missed_channels: int = 0,
     ) -> list[str]:
         sensor_name = "SPS30"
-        timestamp = random.uniform(1609459200, 1609459300)
+        timestamp = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
 
-        sizes = [random.uniform(0, 100) for _ in range(5)]
-        concentrations = [random.uniform(0, 1000) for _ in range(5)]
-        num_concentrations = [random.uniform(0, 10000) for _ in range(5)]
-        typical_size = random.uniform(0.1, 1.0)
+        sizes = PARTICLE_SIZES
+        concentrations = [
+            random.uniform(MockParticleConcentrationConfig.min, MockParticleConcentrationConfig.max)
+            for _ in range(5)
+        ]
+        num_concentrations = [
+            random.uniform(
+                MockParticleNumberConcentrationConfig.min, MockParticleNumberConcentrationConfig.max
+            )
+            for _ in range(5)
+        ]
+        typical_size = random.uniform(MockParticleSizeConfig.min, MockParticleSizeConfig.max)
         location = "TestLocation"
         status = Sps30Sensor.GOOD_STATUS
 
@@ -58,7 +70,4 @@ class MockSps30Formatter(MockFormatter):
             status,
         ]
 
-        checksum_string = ",".join(telemetry_data)
-        checksum = f"{compute_particulate_checksum(checksum_string):02x}"
-
-        return [f"{Sps30Sensor.START_CHAR}{','.join(telemetry_data)}{Sps30Sensor.END_CHAR}{checksum}"]
+        return [f"{Sps30Sensor.START_CHAR}{','.join(telemetry_data)}{Sps30Sensor.END_CHAR}"]

@@ -26,6 +26,7 @@ __all__ = [
     "DISCONNECTED_VALUE",
     "Key",
     "LD250TelemetryPrefix",
+    "PARTICLE_SIZES",
     "ResponseCode",
     "SensorType",
     "TelemetryDataType",
@@ -38,6 +39,9 @@ CONTROLLER_PORT = 5000
 
 # The value emitted by a disconnected channel of the temperature sensors.
 DISCONNECTED_VALUE = "9999.9990"
+
+# The sizes of the particles measured by the particle sensor [µm].
+PARTICLE_SIZES = [0.5, 1.0, 2.5, 4.0, 10.0]
 
 # Alias for the type of the sensor data.
 TelemetryDataType = list[float | int | str]
@@ -63,6 +67,7 @@ class DeviceType(str, enum.Enum):
     """Supported device types."""
 
     FTDI = "FTDI"
+    SENSIRION = "Sensirion"
     SERIAL = "Serial"
 
 
@@ -106,12 +111,12 @@ class ResponseCode(enum.IntEnum):
 class SensorType(str, enum.Enum):
     """Supported sensor types."""
 
+    AURORA = "Aurora"
     CSAT3B = "CSAT3B"
     EFM100C = "EFM100C"
     HX85A = "HX85A"
     HX85BA = "HX85BA"
     LD250 = "LD250"
+    SPS30 = "Sps30"
     TEMPERATURE = "Temperature"
     WINDSONIC = "Windsonic"
-    AURORA = "Aurora"
-    SPS30 = "Sps30"
