@@ -25,5 +25,4 @@ import asyncio
 
 from lsst.ts.ess import common
 
-
 asyncio.run(common.run_mock_telemetry_server())

@@ -31,7 +31,6 @@ from .constants import Key, ResponseCode, SensorType
 from .device import BaseDevice, MockDevice
 from .sensor import create_sensor
 
-
 MOCK_DEVICE_ID_PREFIX = "MockDevice"
 
 

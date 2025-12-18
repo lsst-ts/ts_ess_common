@@ -33,6 +33,7 @@ from collections.abc import Sequence
 
 import jsonschema
 import yaml
+
 from lsst.ts import tcpip, utils
 
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
