@@ -8,6 +8,21 @@ Version History
 
 .. towncrier release notes start
 
+v0.25.0 (2026-01-08)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Improved the particle sensor code. (`OSW-934 <https://rubinobs.atlassian.net//browse/OSW-934>`_)
+
+
+Other Changes and Additions
+---------------------------
+
+- Formatted the code with ruff. (`OSW-934 <https://rubinobs.atlassian.net//browse/OSW-934>`_)
+
+
 v0.24.9 (2025-11-27)
 ====================
 
