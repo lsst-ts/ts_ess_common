@@ -25,6 +25,7 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
+
 from lsst.ts.ess import common
 
 

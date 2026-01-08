@@ -39,6 +39,7 @@ CONFIG_SCHEMA = json.loads(
             "device_type": {
               "enum": [
                 "FTDI",
+                "Sensirion",
                 "Serial"
               ]
             },
@@ -47,14 +48,15 @@ CONFIG_SCHEMA = json.loads(
             },
             "sensor_type": {
               "enum": [
+                "Aurora",
                 "CSAT3B",
                 "EFM100C",
                 "HX85A",
                 "HX85BA",
                 "LD250",
+                "Sps30",
                 "Temperature",
-                "Windsonic",
-                "Aurora"
+                "Windsonic"
               ]
             },
             "baud_rate": {
@@ -106,6 +108,25 @@ CONFIG_SCHEMA = json.loads(
                 "properties": {
                   "device_type": {
                     "const": "Serial"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "serial_port": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "serial_port"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "device_type": {
+                    "const": "Sensirion"
                   }
                 }
               },

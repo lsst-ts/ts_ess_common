@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["Sps30Sensor", "compute_particulate_checksum"]
+__all__ = ["Sps30Sensor"]
 
 import re
 from typing import Any
@@ -29,25 +29,6 @@ import numpy as np
 from ..constants import SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
-
-
-def compute_particulate_checksum(checksum_string: str) -> int:
-    """Compute the checksum for Sensirion SPS30 particulate matter sensor data.
-
-    Parameters
-    ----------
-    checksum_string : `str`
-        The string for which the checksum is computed.
-
-    Returns
-    -------
-    checksum : `int`
-        The checksum (sum of all bytes modulo 256).
-    """
-    checksum: int = 0
-    for char in checksum_string:
-        checksum += ord(char)
-    return checksum % 256
 
 
 class Sps30Sensor(BaseSensor):
@@ -73,7 +54,7 @@ class Sps30Sensor(BaseSensor):
     # Regex pattern to process SPS30 telemetry
     TELEMETRY_PATTERN = re.compile(
         rf"^{START_CHAR}"
-        rf"(?P<sensor_name>[^,]+),"
+        rf"(?P<sensor_name>[\w ]+),"
         rf"(?P<timestamp>\d+\.\d+),"
         rf"(?P<size1>\d+\.\d+),(?P<size2>\d+\.\d+),(?P<size3>\d+\.\d+),"
         rf"(?P<size4>\d+\.\d+),(?P<size5>\d+\.\d+),"
@@ -82,9 +63,8 @@ class Sps30Sensor(BaseSensor):
         rf"(?P<num1>\d+\.\d+),(?P<num2>\d+\.\d+),(?P<num3>\d+\.\d+),"
         rf"(?P<num4>\d+\.\d+),(?P<num5>\d+\.\d+),"
         rf"(?P<typical_size>\d+\.\d+),"
-        rf"(?P<location>[^,]+),"
+        rf"(?P<location>[\w ]+),"
         rf"(?P<status>\d{{2}}){END_CHAR}"
-        rf"(?P<checksum>[\da-fA-F]{{2}})\r\n$"
     )
 
     def __init__(self, log: Any) -> None:
@@ -124,16 +104,6 @@ class Sps30Sensor(BaseSensor):
             raise ValueError(f"Received unparsable line: {line}")
 
         try:
-            # Verify checksum
-            checksum_str = line.split(self.END_CHAR)[0][1:] + m.group("status")
-            computed_checksum = compute_particulate_checksum(checksum_str)
-            received_checksum = int(m.group("checksum"), 16)
-
-            if computed_checksum != received_checksum:
-                raise ValueError(
-                    f"Checksum mismatch: computed {computed_checksum}, received {received_checksum}"
-                )
-
             # Verify status
             if m.group("status") != self.GOOD_STATUS:
                 self.log.warning(f"Non-zero status received: {m.group('status')}")

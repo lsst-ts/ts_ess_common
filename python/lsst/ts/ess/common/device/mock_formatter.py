@@ -27,6 +27,9 @@ __all__ = [
     "MockElectricFieldStrengthConfig",
     "MockFormatter",
     "MockHumidityConfig",
+    "MockParticleConcentrationConfig",
+    "MockParticleNumberConcentrationConfig",
+    "MockParticleSizeConfig",
     "MockPressureConfig",
     "MockStrikeRateConfig",
     "MockTemperatureConfig",
@@ -53,6 +56,15 @@ MockElectricFieldStrengthConfig = types.SimpleNamespace(min=-20.0, max=20.0)
 
 # The minimum and maximum humidity values [%].
 MockHumidityConfig = types.SimpleNamespace(min=5.0, max=95.0)
+
+# The minimum and maximum particle concentration values [g/m^3].
+MockParticleConcentrationConfig = types.SimpleNamespace(min=0.0, max=1000.0)
+
+# The minimum and maximum particle number concentration values [#/m^3].
+MockParticleNumberConcentrationConfig = types.SimpleNamespace(min=0.0, max=10000.0)
+
+# The minimum and maximum particle size values [µm].
+MockParticleSizeConfig = types.SimpleNamespace(min=0.5, max=10.0)
 
 # The minimum and maximum air pressure values [mbar].
 MockPressureConfig = types.SimpleNamespace(min=700.0, max=1000.0)
