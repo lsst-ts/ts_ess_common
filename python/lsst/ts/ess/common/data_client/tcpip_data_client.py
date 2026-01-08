@@ -29,6 +29,7 @@ import types
 import typing
 
 import yaml
+
 from lsst.ts import tcpip, utils
 
 from ..constants import Key, ResponseCode

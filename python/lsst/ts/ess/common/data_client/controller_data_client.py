@@ -33,6 +33,7 @@ from collections.abc import Sequence
 
 import jsonschema
 import yaml
+
 from lsst.ts import tcpip, utils
 
 from ..constants import Command, DeviceType, Key, ResponseCode, SensorType
@@ -149,6 +150,7 @@ properties:
           - HX85A
           - HX85BA
           - LD250
+          - Sps30
           - Temperature
           - Windsonic
         channels:
@@ -159,6 +161,7 @@ properties:
           type: string
           enum:
           - FTDI
+          - Sensirion
           - Serial
         baud_rate:
           description: Baud rate of the sensor.
@@ -194,6 +197,15 @@ properties:
           properties:
             ftdi_id:
               description: FTDI Serial ID to connect to.
+              type: string
+      - if:
+          properties:
+            device_type:
+              const: Sensirion
+        then:
+          properties:
+            serial_port:
+              description: Serial port to connect to.
               type: string
       - if:
           properties:
@@ -273,6 +285,8 @@ additionalProperties: false
         for device in self.config.devices:
             if device[Key.DEVICE_TYPE] == DeviceType.FTDI:
                 dev_id = Key.FTDI_ID
+            elif device[Key.DEVICE_TYPE] == DeviceType.SENSIRION:
+                dev_id = Key.SERIAL_PORT
             elif device[Key.DEVICE_TYPE] == DeviceType.SERIAL:
                 dev_id = Key.SERIAL_PORT
             else:

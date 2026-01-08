@@ -45,6 +45,7 @@ check_reply_func_dict = {
     common.SensorType.HX85A: "check_hx85a_reply",
     common.SensorType.HX85BA: "check_hx85ba_reply",
     common.SensorType.LD250: "check_ld250_reply",
+    common.SensorType.SPS30: "check_sps30_reply",
     common.SensorType.TEMPERATURE: "check_temperature_reply",
     common.SensorType.WINDSONIC: "check_windsonic_reply",
 }
@@ -168,48 +169,6 @@ class MockTestTools:
                     assert common.device.MockTemperatureConfig.min <= resp[i]
                     assert resp[i] <= common.device.MockTemperatureConfig.max
 
-    def check_ld250_reply(
-        self,
-        reply: SensorReply,
-        name: str,
-        in_error_state: bool = False,
-    ) -> None:
-        device_name = reply["name"]
-        time = float(reply["timestamp"])
-        response_code = reply["response_code"]
-        resp: common.TelemetryDataType = []
-        for value in reply["sensor_telemetry"]:
-            assert isinstance(value, float) or isinstance(value, int) or isinstance(value, str)
-            resp.append(value)
-
-        assert name == device_name
-        assert time > 0
-        assert common.ResponseCode.OK == response_code
-
-        if resp[0] == common.LD250TelemetryPrefix.NOISE_PREFIX:
-            # Check noise response.
-            assert len(resp) == 1
-        elif resp[0] == common.LD250TelemetryPrefix.STATUS_PREFIX:
-            # Check status response.
-            assert len(resp) == 6
-            assert common.device.MockStrikeRateConfig.min <= resp[1]
-            assert resp[1] <= common.device.MockStrikeRateConfig.max
-            assert common.device.MockStrikeRateConfig.min <= resp[2]
-            assert resp[2] <= common.device.MockStrikeRateConfig.max
-            assert resp[3] in [0, 1]
-            assert resp[4] in [0, 1]
-            assert common.device.MockAzimuthConfig.min <= resp[5]
-            assert resp[5] <= common.device.MockAzimuthConfig.max
-        elif resp[0] == common.LD250TelemetryPrefix.STRIKE_PREFIX:
-            # Check strike response.
-            assert len(resp) == 4
-            assert common.device.MockDistanceConfig.min <= resp[1]
-            assert resp[1] <= common.device.MockDistanceConfig.max
-            assert common.device.MockDistanceConfig.min <= resp[2]
-            assert resp[2] <= common.device.MockDistanceConfig.max
-            assert common.device.MockAzimuthConfig.min <= resp[3]
-            assert resp[3] <= common.device.MockAzimuthConfig.max
-
     def check_efm100c_reply(
         self,
         reply: SensorReply,
@@ -328,6 +287,98 @@ class MockTestTools:
             )
             # The tolerances match pytest.approx.
             assert math.isclose(resp[3], dew_point, rel_tol=1e-6, abs_tol=1e-12)
+
+    def check_ld250_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: common.TelemetryDataType = []
+        for value in reply["sensor_telemetry"]:
+            assert isinstance(value, float) or isinstance(value, int) or isinstance(value, str)
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        assert common.ResponseCode.OK == response_code
+
+        if resp[0] == common.LD250TelemetryPrefix.NOISE_PREFIX:
+            # Check noise response.
+            assert len(resp) == 1
+        elif resp[0] == common.LD250TelemetryPrefix.STATUS_PREFIX:
+            # Check status response.
+            assert len(resp) == 6
+            assert common.device.MockStrikeRateConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockStrikeRateConfig.max
+            assert common.device.MockStrikeRateConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockStrikeRateConfig.max
+            assert resp[3] in [0, 1]
+            assert resp[4] in [0, 1]
+            assert common.device.MockAzimuthConfig.min <= resp[5]
+            assert resp[5] <= common.device.MockAzimuthConfig.max
+        elif resp[0] == common.LD250TelemetryPrefix.STRIKE_PREFIX:
+            # Check strike response.
+            assert len(resp) == 4
+            assert common.device.MockDistanceConfig.min <= resp[1]
+            assert resp[1] <= common.device.MockDistanceConfig.max
+            assert common.device.MockDistanceConfig.min <= resp[2]
+            assert resp[2] <= common.device.MockDistanceConfig.max
+            assert common.device.MockAzimuthConfig.min <= resp[3]
+            assert resp[3] <= common.device.MockAzimuthConfig.max
+
+    def check_sps30_reply(
+        self,
+        reply: SensorReply,
+        name: str,
+        in_error_state: bool = False,
+    ) -> None:
+        device_name = reply["name"]
+        time = float(reply["timestamp"])
+        response_code = reply["response_code"]
+        resp: common.TelemetryDataType = []
+        for value in reply["sensor_telemetry"]:
+            assert isinstance(value, float) or isinstance(value, int) or isinstance(value, str)
+            resp.append(value)
+
+        assert name == device_name
+        assert time > 0
+        assert common.ResponseCode.OK == response_code
+
+        assert len(resp) == 19
+        # timestamp.
+        assert resp[1] > 0
+
+        # particle sizes.
+        assert resp[2] == common.PARTICLE_SIZES[0]
+        assert resp[3] == common.PARTICLE_SIZES[1]
+        assert resp[4] == common.PARTICLE_SIZES[2]
+        assert resp[5] == common.PARTICLE_SIZES[3]
+        assert resp[6] == common.PARTICLE_SIZES[4]
+
+        # particle concentrations.
+        for i in range(7, 12):
+            assert (
+                common.device.MockParticleConcentrationConfig.min
+                <= resp[i]
+                <= common.device.MockParticleConcentrationConfig.max
+            )
+
+        # particle number concentrations.
+        for i in range(12, 17):
+            assert (
+                common.device.MockParticleNumberConcentrationConfig.min
+                <= resp[i]
+                <= common.device.MockParticleNumberConcentrationConfig.max
+            )
+
+        # typical particle size.
+        assert (
+            common.device.MockParticleSizeConfig.min <= resp[17] <= common.device.MockParticleSizeConfig.max
+        )
 
     def check_temperature_reply(
         self,

@@ -26,6 +26,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+
 from lsst.ts.ess import common
 
 # Data for the Campbell CSAT3B sensor from page 55 of csat3b.pdf.

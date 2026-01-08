@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # This file is part of ts_ess_common.
 #
 # Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
@@ -21,8 +19,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
+import unittest
 
 from lsst.ts.ess import common
+from lsst.ts.ess.common.test_utils import MockTestTools
 
-asyncio.run(common.run_mock_telemetry_server())
+
+class MockDeviceTestCase(unittest.IsolatedAsyncioTestCase):
+    async def test_mock_sps30_device(self) -> None:
+        """Test the MockDevice with a nominal configuration, i.e. no
+        disconnected channels and no truncated data.
+        """
+        mtt = MockTestTools()
+        await mtt.check_mock_device(sensor_type=common.SensorType.SPS30)

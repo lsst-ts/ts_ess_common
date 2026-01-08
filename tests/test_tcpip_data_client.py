@@ -27,6 +27,7 @@ import unittest
 from unittest.mock import ANY, AsyncMock, MagicMock
 
 import yaml
+
 from lsst.ts.ess import common
 
 CONFIG_PATH = pathlib.Path(__file__).parent / "data" / "config"

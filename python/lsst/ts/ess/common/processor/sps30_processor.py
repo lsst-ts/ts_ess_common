@@ -80,63 +80,45 @@ class Sps30Processor(BaseProcessor):
         sensor_status = 0 if isok else 1
 
         # Initialize all values to NaN or False
-        particle_sizes = {
-            "pm1.0": np.nan,
-            "pm2.5": np.nan,
-            "pm4.0": np.nan,
-            "pm10": np.nan,
-            "pm_total": np.nan,
-        }
-        mass_concentrations = {
-            "pm1.0": np.nan,
-            "pm2.5": np.nan,
-            "pm4.0": np.nan,
-            "pm10": np.nan,
-            "pm_total": np.nan,
-        }
-        number_concentrations = {
-            "pm0.5": np.nan,
-            "pm1.0": np.nan,
-            "pm2.5": np.nan,
-            "pm4.0": np.nan,
-            "pm10": np.nan,
-        }
+        particle_sizes = [np.nan, np.nan, np.nan, np.nan, np.nan]
+        matter_concentrations = [np.nan, np.nan, np.nan, np.nan, np.nan]
+        number_concentrations = [np.nan, np.nan, np.nan, np.nan, np.nan]
         typical_particle_size = np.nan
 
         if isok and len(sensor_data) >= 19:
             try:
-                particle_sizes = {
-                    "pm1.0": float(sensor_data[2]),
-                    "pm2.5": float(sensor_data[3]),
-                    "pm4.0": float(sensor_data[4]),
-                    "pm10": float(sensor_data[5]),
-                    "pm_total": float(sensor_data[6]),
-                }
-                mass_concentrations = {
-                    "pm1.0": float(sensor_data[7]),
-                    "pm2.5": float(sensor_data[8]),
-                    "pm4.0": float(sensor_data[9]),
-                    "pm10": float(sensor_data[10]),
-                    "pm_total": float(sensor_data[11]),
-                }
-                number_concentrations = {
-                    "pm0.5": float(sensor_data[12]),
-                    "pm1.0": float(sensor_data[13]),
-                    "pm2.5": float(sensor_data[14]),
-                    "pm4.0": float(sensor_data[15]),
-                    "pm10": float(sensor_data[16]),
-                }
+                particle_sizes = [
+                    float(sensor_data[2]),
+                    float(sensor_data[3]),
+                    float(sensor_data[4]),
+                    float(sensor_data[5]),
+                    float(sensor_data[6]),
+                ]
+                matter_concentrations = [
+                    float(sensor_data[7]),
+                    float(sensor_data[8]),
+                    float(sensor_data[9]),
+                    float(sensor_data[10]),
+                    float(sensor_data[11]),
+                ]
+                number_concentrations = [
+                    float(sensor_data[12]),
+                    float(sensor_data[13]),
+                    float(sensor_data[14]),
+                    float(sensor_data[15]),
+                    float(sensor_data[16]),
+                ]
                 typical_particle_size = float(sensor_data[17])
             except (ValueError, IndexError) as e:
                 self.log.error(f"Error processing SPS30 data: {e}")
                 sensor_status = 1
 
-        await self.topics.tel_particulateMatter.set_write(
+        await self.topics.tel_particleMeasurements.set_write(
             sensorName=self.device_configuration.name,
             timestamp=timestamp,
             particleSizes=particle_sizes,
-            massConcentrations=mass_concentrations,
-            numberConcentrations=number_concentrations,
+            matterConcentration=matter_concentrations,
+            numberConcentration=number_concentrations,
             typicalParticleSize=typical_particle_size,
             location=self.device_configuration.location,
         )

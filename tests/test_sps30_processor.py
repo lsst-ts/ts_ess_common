@@ -20,50 +20,63 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import random
 import types
 import unittest
-from unittest.mock import AsyncMock, MagicMock
-
-import numpy as np
+from unittest.mock import AsyncMock
 
 from lsst.ts.ess import common
 
 
-class Hx85aProcessorTestCase(unittest.IsolatedAsyncioTestCase):
+class Sps30ProcessorTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_processor(self) -> None:
         device_configuration = common.DeviceConfig(
             name="TestDevice",
             dev_type=common.DeviceType.FTDI,
             dev_id="ABCDEF",
-            sens_type=common.SensorType.HX85A,
+            sens_type=common.SensorType.SPS30,
             baud_rate=9600,
             location="Test1",
-            num_channels=4,
         )
         evt_sensor_status = AsyncMock()
-        tel_dew_point = AsyncMock()
-        tel_relative_humidity = AsyncMock()
-        tel_temperature = AsyncMock()
-        tel_temperature.DataType = MagicMock(
-            return_value=types.SimpleNamespace(temperatureItem=[0.0, 0.0, 0.0, 0.0])
-        )
+        tel_particleMeasurements = AsyncMock()
         topics = types.SimpleNamespace(
-            **{
-                "evt_sensorStatus": evt_sensor_status,
-                "tel_dewPoint": tel_dew_point,
-                "tel_relativeHumidity": tel_relative_humidity,
-                "tel_temperature": tel_temperature,
-            }
+            evt_sensorStatus=evt_sensor_status, tel_particleMeasurements=tel_particleMeasurements
         )
         log = logging.getLogger()
-        processor = common.processor.Hx85aProcessor(device_configuration, topics, log)
+        processor = common.processor.Sps30Processor(device_configuration, topics, log)
 
         timestamp = 12345.0
         response_code = 0
-        relative_humidity = 1.0
-        temperature = 2.0
-        dew_point = 3.0
-        sensor_data = [relative_humidity, temperature, dew_point]
+        particle_sizes = common.PARTICLE_SIZES
+        particle_concentrations = [
+            random.uniform(
+                common.device.MockParticleConcentrationConfig.min,
+                common.device.MockParticleConcentrationConfig.max,
+            )
+            for _ in range(5)
+        ]
+        particle_number_concentrations = [
+            random.uniform(
+                common.device.MockParticleNumberConcentrationConfig.min,
+                common.device.MockParticleNumberConcentrationConfig.max,
+            )
+            for _ in range(5)
+        ]
+        typicle_particle_size = random.uniform(
+            common.device.MockParticleSizeConfig.min,
+            common.device.MockParticleSizeConfig.max,
+        )
+        sensor_data = (
+            ["_"]
+            + [timestamp]
+            + particle_sizes
+            + particle_concentrations
+            + particle_number_concentrations
+            + [typicle_particle_size]
+            + ["_"]
+        )
+
         await processor.process_telemetry(
             timestamp=timestamp,
             response_code=response_code,
@@ -72,22 +85,12 @@ class Hx85aProcessorTestCase(unittest.IsolatedAsyncioTestCase):
         evt_sensor_status.set_write.assert_called_with(
             sensorName=device_configuration.name, sensorStatus=0, serverStatus=0
         )
-        tel_dew_point.set_write.assert_called_with(
+        tel_particleMeasurements.set_write.assert_called_with(
             sensorName=device_configuration.name,
             timestamp=timestamp,
-            dewPointItem=dew_point,
-            location=device_configuration.location,
-        )
-        tel_relative_humidity.set_write.assert_called_with(
-            sensorName=device_configuration.name,
-            timestamp=timestamp,
-            relativeHumidityItem=relative_humidity,
-            location=device_configuration.location,
-        )
-        tel_temperature.set_write.assert_called_with(
-            sensorName=device_configuration.name,
-            timestamp=timestamp,
-            temperatureItem=[temperature, np.nan, np.nan, np.nan],
-            numChannels=1,
+            particleSizes=particle_sizes,
+            matterConcentration=particle_concentrations,
+            numberConcentration=particle_number_concentrations,
+            typicalParticleSize=typicle_particle_size,
             location=device_configuration.location,
         )
