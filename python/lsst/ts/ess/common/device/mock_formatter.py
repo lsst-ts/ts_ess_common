@@ -73,7 +73,7 @@ MockPressureConfig = types.SimpleNamespace(min=700.0, max=1000.0)
 MockStrikeRateConfig = types.SimpleNamespace(min=0, max=999)
 
 # The minimum and maximum temperatures [ºC].
-MockTemperatureConfig = types.SimpleNamespace(min=-10.0, max=-4.0)
+MockTemperatureConfig = types.SimpleNamespace(min=18.0, max=30.0)
 
 # The minimum and maximum wind speed values [m/s].
 MockWindSpeedConfig = types.SimpleNamespace(min=0.0, max=10.0)
