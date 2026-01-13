@@ -1,0 +1,1 @@
+Reset mock temperature range.
