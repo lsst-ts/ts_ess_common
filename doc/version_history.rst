@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.25.1 (2026-01-13)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Reset mock temperature range. (`OSW-1672 <https://rubinobs.atlassian.net//browse/OSW-1672>`_)
+
+
 v0.25.0 (2026-01-08)
 ====================
 
