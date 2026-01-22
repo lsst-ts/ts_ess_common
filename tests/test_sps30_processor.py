@@ -68,13 +68,11 @@ class Sps30ProcessorTestCase(unittest.IsolatedAsyncioTestCase):
             common.device.MockParticleSizeConfig.max,
         )
         sensor_data = (
-            ["_"]
-            + [timestamp]
+            [timestamp]
             + particle_sizes
             + particle_concentrations
             + particle_number_concentrations
             + [typicle_particle_size]
-            + ["_"]
         )
 
         await processor.process_telemetry(

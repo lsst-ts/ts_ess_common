@@ -85,30 +85,30 @@ class Sps30Processor(BaseProcessor):
         number_concentrations = [np.nan, np.nan, np.nan, np.nan, np.nan]
         typical_particle_size = np.nan
 
-        if isok and len(sensor_data) >= 19:
+        if isok and len(sensor_data) == 17:
             try:
                 particle_sizes = [
+                    float(sensor_data[1]),
                     float(sensor_data[2]),
                     float(sensor_data[3]),
                     float(sensor_data[4]),
                     float(sensor_data[5]),
-                    float(sensor_data[6]),
                 ]
                 matter_concentrations = [
+                    float(sensor_data[6]),
                     float(sensor_data[7]),
                     float(sensor_data[8]),
                     float(sensor_data[9]),
                     float(sensor_data[10]),
-                    float(sensor_data[11]),
                 ]
                 number_concentrations = [
+                    float(sensor_data[11]),
                     float(sensor_data[12]),
                     float(sensor_data[13]),
                     float(sensor_data[14]),
                     float(sensor_data[15]),
-                    float(sensor_data[16]),
                 ]
-                typical_particle_size = float(sensor_data[17])
+                typical_particle_size = float(sensor_data[16])
             except (ValueError, IndexError) as e:
                 self.log.error(f"Error processing SPS30 data: {e}")
                 sensor_status = 1
