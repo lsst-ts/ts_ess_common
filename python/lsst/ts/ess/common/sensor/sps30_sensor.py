@@ -22,11 +22,10 @@
 __all__ = ["Sps30Sensor"]
 
 import re
-from typing import Any
 
 import numpy as np
 
-from ..constants import SensorType, TelemetryDataType
+from ..constants import PARTICLE_SIZES, SensorType, TelemetryDataType
 from .base_sensor import BaseSensor
 from .sensor_registry import register_sensor
 
@@ -41,37 +40,15 @@ class Sps30Sensor(BaseSensor):
     - Typical particle size
     """
 
-    # SPS30 message format constants
-    START_CHAR: str = "\x02"
-    END_CHAR: str = "\x03"
-    GOOD_STATUS: str = "00"
-
-    # Default values for invalid measurements
-    DEFAULT_PARTICLE_SIZE: str = "-1.00"
-    DEFAULT_CONCENTRATION: str = "-1.000"
-    DEFAULT_TYPICAL_SIZE: str = "-1.00"
-
     # Regex pattern to process SPS30 telemetry
     TELEMETRY_PATTERN = re.compile(
-        rf"^{START_CHAR}"
-        rf"(?P<sensor_name>[\w ]+),"
-        rf"(?P<timestamp>\d+\.\d+),"
-        rf"(?P<size1>\d+\.\d+),(?P<size2>\d+\.\d+),(?P<size3>\d+\.\d+),"
-        rf"(?P<size4>\d+\.\d+),(?P<size5>\d+\.\d+),"
-        rf"(?P<conc1>\d+\.\d+),(?P<conc2>\d+\.\d+),(?P<conc3>\d+\.\d+),"
-        rf"(?P<conc4>\d+\.\d+),(?P<conc5>\d+\.\d+),"
-        rf"(?P<num1>\d+\.\d+),(?P<num2>\d+\.\d+),(?P<num3>\d+\.\d+),"
-        rf"(?P<num4>\d+\.\d+),(?P<num5>\d+\.\d+),"
-        rf"(?P<typical_size>\d+\.\d+),"
-        rf"(?P<location>[\w ]+),"
-        rf"(?P<status>\d{{2}}){END_CHAR}"
+        r"(?P<timestamp>\d+\.\d+),"
+        r"(?P<conc1>\d+\.\d+),(?P<conc2>\d+\.\d+),(?P<conc3>\d+\.\d+),"
+        r"(?P<conc4>\d+\.\d+),(?P<conc5>\d+\.\d+),"
+        r"(?P<num1>\d+\.\d+),(?P<num2>\d+\.\d+),(?P<num3>\d+\.\d+),"
+        r"(?P<num4>\d+\.\d+),(?P<num5>\d+\.\d+),"
+        r"(?P<typical_size>\d+\.\d+)"
     )
-
-    def __init__(self, log: Any) -> None:
-        super().__init__(log=log, num_channels=19)
-        self.log = log.getChild(type(self).__name__)
-        self.delimiter = ","
-        self.terminator = "\n"
 
     async def extract_telemetry(self, line: str) -> TelemetryDataType:
         """Extract particle measurement telemetry from sensor data.
@@ -97,40 +74,29 @@ class Sps30Sensor(BaseSensor):
 
         if line.strip() == "":
             self.log.warning("Received empty line from sensor")
-            return [np.nan] * 17 + ["", ""]
+            return [""] + [np.nan] * 17 + [""]
 
         m = re.search(self.TELEMETRY_PATTERN, line)
         if not m:
-            raise ValueError(f"Received unparsable line: {line}")
+            self.log.warning(f"Received unparsable line: {line}")
+            return [""] + [np.nan] * 17 + [""]
 
         try:
-            # Verify status
-            if m.group("status") != self.GOOD_STATUS:
-                self.log.warning(f"Non-zero status received: {m.group('status')}")
-
-            output.append(str(m.group("sensor_name")))
             output.append(float(m.group("timestamp")))
 
             # Particle sizes
-            for i in range(1, 6):
-                size = m.group(f"size{i}")
-                output.append(np.nan if size == self.DEFAULT_PARTICLE_SIZE else float(size))
+            output += PARTICLE_SIZES
 
             # Matter concentrations
             for i in range(1, 6):
-                conc = m.group(f"conc{i}")
-                output.append(np.nan if conc == self.DEFAULT_CONCENTRATION else float(conc))
+                output.append(float(m.group(f"conc{i}")))
 
             # Number concentrations
             for i in range(1, 6):
-                num = m.group(f"num{i}")
-                output.append(np.nan if num == self.DEFAULT_CONCENTRATION else float(num))
+                output.append(float(m.group(f"num{i}")))
 
             # Typical particle size
-            typical_size = m.group("typical_size")
-            output.append(np.nan if typical_size == self.DEFAULT_TYPICAL_SIZE else float(typical_size))
-
-            output.append(str(m.group("location")))
+            output.append(float(m.group("typical_size")))
 
         except (ValueError, IndexError) as e:
             self.log.error(f"Error parsing SPS30 data: {e}")

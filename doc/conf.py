@@ -26,7 +26,8 @@ For more information, see:
 https://developer.lsst.io/stack/building-single-package-docs.html
 """
 
-from documenteer.conf.pipelinespkg import *  # noqa
+import lsst.ts.ess.common  # noqa
+from documenteer.conf.guide import *  # noqa
 
 project = "ts_ess_common"
 html_theme_options["logotext"] = project  # type: ignore # noqa
@@ -36,3 +37,4 @@ html_short_title = project
 intersphinx_mapping["ts_salobj"] = ("https://ts-salobj.lsst.io", None)  # type: ignore # noqa
 intersphinx_mapping["ts_tcpip"] = ("https://ts-tcpip.lsst.io", None)  # type: ignore # noqa
 intersphinx_mapping["ts_utils"] = ("https://ts-utils.lsst.io", None)  # type: ignore # noqa
+intersphinx_mapping["ts_xml"] = ("https://ts-xml.lsst.io", None)  # type: ignore # noqa

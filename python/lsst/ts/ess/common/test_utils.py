@@ -348,19 +348,19 @@ class MockTestTools:
         assert time > 0
         assert common.ResponseCode.OK == response_code
 
-        assert len(resp) == 19
+        assert len(resp) == 17
         # timestamp.
-        assert resp[1] > 0
+        assert resp[0] > 0
 
         # particle sizes.
-        assert resp[2] == common.PARTICLE_SIZES[0]
-        assert resp[3] == common.PARTICLE_SIZES[1]
-        assert resp[4] == common.PARTICLE_SIZES[2]
-        assert resp[5] == common.PARTICLE_SIZES[3]
-        assert resp[6] == common.PARTICLE_SIZES[4]
+        assert resp[1] == common.PARTICLE_SIZES[0]
+        assert resp[2] == common.PARTICLE_SIZES[1]
+        assert resp[3] == common.PARTICLE_SIZES[2]
+        assert resp[4] == common.PARTICLE_SIZES[3]
+        assert resp[5] == common.PARTICLE_SIZES[4]
 
         # particle concentrations.
-        for i in range(7, 12):
+        for i in range(6, 11):
             assert (
                 common.device.MockParticleConcentrationConfig.min
                 <= resp[i]
@@ -368,7 +368,7 @@ class MockTestTools:
             )
 
         # particle number concentrations.
-        for i in range(12, 17):
+        for i in range(11, 16):
             assert (
                 common.device.MockParticleNumberConcentrationConfig.min
                 <= resp[i]
@@ -377,7 +377,7 @@ class MockTestTools:
 
         # typical particle size.
         assert (
-            common.device.MockParticleSizeConfig.min <= resp[17] <= common.device.MockParticleSizeConfig.max
+            common.device.MockParticleSizeConfig.min <= resp[16] <= common.device.MockParticleSizeConfig.max
         )
 
     def check_temperature_reply(

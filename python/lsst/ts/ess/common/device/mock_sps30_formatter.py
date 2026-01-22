@@ -24,8 +24,6 @@ __all__ = ["MockSps30Formatter"]
 import datetime
 import random
 
-from ..constants import PARTICLE_SIZES
-from ..sensor.sps30_sensor import Sps30Sensor
 from .mock_formatter import (
     MockFormatter,
     MockParticleConcentrationConfig,
@@ -41,10 +39,8 @@ class MockSps30Formatter(MockFormatter):
         disconnected_channel: int = -1,
         missed_channels: int = 0,
     ) -> list[str]:
-        sensor_name = "SPS30"
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
 
-        sizes = PARTICLE_SIZES
         concentrations = [
             random.uniform(MockParticleConcentrationConfig.min, MockParticleConcentrationConfig.max)
             for _ in range(5)
@@ -56,18 +52,12 @@ class MockSps30Formatter(MockFormatter):
             for _ in range(5)
         ]
         typical_size = random.uniform(MockParticleSizeConfig.min, MockParticleSizeConfig.max)
-        location = "TestLocation"
-        status = Sps30Sensor.GOOD_STATUS
 
         telemetry_data = [
-            sensor_name,
             f"{timestamp:.2f}",
-            *[f"{x:.2f}" for x in sizes],
             *[f"{x:.2f}" for x in concentrations],
             *[f"{x:.2f}" for x in num_concentrations],
             f"{typical_size:.2f}",
-            location,
-            status,
         ]
 
-        return [f"{Sps30Sensor.START_CHAR}{','.join(telemetry_data)}{Sps30Sensor.END_CHAR}"]
+        return [",".join(telemetry_data)]
