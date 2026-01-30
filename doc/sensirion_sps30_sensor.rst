@@ -69,3 +69,8 @@ Invalid measurements are reported as:
 * ``-1.00`` for particle sizes
 * ``-1.000`` for concentrations
 * ``-1.00`` for typical particle size
+
+Data sheet
+==========
+
+* :download:`HX80A series operators manual <sensirion_pdfs/Sensirion_PM_Sensors_Datasheet_SPS30.pdf>`
