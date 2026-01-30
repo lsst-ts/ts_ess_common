@@ -69,6 +69,7 @@ Documentation for sensors:
    gill_windsonic_2-d_sonic_wind_sensor
    omega_HX80A_series_sensors
    sel_multi_channel_temperature_reader
+   sensirion_sps30_sensor
    young_weather_station
    :maxdepth: 1
 
