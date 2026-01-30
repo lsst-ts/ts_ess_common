@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.25.3 (2026-01-30)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Added Sensirion SPS30 data sheet PDF. (`OSW-1713 <https://rubinobs.atlassian.net//browse/OSW-1713>`_)
+
+
 v0.25.2 (2026-01-22)
 ====================
 
