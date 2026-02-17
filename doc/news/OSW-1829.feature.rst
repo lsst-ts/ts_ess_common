@@ -1,0 +1,1 @@
+Enabled the Weather Station simulator rain rate.
