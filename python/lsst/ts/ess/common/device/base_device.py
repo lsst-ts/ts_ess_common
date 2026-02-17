@@ -44,6 +44,9 @@ READ_TIMEOUT = 5.0
 # Error state sleep time [sec].
 ERROR_STATE_SLEEP_TIME = 0.1
 
+# Telemetry loop wait time [sec].
+TELEMETRY_LOOP_WAIT_TIME = 0.1
+
 
 class BaseDevice(ABC):
     """Base class for the different types of Sensor Devices.
@@ -216,7 +219,8 @@ class BaseDevice(ABC):
 
         try:
             async with asyncio.timeout(TELEMETRY_LOOP_FINISH_TIMEOUT):
-                await self._telemetry_loop
+                while not self._telemetry_loop.done():
+                    await asyncio.sleep(TELEMETRY_LOOP_WAIT_TIME)
         except TimeoutError:
             self.log.exception("Failed to close telemetry loop in time alloted.")
         except (Exception, asyncio.CancelledError):
@@ -224,7 +228,8 @@ class BaseDevice(ABC):
         finally:
             notyet_cancelled = self._telemetry_loop.cancel()
             if notyet_cancelled:
-                await self._telemetry_loop
+                while not self._telemetry_loop.done():
+                    await asyncio.sleep(TELEMETRY_LOOP_WAIT_TIME)
 
     @abstractmethod
     async def basic_close(self) -> None:
