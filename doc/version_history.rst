@@ -8,6 +8,21 @@ Version History
 
 .. towncrier release notes start
 
+v0.26.0 (2026-02-17)
+====================
+
+New Features
+------------
+
+- Enabled the Weather Station simulator rain rate. (`OSW-1829 <https://rubinobs.atlassian.net//browse/OSW-1829>`_)
+
+
+Bug Fixes
+---------
+
+- Fixed a bug waiting for the telemetry loop. (`OSW-1829 <https://rubinobs.atlassian.net//browse/OSW-1829>`_)
+
+
 v0.25.3 (2026-01-30)
 ====================
 
