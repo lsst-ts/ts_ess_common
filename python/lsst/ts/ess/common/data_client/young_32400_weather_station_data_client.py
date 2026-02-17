@@ -121,7 +121,7 @@ class FloatAccumulator:
 
 
 def float_to_intstr(value: float, max_int: int) -> str:
-    """Return a float value converted to an string representation
+    """Return a float value converted to a string representation
     of an integer with 4 chars and leading zeros.
 
     Parameters
@@ -170,7 +170,7 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
     Notes
     -----
     This code assumes the 32400 is configured to provide ASCII or
-    PRECIPITATION formatted output, depending if there is a rain gauge.
+    PRECIPITATION formatted output, depending on if there is a rain gauge.
 
     Sensors must be connected as follows (this is the standard order
     for NMEA output, plus the standard input for a rain gauge):
@@ -245,15 +245,9 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
         # Interval betweens raw data reads (sec) in simulation mode.
         # This should equal the actual rate of the weather station
         # if you want to publish telemetry at the standard rate.
-        self.simulation_interval = 0.5
+        self.simulation_interval = 1.0
 
-        # Raw data to use in simulation mode.
-        # By default the data is cycled (endlessly repeated).
-        # But the rain counter cannot easily cycle (other than
-        # to wrap around at 9999), so the default is "no rain".
-        wstats = Young32400RawDataGenerator(
-            mean_rain_rate=0, std_rain_rate=0, read_interval=self.simulation_interval
-        )
+        wstats = Young32400RawDataGenerator(read_interval=self.simulation_interval)
         self.simulated_raw_data: collections.abc.Iterable[str] = itertools.cycle(
             wstats.create_raw_data_list(config=self.config, num_items=100)
         )
@@ -613,6 +607,7 @@ additionalProperties: false
             rain_rate_mm_per_hr = (
                 rain_tip_dcount * self.config.scale_rain_rate * SECONDS_PER_HOUR / rain_tip_dt
             )
+            self.log.debug(f"{rain_tip_count=}, {rain_tip_dcount=}, {rain_rate_mm_per_hr=}")
             await self.topics.tel_rainRate.set_write(rainRateItem=round(rain_rate_mm_per_hr))
 
     def restart_rain_stopped_timer(self) -> None:
@@ -674,8 +669,8 @@ class Young32400RawDataGenerator:
 
     The class property ``stat_names`` is a list of the statistic names,
     in the same order as the associated field in raw data.
-    For each statistics name there is a corresponding f"mean_{name}"
-    and f"mean_{name}" constructor argument and attribute.
+    For each statistics name there is a corresponding 'mean_{name}'
+    and 'mean_{name}' constructor argument and attribute.
     Almost all raw fields in DATA_REGEX have the same name as the statistic;
     the one exception is "rain_rate", whose raw field is "rain_tip_count".
     """
@@ -690,8 +685,8 @@ class Young32400RawDataGenerator:
     std_humidity: float = 2.5
     mean_pressure: float = 105000
     std_pressure: float = 10000
-    mean_rain_rate: float = 15.6
-    std_rain_rate: float = 2.6
+    mean_rain_rate: float = 145.6
+    std_rain_rate: float = 32.6
     read_interval: float = 0.5  # expected interval between data reads
     start_rain_tip_count: int = 9990  # to test wraparound
 
