@@ -685,8 +685,8 @@ class Young32400RawDataGenerator:
     std_humidity: float = 2.5
     mean_pressure: float = 105000
     std_pressure: float = 10000
-    mean_rain_rate: float = 145.6
-    std_rain_rate: float = 32.6
+    mean_rain_rate: float = 15.6
+    std_rain_rate: float = 2.6
     read_interval: float = 0.5  # expected interval between data reads
     start_rain_tip_count: int = 9990  # to test wraparound
 
