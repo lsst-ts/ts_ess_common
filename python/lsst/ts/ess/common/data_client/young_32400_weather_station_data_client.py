@@ -607,7 +607,7 @@ additionalProperties: false
             rain_rate_mm_per_hr = (
                 rain_tip_dcount * self.config.scale_rain_rate * SECONDS_PER_HOUR / rain_tip_dt
             )
-            self.log.debug(f"{rain_tip_count=}, {rain_tip_dcount=}, {rain_rate_mm_per_hr=}")
+            self.log.info(f"{rain_tip_count=}, {rain_tip_dcount=}, {rain_rate_mm_per_hr=}, {rain_tip_dt=}")
             await self.topics.tel_rainRate.set_write(rainRateItem=round(rain_rate_mm_per_hr))
 
     def restart_rain_stopped_timer(self) -> None:
