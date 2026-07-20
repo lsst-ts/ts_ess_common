@@ -1,0 +1,1 @@
+Increased rain log level to INFO.
