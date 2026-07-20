@@ -53,11 +53,24 @@ from .base_read_loop_data_client import BaseReadLoopDataClient
 if TYPE_CHECKING:
     from lsst.ts import salobj
 
+# Start rain tip count.
+START_RAIN_TIP_COUNT = 9990
+
 # Maximum reported rain tip count before the value wraps around.
 MAX_RAIN_TIP_COUNT = 9999
 
 # The number of seconds in an hour.
 SECONDS_PER_HOUR = 60 * 60
+
+# The amount of rain per tip (mm).
+RAIN_PER_TIP = 0.1
+
+# The amount of rain per hour (mm). This amounts to a moderate rainrate. See
+# https://en.wikipedia.org/wiki/Rain#Intensity
+RAIN_PER_HOUR = 5.0
+
+# The amount of time between tip count increments (s).
+TIP_INTERVAL = SECONDS_PER_HOUR / (RAIN_PER_HOUR / RAIN_PER_TIP)
 
 # Format of raw data. The fields are as follows:
 #
@@ -93,7 +106,7 @@ class FloatAccumulator:
         self.values: list[float] = []
 
     def add_sample(self, value: float) -> float | None:
-        """Add a value. Return the median, if enough samples have been
+        """Add a value. Return the median if enough samples have been
         accumulated, else None.
 
         Parameters
@@ -129,15 +142,15 @@ def float_to_intstr(value: float, max_int: int) -> str:
     value : `float`
         The value to convert.
     max_int : `int`
-        The maximum integer value. Must be > 0 and <= 9999.
+        The maximum integer value. Must be > 0 and <= MAX_RAIN_TIP_COUNT.
 
     Raises
     ------
     ValueError
-        If max_int <= 0 or > 9999.
+        If max_int <= 0 or > MAX_RAIN_TIP_COUNT.
     """
-    if not 0 < max_int <= 9999:
-        raise ValueError(f"{max_int=} not >0 and <= 9999")
+    if not 0 < max_int <= MAX_RAIN_TIP_COUNT:
+        raise ValueError(f"{max_int=} not > 0 and <= {MAX_RAIN_TIP_COUNT}")
     int_val = int(round(value))
     truncated_int_val = max(0, min(int_val, max_int))
     return f"{truncated_int_val:04d}"
@@ -242,19 +255,19 @@ class Young32400WeatherStationDataClient(BaseReadLoopDataClient):
 
         self.mock_data_server: MockYoung32400DataServer | None = None
 
-        # Interval betweens raw data reads (sec) in simulation mode.
+        # Interval between raw data reads (sec) in simulation mode.
         # This should equal the actual rate of the weather station
         # if you want to publish telemetry at the standard rate.
         self.simulation_interval = 1.0
 
-        wstats = Young32400RawDataGenerator(read_interval=self.simulation_interval)
+        wstats = Young32400RawDataGenerator()
         self.simulated_raw_data: collections.abc.Iterable[str] = itertools.cycle(
             wstats.create_raw_data_list(config=self.config, num_items=100)
         )
 
         # Most recent new value of rain tip counter,
         # and the time it was recorded (0 until a change is seen).
-        self.last_rain_tip_count = 0.0
+        self.last_rain_tip_count = 0
         self.last_rain_tip_timestamp = 0.0
 
         # Has a rain tip transition been seen?
@@ -457,6 +470,10 @@ additionalProperties: false
         self.client = tcpip.Client(host=host, port=port, log=self.log)
         await asyncio.wait_for(self.client.start_task, self.config.connect_timeout)
 
+        # Set the last rain tip timestamp to the current time to avoid
+        # losing the first rain tip.
+        self.last_rain_tip_timestamp = current_tai()
+
     def descr(self) -> str:
         assert self.client is not None  # keep mypy happy
         return f"host={self.client.host}, port={self.client.port}"
@@ -573,42 +590,38 @@ additionalProperties: false
             await self.topics.tel_dewPoint.set_write(dewPointItem=dew_point, timestamp=timestamp)
 
     async def _handle_rain_tip_count(self, rain_tip_count: int, timestamp: float) -> None:
-        if self.last_rain_tip_timestamp == 0:
-            # Start recording rain data.
-            self.last_rain_tip_count = rain_tip_count
-            self.last_rain_tip_timestamp = timestamp
-        else:
-            if rain_tip_count == self.last_rain_tip_count:
-                # No change, nothing to do
-                return
+        if rain_tip_count == self.last_rain_tip_count:
+            # No change, nothing to do
+            return
 
-            # Update the saved values, after making local copies.
-            last_rain_tip_count = self.last_rain_tip_count
-            last_rain_tip_timestamp = self.last_rain_tip_timestamp
-            self.last_rain_tip_count = rain_tip_count
-            self.last_rain_tip_timestamp = timestamp
+        # Update the saved values after making local copies.
+        last_rain_tip_count = self.last_rain_tip_count
+        last_rain_tip_timestamp = self.last_rain_tip_timestamp
+        self.last_rain_tip_count = rain_tip_count
+        self.last_rain_tip_timestamp = timestamp
 
-            # Report that it is raining and start the rain stopped timer.
-            await self.topics.evt_precipitation.set_write(raining=True)
-            self.restart_rain_stopped_timer()
+        # Report that it is raining and start the rain stopped timer.
+        await self.topics.evt_precipitation.set_write(raining=True)
+        self.restart_rain_stopped_timer()
 
-            if not self.rain_tip_transition_seen:
-                # We cannot report the rain rate because this is
-                # the first rain tip counter that we have seen.
-                self.rain_tip_transition_seen = True
-                return
+        if not self.rain_tip_transition_seen:
+            # We cannot report the rain rate because this is
+            # the first rain tip counter that we have seen.
+            self.rain_tip_transition_seen = True
+            return
 
-            # Report rain rate.
-            rain_tip_dcount = rain_tip_count - last_rain_tip_count
-            if rain_tip_dcount < 0:
-                rain_tip_dcount += MAX_RAIN_TIP_COUNT
+        # Report rain rate.
+        rain_tip_dcount = rain_tip_count - last_rain_tip_count
+        if rain_tip_dcount < 0:
+            # Add 1 to take 0-based counts into account.
+            rain_tip_dcount += MAX_RAIN_TIP_COUNT + 1
 
-            rain_tip_dt = timestamp - last_rain_tip_timestamp
-            rain_rate_mm_per_hr = (
-                rain_tip_dcount * self.config.scale_rain_rate * SECONDS_PER_HOUR / rain_tip_dt
-            )
-            self.log.debug(f"{rain_tip_count=}, {rain_tip_dcount=}, {rain_rate_mm_per_hr=}")
-            await self.topics.tel_rainRate.set_write(rainRateItem=round(rain_rate_mm_per_hr))
+        rain_tip_dt = timestamp - last_rain_tip_timestamp
+        rain_rate_mm_per_hr = rain_tip_dcount * self.config.scale_rain_rate * SECONDS_PER_HOUR / rain_tip_dt
+        self.log.info(
+            f"{rain_tip_count=}, {rain_tip_dcount=}, {rain_tip_dt=:<1.5f} -> {rain_rate_mm_per_hr=:1.1f}"
+        )
+        await self.topics.tel_rainRate.set_write(rainRateItem=round(rain_rate_mm_per_hr, 1))
 
     def restart_rain_stopped_timer(self) -> None:
         """Start or restart the "rain stopped" timer."""
@@ -656,8 +669,8 @@ class Young32400RawDataGenerator:
     """Generate simulated raw data for the Young 32400 weather station.
 
     Default values are fairly arbitrary but vaguely plausible.
-    Default wind direction is intentionally close to 360,
-    in order to exercise the wrapping code.
+    The default wind direction is intentionally close to 360
+    to exercise the wrapping code.
     Units are as follows:
 
     * wind_direction: deg
@@ -665,14 +678,12 @@ class Young32400RawDataGenerator:
     * temperature: C
     * humidity: %
     * pressure: Pa
-    * rain_rate: mm/hr
 
     The class property ``stat_names`` is a list of the statistic names,
     in the same order as the associated field in raw data.
     For each statistics name there is a corresponding 'mean_{name}'
     and 'mean_{name}' constructor argument and attribute.
-    Almost all raw fields in DATA_REGEX have the same name as the statistic;
-    the one exception is "rain_rate", whose raw field is "rain_tip_count".
+    All raw fields in DATA_REGEX have the same name as the statistic.
     """
 
     mean_wind_direction: float = 359.9
@@ -685,10 +696,7 @@ class Young32400RawDataGenerator:
     std_humidity: float = 2.5
     mean_pressure: float = 105000
     std_pressure: float = 10000
-    mean_rain_rate: float = 145.6
-    std_rain_rate: float = 32.6
-    read_interval: float = 0.5  # expected interval between data reads
-    start_rain_tip_count: int = 9990  # to test wraparound
+    start_rain_tip_count: int = START_RAIN_TIP_COUNT  # to test wraparound
 
     stat_names: collections.abc.Sequence[str] = dataclasses.field(
         default=(
@@ -697,19 +705,16 @@ class Young32400RawDataGenerator:
             "temperature",
             "humidity",
             "pressure",
-            "rain_rate",
         ),
         init=False,
     )
-
-    max_rain_tip_count: int = dataclasses.field(default=9999, init=False)
 
     def create_raw_data_list(
         self, config: types.SimpleNamespace, num_items: int, random_seed: int = 47
     ) -> list[str]:
         """Create simulated raw data for all sensors.
 
-        Use a normal distribution, but truncate out-of-range values.
+        Use a normal distribution but truncate out-of-range values.
 
         Parameters
         ----------
@@ -738,22 +743,9 @@ class Young32400RawDataGenerator:
         # Create string lists
         str_list_dict: dict[str, list[str]] = dict()
         for field_name, float_array in float_array_dict.items():
-            if field_name == "rain_rate":
-                # rain_rate is in mm/hr; raw data is counts
-                # so scale mm/hr to counts/sample.
-                samples_per_hour = SECONDS_PER_HOUR / self.read_interval
-                counts_per_mm = 1 / config.scale_rain_rate
-                unscaled_float_array = float_array * counts_per_mm / samples_per_hour
-                unscaled_float_array = np.cumsum(unscaled_float_array)
-                unscaled_float_array += self.start_rain_tip_count
-                unscaled_float_array %= self.max_rain_tip_count
-            else:
-                scale, offset = getattr(config, "scale_offset_" + field_name)
-                unscaled_float_array = (float_array - offset) / scale
-            max_int = dict(
-                wind_direction=3600,
-                rain_rate=self.max_rain_tip_count,
-            ).get(field_name, 4000)
+            scale, offset = getattr(config, "scale_offset_" + field_name)
+            unscaled_float_array = (float_array - offset) / scale
+            max_int = dict(wind_direction=3600).get(field_name, 4000)
 
             str_list_dict[field_name] = [
                 float_to_intstr(value=value, max_int=max_int) for value in unscaled_float_array
@@ -770,8 +762,8 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
     log : `logging.Logger`
         Logger.
     simulated_raw_data : iterable [`str`]
-        Simulated raw data. If the mock server runs out of data
-        then it will log a warning and repeat the final value.
+        Simulated raw data. If the mock server runs out of data,
+        it will log a warning and repeat the final value.
     simulation_interval : `float`
         Interval between writes (sec).
     """
@@ -794,10 +786,34 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
         self.write_loop_task = make_done_future()
         self.do_timeout = do_timeout
 
+        # Rainrate related attributes.
+        self.rainrate_count = START_RAIN_TIP_COUNT
+        self.last_rainrate_increase_timestamp = current_tai()
+        self.tip_interval = TIP_INTERVAL
+
     async def connect_callback(self, server: tcpip.OneClientServer) -> None:
         self.write_loop_task.cancel()
         if server.connected:
             self.write_loop_task = asyncio.create_task(self.write_loop())
+
+    async def get_simulated_rainrate(self) -> str:
+        """Get the simulated rainrate value.
+
+        This takes both the tip interval and the maximum rainrate value into
+        account.
+
+        Returns
+        -------
+        str
+            The rainrate value as a string.
+        """
+        now = current_tai()
+        if now - self.last_rainrate_increase_timestamp > self.tip_interval:
+            self.last_rainrate_increase_timestamp = now
+            self.rainrate_count += 1
+            if self.rainrate_count > MAX_RAIN_TIP_COUNT:
+                self.rainrate_count = 0
+        return f" {self.rainrate_count:04d}"
 
     async def write_loop(self) -> None:
         data: str | None = None
@@ -807,14 +823,19 @@ class MockYoung32400DataServer(tcpip.OneClientServer):
             for data in self.simulated_raw_data:
                 if not self.connected:
                     return
-                await self.write(data.encode() + tcpip.DEFAULT_TERMINATOR)
+
+                data_with_rainrate = data + await self.get_simulated_rainrate()
+                await self.write(data_with_rainrate.encode() + tcpip.DEFAULT_TERMINATOR)
                 await asyncio.sleep(self.simulation_interval)
             if data is None:
                 raise RuntimeError("no simulated data")
 
-            self.log.info("Mock server ran out of simulated data; repeating the final value")
+            self.log.info(
+                "Mock server ran out of simulated data; repeating the final value apart from the rainrate."
+            )
             while self.connected:
-                await self.write(data.encode() + tcpip.DEFAULT_TERMINATOR)
+                data_with_rainrate = data + await self.get_simulated_rainrate()
+                await self.write(data_with_rainrate.encode() + tcpip.DEFAULT_TERMINATOR)
                 await asyncio.sleep(self.simulation_interval)
         except Exception as e:
             self.log.exception(f"write loop failed: {e!r}")

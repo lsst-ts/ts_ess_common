@@ -72,10 +72,10 @@ Combining all of that we see that:
     Pa = 15.0 * counts + 500
 
   resulting in a scale of 15.0 and an offset of 500.
-* Rain tip (VIN4) counts need to be divided by 4 and then multiplied by 5 to convert them from mV to serial values.
-  The conversion from page 1 of the the tipping bucket rain gauge manual indicates that each tip count value corresponds to 0.1 mm.
-  The tip values range from 0 to 9999 (so 10000 values) and the VIN4 values range from 0 to 5000.
-  This means that the scale needs to be 0.1 * 10000 * 5 / 5000 / 4 = 0.25
+* Rain tip (VIN4) counts conversion from page 1 of the the tipping bucket rain gauge manual indicates that each tip count value corresponds to 0.1 mm.
+  This means that the rain tip scale needs to be::
+
+    0.1
 
 Manuals
 =======

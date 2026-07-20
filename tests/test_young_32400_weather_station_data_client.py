@@ -196,7 +196,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
             ("humidity", 100, "4000"),
         ):
             data_gen = common.data_client.Young32400RawDataGenerator(
-                **{"mean_" + field_name: mean, "std_" + field_name: 0}  # type: ignore
+                **{"mean_" + field_name: mean, "std_" + field_name: 0}
             )
             raw_data = data_gen.create_raw_data_list(config=config, num_items=5)
             field_index = field_name_index[field_name]
@@ -220,30 +220,13 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
         # Compute mean and standard deviation of all raw values.
         # Warning: the values for wind_direction are not trustworthy,
-        # due to wraparound and the values for rain_rate are meaningless.
+        # due to wraparound, and the values for rain_rate are meaningless.
         raw_means = np.mean(values, axis=0)
         raw_stds = np.std(values, axis=0)
         for field_name, field_index in field_name_index.items():
             expected_mean = getattr(data_gen, "mean_" + field_name)
             expected_std = getattr(data_gen, "std_" + field_name)
-            if field_name == "rain_rate":
-                # The count increments rarely (approx. 20 times over all
-                # 1000 samples), so rounding to the nearest int for raw data
-                # really messes up the statistics.
-                # Just compare the rate derived from final - initial counts
-                # to the mean, and be very generous in how close it has to be.
-                # We could do better by measuring from the first to the last
-                # tip count transition, but this is simpler and good enough.
-                tip_counts = values[:, field_index]
-                delta_counts = tip_counts[-1] - tip_counts[0]
-                if delta_counts < 0:
-                    delta_counts += common.data_client.Young32400RawDataGenerator.max_rain_tip_count
-                samples_per_hour = 60 * 50 / data_gen.read_interval
-                mm_per_count = config.scale_rain_rate
-                mean = (delta_counts / num_items) * mm_per_count * samples_per_hour
-                print(f"{field_name=}; {mean=:0.2f}; {expected_mean=}; {expected_std=}")
-                assert mean == pytest.approx(expected_mean, abs=expected_std * 2)
-            elif field_name == "wind_direction":
+            if field_name == "wind_direction":
                 # Use circular statistics.
                 scale, offset = config.scale_offset_wind_direction
                 wind_direction_deg = values[:, field_index] * scale + offset
@@ -276,17 +259,19 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
 
         # Use an unrealistically large rain rate (50 mm/hr is heavy),
         # so we don't have to wait as long to get rain reported.
-        data_gen = common.data_client.Young32400RawDataGenerator(
-            read_interval=read_interval,
-            mean_rain_rate=360,  # about 1 tip/second
-        )
+        data_gen = common.data_client.Young32400RawDataGenerator()
         num_checks_per_topic = 2
         # Need enough items to report rain rate num_checks_per_topic times,
         # plus margin.
         num_items = int((num_checks_per_topic + 1) * config.rain_stopped_interval / read_interval)
         data_client.simulated_raw_data = data_gen.create_raw_data_list(config=config, num_items=num_items)
         await data_client.start()
-        # await asyncio.sleep(10)
+        while not data_client.connected:
+            await asyncio.sleep(0.01)
+
+        # This will result in an unrealisticly high rainrate, but it helps
+        # speed up the unit test.
+        data_client.mock_data_server.tip_interval = 1.0
 
         try:
             for i in range(num_checks_per_topic):
@@ -295,14 +280,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 if i == 0:
                     await self.precipitation_event.wait()
                     assert self.tel_rain_rate.data.rainRateItem
-                await self.check_rain_rate(config=config, data_gen=data_gen)
-
-            # When the simulator runs out of simulated data,
-            # this gives the rain stopped timer a chance to expire.
-            # data = await self.remote.evt_precipitation.next(
-            #     flush=False, timeout=STD_TIMEOUT
-            # )
-            # assert not data.raining
+                await self.check_rain_rate()
         finally:
             await data_client.stop()
 
@@ -340,7 +318,7 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         data_gen: common.data_client.Young32400RawDataGenerator,
     ) -> None:
         """Check the next sample of relativeHumidity, temperature,
-        pressure and dewPoint.
+        pressure, and dewPoint.
 
         Parameters
         ----------
@@ -373,20 +351,8 @@ class Young32400DataClientTestCase(unittest.IsolatedAsyncioTestCase):
         data = self.tel_dew_point.data
         assert data.dewPointItem == pytest.approx(expected_dew_point)
 
-    async def check_rain_rate(
-        self,
-        config: types.SimpleNamespace,
-        data_gen: common.data_client.Young32400RawDataGenerator,
-    ) -> None:
-        """Check the next sample of rainRate.
-
-        Parameters
-        ----------
-        config : `types.SimpleNamespace`
-            The configuration of the weather data client.
-        data_gen : `common.data_client.Young32400RawDataGenerator`
-            The data generator used to generate simulated raw data.
-        """
+    async def check_rain_rate(self) -> None:
+        """Check the next sample of rainRate."""
         await self.rain_rate_event.wait()
         data = self.tel_rain_rate.data
-        assert data.rainRateItem == pytest.approx(data_gen.mean_rain_rate, rel=0.1)
+        assert data.rainRateItem == pytest.approx(350.0, rel=0.1)
