@@ -1,1 +1,0 @@
-Restored mock rain rate mean and standard deviation.

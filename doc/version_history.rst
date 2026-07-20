@@ -8,6 +8,17 @@ Version History
 
 .. towncrier release notes start
 
+v0.26.1 (2026-07-20)
+====================
+
+Performance Enhancement
+-----------------------
+
+- Restored mock rain rate mean and standard deviation. (`OSW-2448 <https://rubinobs.atlassian.net//browse/OSW-2448>`_)
+- Increased rain log level to INFO. (`OSW-2448 <https://rubinobs.atlassian.net//browse/OSW-2448>`_)
+- Updated Young Weather Station rain rate documentation. (`OSW-2448 <https://rubinobs.atlassian.net//browse/OSW-2448>`_)
+
+
 v0.26.0 (2026-02-17)
 ====================
 
