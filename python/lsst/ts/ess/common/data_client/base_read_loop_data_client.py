@@ -75,6 +75,7 @@ ExternalDataClientModules = dict(
     RingssDataClient="lsst.ts.ess.ringss",
     ModbusDataClient="lsst.ts.ess.epm",
     SnmpDataClient="lsst.ts.ess.epm",
+    M1M3ThermalGradientsDataClient="lsst.ts.m1m3.utils.ess",
 )
 
 
