@@ -1,0 +1,1 @@
+Registered ``ThermalGradientsDataClient`` (``lsst.ts.ess.m1m3``) in ``ExternalDataClientModules`` so the ESS CSC can load it.
