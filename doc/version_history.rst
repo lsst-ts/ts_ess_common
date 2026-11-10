@@ -8,6 +8,27 @@ Version History
 
 .. towncrier release notes start
 
+v0.26.2 (2026-11-10)
+====================
+
+Bug Fixes
+---------
+
+- Registered ``ThermalGradientsDataClient`` (``lsst.ts.ess.m1m3``) in ``ExternalDataClientModules`` so the ESS CSC can load it. (`RSO-1065 <https://rubinobs.atlassian.net//browse/RSO-1065>`_)
+
+
+Performance Enhancement
+-----------------------
+
+- In setup.py set local scheme to no local version. (`SSW-3097 <https://rubinobs.atlassian.net//browse/SSW-3097>`_)
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated all Python license headers. (`OSW-2863 <https://rubinobs.atlassian.net//browse/OSW-2863>`_)
+
+
 v0.26.1 (2026-07-20)
 ====================
 
