@@ -25,3 +25,4 @@ pytest_session.txt
 .pre-commit-config.yaml
 .ruff.toml
 towncrier.toml
+.LICENSE.txt
