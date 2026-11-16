@@ -90,3 +90,13 @@ Manual
 ======
 
 * :download:`LD-250 User Manual <boltek_pdfs/LD-250 Manual.pdf>`
+
+Test Description
+================
+
+* :download:`Boltek LD-250 and EFM-100 Test <boltek_pdfs/Boltek LD-250 and EFM-100 Test.pdf>`
+
+Installation Notes
+==================
+
+* :download:`Boltek instruments on Calibration Hill <boltek_pdfs/Boltek instruments on Calibration Hill.pdf>`
