@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.26.3 (2026-11-17)
+====================
+
+Other Changes and Additions
+---------------------------
+
+- Added Boltek LD-250 and EFM-100 Test and Installation notes. (`SSW-3206 <https://rubinobs.atlassian.net//browse/SSW-3206>`_)
+
+
 v0.26.2 (2026-11-10)
 ====================
 
